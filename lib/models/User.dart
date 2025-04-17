@@ -23,6 +23,7 @@ import 'ModelProvider.dart';
 import 'package:amplify_core/amplify_core.dart' as amplify_core;
 import 'package:collection/collection.dart';
 
+
 /** This is an auto generated class representing the User type in your schema. */
 class User extends amplify_core.Model {
   static const classType = const _UserModelType();
@@ -40,117 +41,78 @@ class User extends amplify_core.Model {
 
   @override
   getInstanceType() => classType;
-
-  @Deprecated(
-    '[getId] is being deprecated in favor of custom primary key feature. Use getter [modelIdentifier] to get model identifier.',
-  )
+  
+  @Deprecated('[getId] is being deprecated in favor of custom primary key feature. Use getter [modelIdentifier] to get model identifier.')
   @override
   String getId() => id;
-
+  
   UserModelIdentifier get modelIdentifier {
-    return UserModelIdentifier(id: id);
+      return UserModelIdentifier(
+        id: id
+      );
   }
-
+  
   String get display_username {
     try {
       return _display_username!;
-    } catch (e) {
+    } catch(e) {
       throw amplify_core.AmplifyCodeGenModelException(
-        amplify_core
-            .AmplifyExceptionMessages
-            .codeGenRequiredFieldForceCastExceptionMessage,
-        recoverySuggestion:
-            amplify_core
-                .AmplifyExceptionMessages
-                .codeGenRequiredFieldForceCastRecoverySuggestion,
-        underlyingException: e.toString(),
-      );
+          amplify_core.AmplifyExceptionMessages.codeGenRequiredFieldForceCastExceptionMessage,
+          recoverySuggestion:
+            amplify_core.AmplifyExceptionMessages.codeGenRequiredFieldForceCastRecoverySuggestion,
+          underlyingException: e.toString()
+          );
     }
   }
-
+  
   String get email {
     try {
       return _email!;
-    } catch (e) {
+    } catch(e) {
       throw amplify_core.AmplifyCodeGenModelException(
-        amplify_core
-            .AmplifyExceptionMessages
-            .codeGenRequiredFieldForceCastExceptionMessage,
-        recoverySuggestion:
-            amplify_core
-                .AmplifyExceptionMessages
-                .codeGenRequiredFieldForceCastRecoverySuggestion,
-        underlyingException: e.toString(),
-      );
+          amplify_core.AmplifyExceptionMessages.codeGenRequiredFieldForceCastExceptionMessage,
+          recoverySuggestion:
+            amplify_core.AmplifyExceptionMessages.codeGenRequiredFieldForceCastRecoverySuggestion,
+          underlyingException: e.toString()
+          );
     }
   }
-
+  
   String? get profilePicture {
     return _profilePicture;
   }
-
+  
   String? get bio {
     return _bio;
   }
-
+  
   String? get country {
     return _country;
   }
-
+  
   List<Sighting>? get sightings {
     return _sightings;
   }
-
+  
   UserSettings? get settings {
     return _settings;
   }
-
+  
   amplify_core.TemporalDateTime? get createdAt {
     return _createdAt;
   }
-
+  
   amplify_core.TemporalDateTime? get updatedAt {
     return _updatedAt;
   }
-
+  
   String? get userSettingsId {
     return _userSettingsId;
   }
-
-  const User._internal({
-    required this.id,
-    required display_username,
-    required email,
-    profilePicture,
-    bio,
-    country,
-    sightings,
-    settings,
-    createdAt,
-    updatedAt,
-    userSettingsId,
-  }) : _display_username = display_username,
-       _email = email,
-       _profilePicture = profilePicture,
-       _bio = bio,
-       _country = country,
-       _sightings = sightings,
-       _settings = settings,
-       _createdAt = createdAt,
-       _updatedAt = updatedAt,
-       _userSettingsId = userSettingsId;
-
-  factory User({
-    String? id,
-    required String display_username,
-    required String email,
-    String? profilePicture,
-    String? bio,
-    String? country,
-    List<Sighting>? sightings,
-    UserSettings? settings,
-    String? userSettingsId,
-  }) {
+  
+  const User._internal({required this.id, required display_username, required email, profilePicture, bio, country, sightings, settings, createdAt, updatedAt, userSettingsId}): _display_username = display_username, _email = email, _profilePicture = profilePicture, _bio = bio, _country = country, _sightings = sightings, _settings = settings, _createdAt = createdAt, _updatedAt = updatedAt, _userSettingsId = userSettingsId;
+  
+  factory User({String? id, required String display_username, required String email, String? profilePicture, String? bio, String? country, List<Sighting>? sightings, UserSettings? settings, String? userSettingsId}) {
     return User._internal(
       id: id == null ? amplify_core.UUID.getUUID() : id,
       display_username: display_username,
@@ -158,41 +120,37 @@ class User extends amplify_core.Model {
       profilePicture: profilePicture,
       bio: bio,
       country: country,
-      sightings:
-          sightings != null
-              ? List<Sighting>.unmodifiable(sightings)
-              : sightings,
+      sightings: sightings != null ? List<Sighting>.unmodifiable(sightings) : sightings,
       settings: settings,
-      userSettingsId: userSettingsId,
-    );
+      userSettingsId: userSettingsId);
   }
-
+  
   bool equals(Object other) {
     return this == other;
   }
-
+  
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is User &&
-        id == other.id &&
-        _display_username == other._display_username &&
-        _email == other._email &&
-        _profilePicture == other._profilePicture &&
-        _bio == other._bio &&
-        _country == other._country &&
-        DeepCollectionEquality().equals(_sightings, other._sightings) &&
-        _settings == other._settings &&
-        _userSettingsId == other._userSettingsId;
+      id == other.id &&
+      _display_username == other._display_username &&
+      _email == other._email &&
+      _profilePicture == other._profilePicture &&
+      _bio == other._bio &&
+      _country == other._country &&
+      DeepCollectionEquality().equals(_sightings, other._sightings) &&
+      _settings == other._settings &&
+      _userSettingsId == other._userSettingsId;
   }
-
+  
   @override
   int get hashCode => toString().hashCode;
-
+  
   @override
   String toString() {
     var buffer = new StringBuffer();
-
+    
     buffer.write("User {");
     buffer.write("id=" + "$id" + ", ");
     buffer.write("display_username=" + "$_display_username" + ", ");
@@ -200,28 +158,15 @@ class User extends amplify_core.Model {
     buffer.write("profilePicture=" + "$_profilePicture" + ", ");
     buffer.write("bio=" + "$_bio" + ", ");
     buffer.write("country=" + "$_country" + ", ");
-    buffer.write(
-      "createdAt=" + (_createdAt != null ? _createdAt.format() : "null") + ", ",
-    );
-    buffer.write(
-      "updatedAt=" + (_updatedAt != null ? _updatedAt.format() : "null") + ", ",
-    );
+    buffer.write("createdAt=" + (_createdAt != null ? _createdAt!.format() : "null") + ", ");
+    buffer.write("updatedAt=" + (_updatedAt != null ? _updatedAt!.format() : "null") + ", ");
     buffer.write("userSettingsId=" + "$_userSettingsId");
     buffer.write("}");
-
+    
     return buffer.toString();
   }
-
-  User copyWith({
-    String? display_username,
-    String? email,
-    String? profilePicture,
-    String? bio,
-    String? country,
-    List<Sighting>? sightings,
-    UserSettings? settings,
-    String? userSettingsId,
-  }) {
+  
+  User copyWith({String? display_username, String? email, String? profilePicture, String? bio, String? country, List<Sighting>? sightings, UserSettings? settings, String? userSettingsId}) {
     return User._internal(
       id: id,
       display_username: display_username ?? this.display_username,
@@ -231,10 +176,9 @@ class User extends amplify_core.Model {
       country: country ?? this.country,
       sightings: sightings ?? this.sightings,
       settings: settings ?? this.settings,
-      userSettingsId: userSettingsId ?? this.userSettingsId,
-    );
+      userSettingsId: userSettingsId ?? this.userSettingsId);
   }
-
+  
   User copyWithModelFieldValues({
     ModelFieldValue<String>? display_username,
     ModelFieldValue<String>? email,
@@ -243,90 +187,54 @@ class User extends amplify_core.Model {
     ModelFieldValue<String?>? country,
     ModelFieldValue<List<Sighting>?>? sightings,
     ModelFieldValue<UserSettings?>? settings,
-    ModelFieldValue<String?>? userSettingsId,
+    ModelFieldValue<String?>? userSettingsId
   }) {
     return User._internal(
       id: id,
-      display_username:
-          display_username == null
-              ? this.display_username
-              : display_username.value,
+      display_username: display_username == null ? this.display_username : display_username.value,
       email: email == null ? this.email : email.value,
-      profilePicture:
-          profilePicture == null ? this.profilePicture : profilePicture.value,
+      profilePicture: profilePicture == null ? this.profilePicture : profilePicture.value,
       bio: bio == null ? this.bio : bio.value,
       country: country == null ? this.country : country.value,
       sightings: sightings == null ? this.sightings : sightings.value,
       settings: settings == null ? this.settings : settings.value,
-      userSettingsId:
-          userSettingsId == null ? this.userSettingsId : userSettingsId.value,
+      userSettingsId: userSettingsId == null ? this.userSettingsId : userSettingsId.value
     );
   }
-
-  User.fromJson(Map<String, dynamic> json)
+  
+  User.fromJson(Map<String, dynamic> json)  
     : id = json['id'],
       _display_username = json['display_username'],
       _email = json['email'],
       _profilePicture = json['profilePicture'],
       _bio = json['bio'],
       _country = json['country'],
-      _sightings =
-          json['sightings'] is Map
-              ? (json['sightings']['items'] is List
-                  ? (json['sightings']['items'] as List)
-                      .where((e) => e != null)
-                      .map(
-                        (e) =>
-                            Sighting.fromJson(new Map<String, dynamic>.from(e)),
-                      )
-                      .toList()
-                  : null)
-              : (json['sightings'] is List
-                  ? (json['sightings'] as List)
-                      .where((e) => e?['serializedData'] != null)
-                      .map(
-                        (e) => Sighting.fromJson(
-                          new Map<String, dynamic>.from(e?['serializedData']),
-                        ),
-                      )
-                      .toList()
-                  : null),
-      _settings =
-          json['settings'] != null
-              ? json['settings']['serializedData'] != null
-                  ? UserSettings.fromJson(
-                    new Map<String, dynamic>.from(
-                      json['settings']['serializedData'],
-                    ),
-                  )
-                  : UserSettings.fromJson(
-                    new Map<String, dynamic>.from(json['settings']),
-                  )
-              : null,
-      _createdAt =
-          json['createdAt'] != null
-              ? amplify_core.TemporalDateTime.fromString(json['createdAt'])
-              : null,
-      _updatedAt =
-          json['updatedAt'] != null
-              ? amplify_core.TemporalDateTime.fromString(json['updatedAt'])
-              : null,
+      _sightings = json['sightings']  is Map
+        ? (json['sightings']['items'] is List
+          ? (json['sightings']['items'] as List)
+              .where((e) => e != null)
+              .map((e) => Sighting.fromJson(new Map<String, dynamic>.from(e)))
+              .toList()
+          : null)
+        : (json['sightings'] is List
+          ? (json['sightings'] as List)
+              .where((e) => e?['serializedData'] != null)
+              .map((e) => Sighting.fromJson(new Map<String, dynamic>.from(e?['serializedData'])))
+              .toList()
+          : null),
+      _settings = json['settings'] != null
+        ? json['settings']['serializedData'] != null
+          ? UserSettings.fromJson(new Map<String, dynamic>.from(json['settings']['serializedData']))
+          : UserSettings.fromJson(new Map<String, dynamic>.from(json['settings']))
+        : null,
+      _createdAt = json['createdAt'] != null ? amplify_core.TemporalDateTime.fromString(json['createdAt']) : null,
+      _updatedAt = json['updatedAt'] != null ? amplify_core.TemporalDateTime.fromString(json['updatedAt']) : null,
       _userSettingsId = json['userSettingsId'];
-
+  
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'display_username': _display_username,
-    'email': _email,
-    'profilePicture': _profilePicture,
-    'bio': _bio,
-    'country': _country,
-    'sightings': _sightings?.map((Sighting? e) => e?.toJson()).toList(),
-    'settings': _settings?.toJson(),
-    'createdAt': _createdAt?.format(),
-    'updatedAt': _updatedAt?.format(),
-    'userSettingsId': _userSettingsId,
+    'id': id, 'display_username': _display_username, 'email': _email, 'profilePicture': _profilePicture, 'bio': _bio, 'country': _country, 'sightings': _sightings?.map((Sighting? e) => e?.toJson()).toList(), 'settings': _settings?.toJson(), 'createdAt': _createdAt?.format(), 'updatedAt': _updatedAt?.format(), 'userSettingsId': _userSettingsId
   };
-
+  
   Map<String, Object?> toMap() => {
     'id': id,
     'display_username': _display_username,
@@ -338,168 +246,114 @@ class User extends amplify_core.Model {
     'settings': _settings,
     'createdAt': _createdAt,
     'updatedAt': _updatedAt,
-    'userSettingsId': _userSettingsId,
+    'userSettingsId': _userSettingsId
   };
 
-  static final amplify_core.QueryModelIdentifier<UserModelIdentifier>
-  MODEL_IDENTIFIER = amplify_core.QueryModelIdentifier<UserModelIdentifier>();
+  static final amplify_core.QueryModelIdentifier<UserModelIdentifier> MODEL_IDENTIFIER = amplify_core.QueryModelIdentifier<UserModelIdentifier>();
   static final ID = amplify_core.QueryField(fieldName: "id");
-  static final DISPLAY_USERNAME = amplify_core.QueryField(
-    fieldName: "display_username",
-  );
+  static final DISPLAY_USERNAME = amplify_core.QueryField(fieldName: "display_username");
   static final EMAIL = amplify_core.QueryField(fieldName: "email");
-  static final PROFILEPICTURE = amplify_core.QueryField(
-    fieldName: "profilePicture",
-  );
+  static final PROFILEPICTURE = amplify_core.QueryField(fieldName: "profilePicture");
   static final BIO = amplify_core.QueryField(fieldName: "bio");
   static final COUNTRY = amplify_core.QueryField(fieldName: "country");
   static final SIGHTINGS = amplify_core.QueryField(
     fieldName: "sightings",
-    fieldType: amplify_core.ModelFieldType(
-      amplify_core.ModelFieldTypeEnum.model,
-      ofModelName: 'Sighting',
-    ),
-  );
+    fieldType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.model, ofModelName: 'Sighting'));
   static final SETTINGS = amplify_core.QueryField(
     fieldName: "settings",
-    fieldType: amplify_core.ModelFieldType(
-      amplify_core.ModelFieldTypeEnum.model,
+    fieldType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.model, ofModelName: 'UserSettings'));
+  static final USERSETTINGSID = amplify_core.QueryField(fieldName: "userSettingsId");
+  static var schema = amplify_core.Model.defineSchema(define: (amplify_core.ModelSchemaDefinition modelSchemaDefinition) {
+    modelSchemaDefinition.name = "User";
+    modelSchemaDefinition.pluralName = "Users";
+    
+    modelSchemaDefinition.authRules = [
+      amplify_core.AuthRule(
+        authStrategy: amplify_core.AuthStrategy.PRIVATE,
+        operations: const [
+          amplify_core.ModelOperation.CREATE,
+          amplify_core.ModelOperation.UPDATE,
+          amplify_core.ModelOperation.DELETE,
+          amplify_core.ModelOperation.READ
+        ])
+    ];
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.id());
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: User.DISPLAY_USERNAME,
+      isRequired: true,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: User.EMAIL,
+      isRequired: true,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: User.PROFILEPICTURE,
+      isRequired: false,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: User.BIO,
+      isRequired: false,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: User.COUNTRY,
+      isRequired: false,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.hasMany(
+      key: User.SIGHTINGS,
+      isRequired: false,
+      ofModelName: 'Sighting',
+      associatedKey: Sighting.USER
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.hasOne(
+      key: User.SETTINGS,
+      isRequired: false,
       ofModelName: 'UserSettings',
-    ),
-  );
-  static final USERSETTINGSID = amplify_core.QueryField(
-    fieldName: "userSettingsId",
-  );
-  static var schema = amplify_core.Model.defineSchema(
-    define: (amplify_core.ModelSchemaDefinition modelSchemaDefinition) {
-      modelSchemaDefinition.name = "User";
-      modelSchemaDefinition.pluralName = "Users";
-
-      modelSchemaDefinition.authRules = [
-        amplify_core.AuthRule(
-          authStrategy: amplify_core.AuthStrategy.PRIVATE,
-          operations: const [
-            amplify_core.ModelOperation.CREATE,
-            amplify_core.ModelOperation.UPDATE,
-            amplify_core.ModelOperation.DELETE,
-            amplify_core.ModelOperation.READ,
-          ],
-        ),
-      ];
-
-      modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.id());
-
-      modelSchemaDefinition.addField(
-        amplify_core.ModelFieldDefinition.field(
-          key: User.DISPLAY_USERNAME,
-          isRequired: true,
-          ofType: amplify_core.ModelFieldType(
-            amplify_core.ModelFieldTypeEnum.string,
-          ),
-        ),
-      );
-
-      modelSchemaDefinition.addField(
-        amplify_core.ModelFieldDefinition.field(
-          key: User.EMAIL,
-          isRequired: true,
-          ofType: amplify_core.ModelFieldType(
-            amplify_core.ModelFieldTypeEnum.string,
-          ),
-        ),
-      );
-
-      modelSchemaDefinition.addField(
-        amplify_core.ModelFieldDefinition.field(
-          key: User.PROFILEPICTURE,
-          isRequired: false,
-          ofType: amplify_core.ModelFieldType(
-            amplify_core.ModelFieldTypeEnum.string,
-          ),
-        ),
-      );
-
-      modelSchemaDefinition.addField(
-        amplify_core.ModelFieldDefinition.field(
-          key: User.BIO,
-          isRequired: false,
-          ofType: amplify_core.ModelFieldType(
-            amplify_core.ModelFieldTypeEnum.string,
-          ),
-        ),
-      );
-
-      modelSchemaDefinition.addField(
-        amplify_core.ModelFieldDefinition.field(
-          key: User.COUNTRY,
-          isRequired: false,
-          ofType: amplify_core.ModelFieldType(
-            amplify_core.ModelFieldTypeEnum.string,
-          ),
-        ),
-      );
-
-      modelSchemaDefinition.addField(
-        amplify_core.ModelFieldDefinition.hasMany(
-          key: User.SIGHTINGS,
-          isRequired: false,
-          ofModelName: 'Sighting',
-          associatedKey: Sighting.USER,
-        ),
-      );
-
-      modelSchemaDefinition.addField(
-        amplify_core.ModelFieldDefinition.hasOne(
-          key: User.SETTINGS,
-          isRequired: false,
-          ofModelName: 'UserSettings',
-          associatedKey: UserSettings.ID,
-        ),
-      );
-
-      modelSchemaDefinition.addField(
-        amplify_core.ModelFieldDefinition.nonQueryField(
-          fieldName: 'createdAt',
-          isRequired: false,
-          isReadOnly: true,
-          ofType: amplify_core.ModelFieldType(
-            amplify_core.ModelFieldTypeEnum.dateTime,
-          ),
-        ),
-      );
-
-      modelSchemaDefinition.addField(
-        amplify_core.ModelFieldDefinition.nonQueryField(
-          fieldName: 'updatedAt',
-          isRequired: false,
-          isReadOnly: true,
-          ofType: amplify_core.ModelFieldType(
-            amplify_core.ModelFieldTypeEnum.dateTime,
-          ),
-        ),
-      );
-
-      modelSchemaDefinition.addField(
-        amplify_core.ModelFieldDefinition.field(
-          key: User.USERSETTINGSID,
-          isRequired: false,
-          ofType: amplify_core.ModelFieldType(
-            amplify_core.ModelFieldTypeEnum.string,
-          ),
-        ),
-      );
-    },
-  );
+      associatedKey: UserSettings.ID
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.nonQueryField(
+      fieldName: 'createdAt',
+      isRequired: false,
+      isReadOnly: true,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.dateTime)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.nonQueryField(
+      fieldName: 'updatedAt',
+      isRequired: false,
+      isReadOnly: true,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.dateTime)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: User.USERSETTINGSID,
+      isRequired: false,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
+    ));
+  });
 }
 
 class _UserModelType extends amplify_core.ModelType<User> {
   const _UserModelType();
-
+  
   @override
   User fromJson(Map<String, dynamic> jsonData) {
     return User.fromJson(jsonData);
   }
-
+  
   @override
   String modelName() {
     return 'User';
@@ -514,32 +368,37 @@ class UserModelIdentifier implements amplify_core.ModelIdentifier<User> {
   final String id;
 
   /** Create an instance of UserModelIdentifier using [id] the primary key. */
-  const UserModelIdentifier({required this.id});
-
+  const UserModelIdentifier({
+    required this.id});
+  
   @override
-  Map<String, dynamic> serializeAsMap() => (<String, dynamic>{'id': id});
-
+  Map<String, dynamic> serializeAsMap() => (<String, dynamic>{
+    'id': id
+  });
+  
   @override
-  List<Map<String, dynamic>> serializeAsList() =>
-      serializeAsMap().entries
-          .map((entry) => (<String, dynamic>{entry.key: entry.value}))
-          .toList();
-
+  List<Map<String, dynamic>> serializeAsList() => serializeAsMap()
+    .entries
+    .map((entry) => (<String, dynamic>{ entry.key: entry.value }))
+    .toList();
+  
   @override
   String serializeAsString() => serializeAsMap().values.join('#');
-
+  
   @override
   String toString() => 'UserModelIdentifier(id: $id)';
-
+  
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
     }
-
-    return other is UserModelIdentifier && id == other.id;
+    
+    return other is UserModelIdentifier &&
+      id == other.id;
   }
-
+  
   @override
-  int get hashCode => id.hashCode;
+  int get hashCode =>
+    id.hashCode;
 }

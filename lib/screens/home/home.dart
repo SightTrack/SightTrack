@@ -6,6 +6,7 @@ import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:sighttrack/logging.dart';
 import 'package:sighttrack/models/ModelProvider.dart';
 import 'package:sighttrack/screens/home/view_sighting.dart';
+import 'package:sighttrack/util.dart';
 
 class AnnotationClickListener extends OnCircleAnnotationClickListener {
   /// Callback function to handle annotation click events
@@ -36,11 +37,15 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _mapLoaded = false;
   final Map<String, Sighting> _annotationSightingMap = {};
   late AnnotationClickListener _annotationClickListener;
-  bool _isNavigating = false; // Debounce flag
+  bool _isNavigating = false;
+  UserSettings? _userSettings;
+  bool _isAreaCaptureActive = false;
 
   @override
   void initState() {
     super.initState();
+    _initializeWrapper();
+
     _annotationClickListener = AnnotationClickListener(
       onAnnotationClick: (annotation) {
         if (_isNavigating) return; // Skip if already navigating
@@ -62,6 +67,22 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
     _initializeAmplify();
+  }
+
+  Future<void> _initializeWrapper() async {
+    final fetchSettings = await Util.getUserSettings();
+    setState(() {
+      _userSettings = fetchSettings;
+      _isAreaCaptureActive = fetchSettings?.isAreaCaptureActive ?? false;
+    });
+    Amplify.DataStore.observe(UserSettings.classType).listen((event) {
+      if (mounted) {
+        setState(() {
+          _userSettings = event.item;
+          _isAreaCaptureActive = _userSettings?.isAreaCaptureActive ?? false;
+        });
+      }
+    });
   }
 
   Future<void> _fetchSightings() async {
@@ -262,7 +283,43 @@ class _HomeScreenState extends State<HomeScreen> {
               onMapCreated: onMapCreated,
             ),
           ),
-          // New top-left button with same styling
+          if (_isAreaCaptureActive)
+            Positioned(
+              top: 64,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Colors.grey, Colors.teal],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Text(
+                    'Area Capture Mode',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           Positioned(
             top: 50.0,
             left: 16.0,
@@ -295,11 +352,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.list,
-                  size: 24,
-                  color: Colors.white,
-                ), // Change icon as needed
+                child: const Icon(Icons.list, size: 24, color: Colors.white),
               ),
             ),
           ),
@@ -341,7 +394,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
 extension ColorExtension on Color {
   int toARGB32() {
-    // ignore: deprecated_member_use
     return (alpha << 24) | (red << 16) | (green << 8) | blue;
   }
 }

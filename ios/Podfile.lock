@@ -32,19 +32,20 @@ PODS:
   - Flutter (1.0.0)
   - geolocator_apple (1.2.0):
     - Flutter
+    - FlutterMacOS
   - image_picker_ios (0.0.1):
     - Flutter
-  - mapbox_maps_flutter (2.6.0):
+  - mapbox_maps_flutter (2.7.0):
     - Flutter
-    - MapboxMaps (= 11.10.1)
+    - MapboxMaps (= 11.11.0)
     - Turf (= 4.0.0)
-  - MapboxCommon (24.10.0):
+  - MapboxCommon (24.11.0):
     - Turf (= 4.0.0)
-  - MapboxCoreMaps (11.10.2):
-    - MapboxCommon (~> 24.10)
-  - MapboxMaps (11.10.1):
-    - MapboxCommon (= 24.10.0)
-    - MapboxCoreMaps (= 11.10.2)
+  - MapboxCoreMaps (11.11.0):
+    - MapboxCommon (~> 24.11.0)
+  - MapboxMaps (11.11.0):
+    - MapboxCommon (= 24.11.0)
+    - MapboxCoreMaps (= 11.11.0)
     - Turf (= 4.0.0)
   - package_info_plus (0.4.5):
     - Flutter
@@ -69,7 +70,7 @@ DEPENDENCIES:
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - Flutter (from `Flutter`)
-  - geolocator_apple (from `.symlinks/plugins/geolocator_apple/ios`)
+  - geolocator_apple (from `.symlinks/plugins/geolocator_apple/darwin`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - mapbox_maps_flutter (from `.symlinks/plugins/mapbox_maps_flutter/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
@@ -102,7 +103,7 @@ EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
   geolocator_apple:
-    :path: ".symlinks/plugins/geolocator_apple/ios"
+    :path: ".symlinks/plugins/geolocator_apple/darwin"
   image_picker_ios:
     :path: ".symlinks/plugins/image_picker_ios/ios"
   mapbox_maps_flutter:
@@ -120,16 +121,16 @@ SPEC CHECKSUMS:
   amplify_auth_cognito: a5d9cb77abfbe05e3501ad0c45dddc81503e7074
   amplify_datastore: 76d1c44680ca218f604e846c9bf5dac2901ddf9d
   amplify_secure_storage: 3edc30177ffefbcee786c408a21c02f8ab9f168e
-  camera_avfoundation: 04b44aeb14070126c6529e5ab82cc7c9fca107cf
+  camera_avfoundation: be3be85408cd4126f250386828e9b1dfa40ab436
   connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
   device_info_plus: 71ffc6ab7634ade6267c7a93088ed7e4f74e5896
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  geolocator_apple: 1560c3c875af2a412242c7a923e15d0d401966ff
+  geolocator_apple: ab36aa0e8b7d7a2d7639b3b4e48308394e8cef5e
   image_picker_ios: 7fe1ff8e34c1790d6fff70a32484959f563a928a
-  mapbox_maps_flutter: 1457f41480792ffeaefbf3786008ce2f701dcd20
-  MapboxCommon: 363dbed6bcdaa9a08674098fc5c661e826049dc2
-  MapboxCoreMaps: ba391b7121c52d8ab656b0efa081d928648c8c6f
-  MapboxMaps: 5ec35b1ad72822b9b66c69955e6bb0a81129d4b0
+  mapbox_maps_flutter: 4def394c2c589f0be7b7f33b7f152aee897ca2af
+  MapboxCommon: 68daa8291a799ba2e24050160a1eb71e090ac0ca
+  MapboxCoreMaps: 99401a4a1cfddbd5166d29db43d26e7afa28acfd
+  MapboxMaps: 5199095d616bbf02d99f6287dbb2023e66c6987c
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
@@ -138,6 +139,6 @@ SPEC CHECKSUMS:
   Turf: c9eb11a65d96af58cac523460fd40fec5061b081
   url_launcher_ios: 694010445543906933d732453a59da0a173ae33d
 
-PODFILE CHECKSUM: 3285f74c59b56d0941247159b606e388eb0d73d5
+PODFILE CHECKSUM: 0dd524b8f9ed7b5c8dadb3f0c292ee518cd339f2
 
 COCOAPODS: 1.16.2

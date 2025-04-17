@@ -1,5 +1,7 @@
 import 'package:animated_background/animated_background.dart';
 import 'package:flutter/material.dart';
+import 'package:sighttrack/models/ModelProvider.dart';
+import 'package:sighttrack/util.dart';
 
 class CaptureTypeScreen extends StatefulWidget {
   const CaptureTypeScreen({super.key});
@@ -17,10 +19,24 @@ class _CaptureTypeScreenState extends State<CaptureTypeScreen>
   late Animation<double> _fadeButton2;
   late Animation<double> _iconRotate;
 
+  UserSettings? _userSettings;
+
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
+    _initializeWrapper();
+  }
+
+  void _initializeWrapper() async {
+    final fetchSettings = await Util.getUserSettings();
+    setState(() {
+      _userSettings = fetchSettings;
+    });
+    if (_userSettings != null && _userSettings?.isAreaCaptureActive == true) {
+      if (!mounted) return;
+      Navigator.pushNamed(context, '/area_capture_home');
+    }
   }
 
   void _initializeAnimations() {
@@ -130,15 +146,17 @@ class _CaptureTypeScreenState extends State<CaptureTypeScreen>
                     child: _buildNeumorphicButton(
                       icon: Icons.map,
                       label: 'Area Capture',
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/area_capture');
+                      },
                     ),
                   ),
                 ],
               ),
             ),
             Positioned(
-              top: 30,
-              left: 20,
+              top: 60,
+              left: 10,
               child: IconButton(
                 icon: const Icon(
                   Icons.question_mark,
@@ -171,12 +189,12 @@ class _CaptureTypeScreenState extends State<CaptureTypeScreen>
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withValues(alpha: 0.5),
             offset: const Offset(5, 5),
             blurRadius: 10,
           ),
           BoxShadow(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             offset: const Offset(-5, -5),
             blurRadius: 10,
           ),
@@ -212,26 +230,19 @@ class CaptureTypeInfoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+      ),
       body: SafeArea(
         child: Stack(
           children: [
-            // Back button at top left
-            Positioned(
-              top: 20,
-              left: 20,
-              child: _buildNeumorphicIconButton(
-                icon: Icons.arrow_back,
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-            // Main content
             Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Title
                     Text(
                       'Which type?',
                       style: TextStyle(
@@ -244,7 +255,6 @@ class CaptureTypeInfoScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 30),
-                    // Description
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
@@ -268,7 +278,41 @@ class CaptureTypeInfoScreen extends StatelessWidget {
                         ],
                       ),
                       child: Text(
-                        'Quick capture is used for independent photos of a single animal/plant. Area capture is when you want to capture a larger area with multiple animals/plants - primarily for data collection and research purposes',
+                        'Quick capture is used for independent photos of a single animal/plant. ',
+                        style: TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 18,
+                          color: Colors.white.withValues(alpha: 0.7),
+                          height: 1.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Colors.grey[900]!, Colors.grey[850]!],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            offset: const Offset(5, 5),
+                            blurRadius: 15,
+                          ),
+                          BoxShadow(
+                            color: Colors.white.withValues(alpha: 0.05),
+                            offset: const Offset(-5, -5),
+                            blurRadius: 15,
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        'Area capture is when you want to capture a larger area with multiple animals/plants - primarily for data collection and research purposes',
                         style: TextStyle(
                           fontFamily: 'Roboto',
                           fontSize: 18,
@@ -284,40 +328,6 @@ class CaptureTypeInfoScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  // Neumorphic-style icon button
-  Widget _buildNeumorphicIconButton({
-    required IconData icon,
-    required VoidCallback onPressed,
-  }) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.grey[900]!, Colors.grey[800]!],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.5),
-              offset: const Offset(5, 5),
-              blurRadius: 10,
-            ),
-            BoxShadow(
-              color: Colors.white.withValues(alpha: 0.1),
-              offset: const Offset(-5, -5),
-              blurRadius: 10,
-            ),
-          ],
-        ),
-        child: Icon(icon, color: Colors.white.withValues(alpha: 0.9), size: 28),
       ),
     );
   }

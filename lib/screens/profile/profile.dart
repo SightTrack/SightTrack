@@ -5,6 +5,7 @@ import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:sighttrack/logging.dart';
 import 'package:sighttrack/models/User.dart';
+import 'package:sighttrack/models/UserSettings.dart';
 import 'package:sighttrack/util.dart';
 import 'package:sighttrack/widgets/button.dart';
 
@@ -40,6 +41,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool isLoading = true;
   late StreamSubscription subscription;
   Future<String?>? _profilePictureFuture;
+  UserSettings? _userSettings;
+  bool _isAreaCaptureActive = false;
 
   Future<void> fetchCurrentUser() async {
     try {
@@ -72,9 +75,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _initializeWrapper() async {
+    final fetchSettings = await Util.getUserSettings();
+    setState(() {
+      _userSettings = fetchSettings;
+      _isAreaCaptureActive = fetchSettings?.isAreaCaptureActive ?? false;
+    });
+    Amplify.DataStore.observe(UserSettings.classType).listen((event) {
+      if (mounted) {
+        setState(() {
+          _userSettings = event.item;
+          _isAreaCaptureActive = _userSettings?.isAreaCaptureActive ?? false;
+        });
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    _initializeWrapper();
+
     fetchCurrentUser();
     subscription = Amplify.DataStore.observe(User.classType).listen((event) {
       if (userDatastore != null && event.item.id == userDatastore!.id) {
@@ -217,44 +238,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
-                    FutureBuilder<bool>(
-                      future: Util.isAdmin(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.grey,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        FutureBuilder<bool>(
+                          future: Util.isAdmin(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.grey,
+                                  ),
+                                ),
+                              );
+                            }
+                            if (snapshot.hasData && snapshot.data == true) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Text(
+                                  'Admin User',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                        if (_isAreaCaptureActive)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 15),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Text(
+                                'Area Capture Active',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
-                          );
-                        }
-                        if (snapshot.hasData && snapshot.data == true) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.red.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Text(
-                              'Admin User',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.red,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      },
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 24),
                     Row(
@@ -313,6 +361,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         textAlign: TextAlign.center,
                       ),
                     ),
+
                     const SizedBox(height: 48),
                     SightTrackButton(
                       text: 'Logout',

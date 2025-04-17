@@ -13,6 +13,8 @@ type UserSettings @model @auth(rules: [{ allow: private }]) {
   id: ID!
   userId: ID! # Foreign key to User
   locationOffset: Boolean
+  isAreaCaptureActive: Boolean
+  areaCaptureEnd: AWSDateTime
 }
 
 type Sighting @model @auth(rules: [{allow: private}]) {
