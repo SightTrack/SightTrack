@@ -426,8 +426,8 @@ class CaptureScreenState extends State<CaptureScreen> {
             ),
 
           Positioned(
-            top: 40,
-            left: 20,
+            top: 60,
+            left: 15,
             child: IconButton(
               onPressed: () {
                 Navigator.pop(context);
@@ -444,9 +444,7 @@ class CaptureScreenState extends State<CaptureScreen> {
                   children: [
                     Positioned(
                       top: 55,
-                      left:
-                          (constraints.maxWidth - 150) /
-                          2, // Adjust 150 to your Container's width
+                      left: (constraints.maxWidth - 150) / 2,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,

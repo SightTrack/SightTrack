@@ -52,6 +52,8 @@
 	<string>To take a picture for photo uploads and profile pictures</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app needs access to location when open to access the map</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Needed to take pictures for sightings. Audio isn't used, but needed for camera access</string>
 
 	<key>NSAppTransportSecurity</key>
 	<dict>

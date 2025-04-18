@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
-import 'package:sighttrack/screens/capture/area_capture.dart';
+import 'package:sighttrack/screens/capture/area_capture_setup.dart';
 import 'package:sighttrack/screens/capture/area_capture_home.dart';
 import 'package:sighttrack/screens/capture/capture.dart';
 import 'package:sighttrack/screens/capture/capture_type.dart';
@@ -48,9 +48,9 @@ class Navigation extends StatelessWidget {
             ],
           ),
           child: const Icon(
-            Icons.camera_alt,
+            Icons.blur_on_sharp,
             color: Colors.white,
-            size: 22.0, // Kept icon size at 32.0
+            size: 22.0,
           ),
         ),
         activeColorPrimary: Colors.teal.shade400,
@@ -60,7 +60,7 @@ class Navigation extends StatelessWidget {
           routes: {
             '/info': (final context) => const CaptureTypeInfoScreen(),
             '/capture': (final context) => const CaptureScreen(),
-            '/area_capture': (final context) => const AreaCaptureScreen(),
+            '/area_capture': (final context) => const AreaCaptureSetup(),
             '/area_capture_home': (final context) => const AreaCaptureHome(),
           },
         ),

@@ -7,14 +7,14 @@ import 'package:sighttrack/models/UserSettings.dart';
 import 'package:sighttrack/util.dart';
 import 'package:sighttrack/widgets/button.dart';
 
-class AreaCaptureScreen extends StatefulWidget {
-  const AreaCaptureScreen({super.key});
+class AreaCaptureSetup extends StatefulWidget {
+  const AreaCaptureSetup({super.key});
 
   @override
-  State<AreaCaptureScreen> createState() => _AreaCaptureScreenState();
+  State<AreaCaptureSetup> createState() => _AreaCaptureSetupState();
 }
 
-class _AreaCaptureScreenState extends State<AreaCaptureScreen> {
+class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
   MapboxMap? _mapboxMap;
   CircleAnnotationManager? _circleManager;
   String? _circleAnnotationId;
@@ -22,6 +22,7 @@ class _AreaCaptureScreenState extends State<AreaCaptureScreen> {
   Point? _centerPoint;
   final ValueNotifier<double> _radiusMeters = ValueNotifier(300.0);
   double _lastZoom = 15.0;
+  bool _isLoading = true;
 
   int? _selectedDuration;
   final List<int> _durations = [1, 5, 10, 30, 60, 120, 300]; // Minutes
@@ -32,6 +33,8 @@ class _AreaCaptureScreenState extends State<AreaCaptureScreen> {
   void initState() {
     super.initState();
     _initializeWrapper();
+
+    _isLoading = false;
   }
 
   @override
@@ -185,18 +188,6 @@ class _AreaCaptureScreenState extends State<AreaCaptureScreen> {
         await Amplify.DataStore.save(updatedSettings);
         _userSettings = updatedSettings;
 
-        // Schedule deactivation after duration
-        // Future.delayed(Duration(minutes: _selectedDuration!), () async {
-        //   if (_isDisposed || !mounted) return;
-        //   final deactivatedSettings = _userSettings!.copyWith(
-        //     isAreaCaptureActive: false,
-        //     areaCaptureEnd: null,
-        //   );
-        //   await Amplify.DataStore.save(deactivatedSettings);
-        //   _userSettings = deactivatedSettings;
-        //   setState(() {});
-        // });
-
         setState(() {}); // Update UI
 
         Navigator.pushNamed(context, '/area_capture_home');
@@ -220,112 +211,115 @@ class _AreaCaptureScreenState extends State<AreaCaptureScreen> {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
       ),
-      body: SingleChildScrollView(
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
-            child: Column(
-              children: [
-                Text(
-                  'Set your capture area',
-                  style: TextStyle(color: Colors.white, fontSize: 25),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Sightings will be captured within this area only',
-                  style: TextStyle(color: Colors.white, fontSize: 15),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 30),
-                Container(
-                  height: 300,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: MapWidget(
-                      styleUri:
-                          'mapbox://styles/jamestt/cm8c8inqm004b01rxat34g28r',
-                      cameraOptions: CameraOptions(
-                        center: Point(
-                          coordinates: Position(-122.4194, 37.7749),
+      body:
+          _isLoading
+              ? CircularProgressIndicator()
+              : SingleChildScrollView(
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Set your capture area',
+                          style: TextStyle(color: Colors.white, fontSize: 25),
+                          textAlign: TextAlign.center,
                         ),
-                        zoom: 15.0,
-                      ),
-                      onMapCreated: _onMapCreated,
-                      onCameraChangeListener: (_) => _updateCircle(),
-                      key: const ValueKey('map'),
-                    ),
-                  ),
-                ),
-                ValueListenableBuilder<double>(
-                  valueListenable: _radiusMeters,
-                  builder:
-                      (context, radius, _) => Slider(
-                        value: radius,
-                        min: 100.0,
-                        max: 2000.0,
-                        onChanged: (newRadius) {
-                          _radiusMeters.value = newRadius;
-                          _updateCircle(forceUpdate: true);
-                        },
-                      ),
-                ),
-                ValueListenableBuilder<double>(
-                  valueListenable: _radiusMeters,
-                  builder:
-                      (context, _, _) => Text(
-                        "Capture radius: ${_radiusMeters.value.toInt()}m",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Session duration",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    const SizedBox(width: 20),
-                    DropdownButton<int>(
-                      hint: Text(
-                        'Select (Minutes)',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      value: _selectedDuration,
-                      dropdownColor: Colors.black,
-                      style: TextStyle(color: Colors.white),
-                      items:
-                          _durations.map((duration) {
-                            return DropdownMenuItem<int>(
-                              value: duration,
-                              child: Text(
-                                '$duration minutes',
+                        const SizedBox(height: 10),
+                        Text(
+                          'Sightings will be captured within this area only',
+                          style: TextStyle(color: Colors.white, fontSize: 15),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 30),
+                        Container(
+                          height: 300,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: MapWidget(
+                              styleUri:
+                                  'mapbox://styles/jamestt/cm8c8inqm004b01rxat34g28r',
+                              cameraOptions: CameraOptions(
+                                center: Point(
+                                  coordinates: Position(-122.4194, 37.7749),
+                                ),
+                                zoom: 15.0,
+                              ),
+                              onMapCreated: _onMapCreated,
+                              onCameraChangeListener: (_) => _updateCircle(),
+                              key: const ValueKey('map'),
+                            ),
+                          ),
+                        ),
+                        ValueListenableBuilder<double>(
+                          valueListenable: _radiusMeters,
+                          builder:
+                              (context, radius, _) => Slider(
+                                value: radius,
+                                min: 100.0,
+                                max: 2000.0,
+                                onChanged: (newRadius) {
+                                  _radiusMeters.value = newRadius;
+                                  _updateCircle(forceUpdate: true);
+                                },
+                              ),
+                        ),
+                        ValueListenableBuilder<double>(
+                          valueListenable: _radiusMeters,
+                          builder:
+                              (context, _, _) => Text(
+                                'Capture radius: ${_radiusMeters.value.toInt()}m',
                                 style: TextStyle(color: Colors.white),
                               ),
-                            );
-                          }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedDuration = value;
-                        });
-                      },
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Session duration',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            const SizedBox(width: 20),
+                            DropdownButton<int>(
+                              hint: Text(
+                                'Select (Minutes)',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              value: _selectedDuration,
+                              dropdownColor: Colors.black,
+                              style: TextStyle(color: Colors.white),
+                              items:
+                                  _durations.map((duration) {
+                                    return DropdownMenuItem<int>(
+                                      value: duration,
+                                      child: Text(
+                                        '$duration minutes',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    );
+                                  }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedDuration = value;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 30),
+                        NiceButton(
+                          text: 'Start Area Capture',
+                          onPressed: _startAreaCapture,
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-                const SizedBox(height: 30),
-                NiceButton(
-                  text: "Start Area Capture",
-                  onPressed: _startAreaCapture,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+              ),
     );
   }
 }

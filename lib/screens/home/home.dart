@@ -58,11 +58,10 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context) => ViewSightingScreen(sighting: sighting),
             ),
           ).then((_) {
-            // Reset flag after navigation completes
             _isNavigating = false;
           });
         } else {
-          _isNavigating = false; // Reset if no navigation occurs
+          _isNavigating = false;
         }
       },
     );
@@ -115,7 +114,6 @@ class _HomeScreenState extends State<HomeScreen> {
         CircleAnnotationOptions(
           geometry: Point(
             coordinates: Position(
-              // Prioritize the display coordinates, and if none is set, then show the actual
               sighting.displayLongitude ?? sighting.longitude,
               sighting.displayLatitude ?? sighting.latitude,
             ),
