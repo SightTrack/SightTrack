@@ -31,7 +31,9 @@ dependencies:
   flutter_launcher_icons: ^0.14.3
   animated_background: ^2.0.0
   latlong2: ^0.9.1
-  mapbox_maps_flutter: 2.7.0
+  mapbox_maps_flutter: ^2.7.0
+  flutter_dotenv: ^5.2.1
+  fluttertoast: ^8.2.12
 
 dev_dependencies:
   flutter_test:
@@ -42,3 +44,4 @@ flutter:
   uses-material-design: true
   assets:
     - "assets/logo.jpg"
+    - ".env"

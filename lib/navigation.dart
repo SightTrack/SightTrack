@@ -1,14 +1,7 @@
-import 'package:flutter/cupertino.dart';
+import 'package:sighttrack/barrel.dart';
+
 import 'package:flutter/material.dart';
-import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
-import 'package:sighttrack/screens/capture/area_capture_setup.dart';
-import 'package:sighttrack/screens/capture/area_capture_home.dart';
-import 'package:sighttrack/screens/capture/capture.dart';
-import 'package:sighttrack/screens/capture/capture_type.dart';
-import 'package:sighttrack/screens/home/all_sightings.dart';
-import 'package:sighttrack/screens/home/home.dart';
-import 'package:sighttrack/screens/profile/profile.dart';
-import 'package:sighttrack/screens/profile/settings.dart';
+import 'package:flutter/cupertino.dart';
 
 class Navigation extends StatelessWidget {
   const Navigation({super.key});
@@ -25,7 +18,7 @@ class Navigation extends StatelessWidget {
         activeColorPrimary: CupertinoColors.activeGreen,
         inactiveColorPrimary: CupertinoColors.systemGrey,
         routeAndNavigatorSettings: RouteAndNavigatorSettings(
-          initialRoute: '/home',
+          initialRoute: '/',
           routes: {
             '/allSightings': (final context) => const AllSightingsScreen(),
           },
@@ -56,12 +49,12 @@ class Navigation extends StatelessWidget {
         activeColorPrimary: Colors.teal.shade400,
         inactiveColorPrimary: Colors.teal.shade500,
         routeAndNavigatorSettings: RouteAndNavigatorSettings(
-          initialRoute: '/captureType',
+          initialRoute: '/',
           routes: {
             '/info': (final context) => const CaptureTypeInfoScreen(),
             '/capture': (final context) => const CaptureScreen(),
-            '/area_capture': (final context) => const AreaCaptureSetup(),
-            '/area_capture_home': (final context) => const AreaCaptureHome(),
+            '/ac_setup': (final context) => const AreaCaptureSetup(),
+            '/ac_home': (final context) => const AreaCaptureHome(),
           },
         ),
         activeColorSecondary: Colors.white,
@@ -76,7 +69,7 @@ class Navigation extends StatelessWidget {
         activeColorPrimary: CupertinoColors.activeGreen,
         inactiveColorPrimary: CupertinoColors.systemGrey,
         routeAndNavigatorSettings: RouteAndNavigatorSettings(
-          initialRoute: '/profile',
+          initialRoute: '/',
           routes: {'/settings': (final context) => const SettingsScreen()},
         ),
       ),

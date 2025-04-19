@@ -1,14 +1,7 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'package:amplify_flutter/amplify_flutter.dart';
-import 'package:camera/camera.dart';
+import 'package:sighttrack/barrel.dart';
+
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:sighttrack/logging.dart';
-import 'package:sighttrack/models/Sighting.dart';
-import 'package:sighttrack/models/UserSettings.dart';
-import 'package:sighttrack/util.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class AreaCaptureHome extends StatefulWidget {
   const AreaCaptureHome({super.key});
@@ -25,13 +18,17 @@ class _AreaCaptureHomeState extends State<AreaCaptureHome>
   List<Map<String, dynamic>> _sessionSightings = [];
   CameraController? _cameraController;
   Future<void>? _initializeCameraFuture;
+  late FToast fToast;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     _initializeWrapper();
     _initializeCamera();
+    WidgetsBinding.instance.addObserver(this);
+
+    fToast = FToast();
+    fToast.init(context);
   }
 
   @override
@@ -75,8 +72,7 @@ class _AreaCaptureHomeState extends State<AreaCaptureHome>
 
   void _startTimer() {
     if (_timer?.isActive ?? false) return;
-    if (_userSettings?.isAreaCaptureActive == true &&
-        _userSettings?.areaCaptureEnd != null) {
+    if (_userSettings?.isAreaCaptureActive == true) {
       _timer = Timer.periodic(
         const Duration(seconds: 1),
         (_) => _updateTimeRemaining(),
@@ -84,36 +80,17 @@ class _AreaCaptureHomeState extends State<AreaCaptureHome>
     }
   }
 
-  Future<Position?> _getCurrentPosition() async {
-    try {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) return null;
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) return null;
-      }
-      if (permission == LocationPermission.deniedForever) return null;
-
-      return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-    } catch (e) {
-      debugPrint('Error getting location: $e');
-      return null;
-    }
-  }
-
   Future<void> _takePhoto() async {
     try {
       await _initializeCameraFuture;
       final photo = await _cameraController!.takePicture();
-      final position = await _getCurrentPosition();
+      final position = await Util.getCurrentPosition();
       final now = DateTime.now();
       final key = 'sightings/$now.jpg';
       final sighting = Sighting(
-        species: await _getSpeciesName(photo.path).then((value) => value),
+        species: await Util.doAWSRekognitionCall(
+          photo.path,
+        ).then((value) => value[0]),
         photo: key,
         latitude: position?.latitude ?? 0.0,
         longitude: position?.longitude ?? 0.0,
@@ -130,7 +107,11 @@ class _AreaCaptureHomeState extends State<AreaCaptureHome>
         path: StoragePath.fromString(key),
       );
     } catch (e) {
-      debugPrint('Error taking photo: $e');
+      fToast.showToast(
+        child: Util.redToast('You\'re camera isn\'t working'),
+        gravity: ToastGravity.BOTTOM,
+        toastDuration: Duration(seconds: 3),
+      );
     }
   }
 
@@ -173,39 +154,6 @@ class _AreaCaptureHomeState extends State<AreaCaptureHome>
     }
   }
 
-  Future<String> _getSpeciesName(String imagePath) async {
-    try {
-      final imageFile = File(imagePath);
-      final imageBytes = await imageFile.readAsBytes();
-      final base64Image = base64Encode(imageBytes);
-      final requestBody = jsonEncode({'image': base64Image});
-
-      final response =
-          await Amplify.API
-              .post(
-                '/analyze',
-                body: HttpPayload.json(requestBody),
-                headers: {'Content-Type': 'application/json'},
-              )
-              .response;
-
-      final responseBody = jsonDecode(response.decodeBody());
-      final labels =
-          (responseBody['labels'] as List)
-              .map((label) => label['Name'] as String)
-              .toList();
-
-      Log.i('Lambda response: $labels');
-      return labels[0];
-    } on ApiException catch (e) {
-      Log.e('API call to /analyze failed (method: POST): $e');
-      return 'Unknown';
-    } catch (e) {
-      Log.e('Unexpected error in Lambda invocation: $e');
-      return 'Unknown';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -231,7 +179,10 @@ class _AreaCaptureHomeState extends State<AreaCaptureHome>
                     ),
                 const SizedBox(height: 20),
                 _cameraController == null || _initializeCameraFuture == null
-                    ? const Center(child: CircularProgressIndicator())
+                    ? Padding(
+                      padding: const EdgeInsets.all(80.0),
+                      child: const Center(child: CircularProgressIndicator()),
+                    )
                     : Container(
                       height: 600,
                       width: double.infinity,

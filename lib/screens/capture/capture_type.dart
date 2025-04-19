@@ -35,7 +35,7 @@ class _CaptureTypeScreenState extends State<CaptureTypeScreen>
     });
     if (_userSettings != null && _userSettings?.isAreaCaptureActive == true) {
       if (!mounted) return;
-      Navigator.pushNamed(context, '/area_capture_home');
+      Navigator.pushNamed(context, '/ac_home');
     }
   }
 
@@ -147,7 +147,7 @@ class _CaptureTypeScreenState extends State<CaptureTypeScreen>
                       icon: Icons.map,
                       label: 'Area Capture',
                       onPressed: () {
-                        Navigator.pushNamed(context, '/area_capture');
+                        Navigator.pushNamed(context, '/ac_setup');
                       },
                     ),
                   ),

@@ -76,7 +76,6 @@ class _SightTrackButtonState extends State<SightTrackButton>
         widget.gradient ??
         const LinearGradient(colors: [Colors.teal, Colors.green]);
 
-    // Default text style if none provided
     final TextStyle style =
         widget.textStyle ??
         TextStyle(
@@ -226,10 +225,13 @@ class NiceButtonState extends State<NiceButton>
           decoration: BoxDecoration(
             color: Colors.black,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.2),
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 blurRadius: 8,
                 offset: Offset(0, 4),
               ),

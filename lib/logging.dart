@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 
 class Log {
-  static final Logger _logger = Logger('App');
+  static final Logger _logger = Logger('SightTrack');
 
   static void init() {
     Logger.root.level = Level.INFO;

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:sighttrack/barrel.dart';
 import 'package:sighttrack/logging.dart';
 import 'package:sighttrack/models/ModelProvider.dart';
 import 'package:sighttrack/screens/home/view_sighting.dart';

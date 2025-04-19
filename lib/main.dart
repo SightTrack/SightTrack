@@ -1,24 +1,39 @@
-import 'package:amplify_api/amplify_api.dart';
-import 'package:amplify_authenticator/amplify_authenticator.dart';
-import 'package:amplify_datastore/amplify_datastore.dart';
-import 'package:amplify_storage_s3/amplify_storage_s3.dart';
-import 'package:flutter/material.dart';
-import 'package:amplify_flutter/amplify_flutter.dart';
-import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
-import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-import 'package:sighttrack/amplifyconfiguration.dart';
-import 'package:sighttrack/logging.dart';
-import 'package:sighttrack/models/ModelProvider.dart';
-import 'package:sighttrack/navigation.dart';
+import 'package:sighttrack/barrel.dart';
 
-Future<void> main() async {
+import 'package:flutter/material.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+
+void updateDependentFields(UserSettings settings) async {
+  try {
+    final updatedSettings = settings.copyWith(isAreaCaptureActive: false);
+
+    if (updatedSettings == settings) {
+      return;
+    }
+
+    await Amplify.DataStore.save(updatedSettings);
+    print('Settings updated: ${updatedSettings.toJson()}');
+  } catch (e) {
+    print('Update dependent fields failed: $e');
+  }
+}
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Log.init();
-  MapboxOptions.setAccessToken(
-    'pk.eyJ1IjoiamFtZXN0dCIsImEiOiJjbThjOGZ3ZDYxNzdxMm1vbDRma3ZjczN0In0.AN_WIYTiODrQPCNaGtrucA',
+
+  await dotenv.load().then(
+    (value) => MapboxOptions.setAccessToken(dotenv.env['MAPBOX_TOKEN']!),
   );
+  // MapboxOptions.setAccessToken(
+  //   'pk.eyJ1IjoiamFtZXN0dCIsImEiOiJjbTlvN3Z3N2kwb3J6MnFvYno5NTV6bTllIn0.SJmS1rdUzaihKG39VgiYvA',
+  // );
+  Log.i('Token set');
+  String a = await MapboxOptions.getAccessToken();
+  Log.i('Token: $a');
 
   try {
+    // DataStore needs to be before AmplifyAPI
     await Amplify.addPlugins([
       AmplifyDataStore(modelProvider: ModelProvider.instance),
       AmplifyAPI(),
@@ -27,17 +42,35 @@ Future<void> main() async {
     ]);
 
     await Amplify.configure(amplifyconfig);
-    // await Amplify.DataStore.clear();
+    // await Amplify.DataStore.clear(); // Uncomment to force DataStore to sync
     await Amplify.DataStore.start();
 
-    // Add a global DataStore subscription to debug sync events
+    // Listen for global sync events
     Amplify.DataStore.observe(User.classType).listen((event) {
       Log.i('Global DataStore sync event: ${event.item.toJson()}');
     });
 
+    // Validate and update UserSettings (check if Area Capture mode is activated when not supposed to)
+    Amplify.DataStore.observe(UserSettings.classType).listen((event) async {
+      final settings = event.item;
+      print('UserSettings observer triggered: ${settings.toJson()}');
+
+      if (settings.isAreaCaptureActive == false) {
+        return;
+      }
+      if (settings.isAreaCaptureActive == false ||
+          (settings.areaCaptureEnd != null &&
+              settings.areaCaptureEnd!.getDateTimeInUtc().isBefore(
+                DateTime.now(),
+              ))) {
+        updateDependentFields(settings);
+      }
+    });
+
+    // Check for user auth status
     Amplify.Hub.listen(HubChannel.Auth, (hubEvent) async {
       if (hubEvent.eventName == 'SIGNED_IN') {
-        Log.i('User signed in, waiting for DataStore sync...');
+        Log.i('Event: SIGNED_IN - Waiting for DataStore sync');
 
         // Wait for the initial sync to complete
         bool isSynced = false;
@@ -57,7 +90,6 @@ Future<void> main() async {
 
         final currentUser = await Amplify.Auth.getCurrentUser();
         final userId = currentUser.userId;
-        Log.i('Cognito userId: $userId');
 
         final existingUsers = await Amplify.DataStore.query(
           User.classType,
@@ -90,186 +122,12 @@ Future<void> main() async {
           Log.i('User record exists: ${existingUsers.first.toJson()}');
         }
       } else if (hubEvent.eventName == 'SIGNED_OUT') {
-        Log.i('User signed out. Clearing DataStore.');
+        Log.i('Event: SIGNED_OUT - Clearing DataStore');
         await Amplify.DataStore.clear();
       }
     });
   } catch (e) {
     Log.e('Error in main(): $e');
   }
-
-  runApp(const SightTrackApp());
-}
-
-class SightTrackApp extends StatefulWidget {
-  const SightTrackApp({super.key});
-
-  @override
-  State<SightTrackApp> createState() => _SightTrackAppState();
-}
-
-class _SightTrackAppState extends State<SightTrackApp> {
-  @override
-  Widget build(BuildContext context) {
-    return Authenticator(
-      authenticatorBuilder: (context, state) {
-        if (state.currentStep == AuthenticatorStep.signIn) {
-          return GestureDetector(
-            onTap: () {
-              FocusScope.of(context).unfocus();
-            },
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/logo.jpg',
-                      height: 150,
-                      width: 150,
-                      fit: BoxFit.contain,
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Welcome to SightTrack',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.indigo,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    SignInForm.custom(
-                      fields: [
-                        SignInFormField.username(),
-                        SignInFormField.password(),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        TextButton(
-                          onPressed:
-                              () => state.changeStep(AuthenticatorStep.signUp),
-                          child: const Text(
-                            'Create Account',
-                            style: TextStyle(color: Colors.indigo),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed:
-                              () => state.changeStep(
-                                AuthenticatorStep.resetPassword,
-                              ),
-                          child: const Text(
-                            'Forgot Password?',
-                            style: TextStyle(color: Colors.indigo),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        } else if (state.currentStep == AuthenticatorStep.signUp) {
-          return GestureDetector(
-            onTap: () {
-              FocusScope.of(context).unfocus();
-            },
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/logo.jpg',
-                      height: 150,
-                      width: 150,
-                      fit: BoxFit.contain,
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Join SightTrack',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.indigo,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    SignUpForm.custom(
-                      fields: [
-                        SignUpFormField.username(),
-                        SignUpFormField.email(required: true),
-                        SignUpFormField.password(),
-                        SignUpFormField.passwordConfirmation(),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed:
-                          () => state.changeStep(AuthenticatorStep.signIn),
-                      child: const Text(
-                        'Already have an account? Sign In',
-                        style: TextStyle(color: Colors.indigo),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }
-        return null;
-      },
-      child: MaterialApp(
-        builder: Authenticator.builder(),
-        title: 'SightTrack',
-        theme: ThemeData(
-          primarySwatch: Colors.indigo,
-          scaffoldBackgroundColor: Colors.grey[100],
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.indigo,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 32),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        ),
-        home: const Navigation(),
-      ),
-    );
-  }
+  runApp(const App());
 }

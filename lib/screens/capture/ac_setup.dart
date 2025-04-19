@@ -190,7 +190,7 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
 
         setState(() {}); // Update UI
 
-        Navigator.pushNamed(context, '/area_capture_home');
+        Navigator.pushNamed(context, '/ac_home');
       } catch (e) {
         debugPrint('Error starting area capture: $e');
         if (!mounted) return;
