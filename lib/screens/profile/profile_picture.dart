@@ -1,10 +1,6 @@
-import 'dart:io';
-import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:sighttrack/barrel.dart';
+
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:sighttrack/logging.dart';
-import 'package:sighttrack/models/User.dart';
-import 'package:sighttrack/screens/profile/profile.dart';
 
 class ChangeProfilePictureScreen extends StatefulWidget {
   final User user;
@@ -19,6 +15,14 @@ class _ChangeProfilePictureScreenState
     extends State<ChangeProfilePictureScreen> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
+  late FToast fToast;
+
+  @override
+  void initState() {
+    super.initState();
+    fToast = FToast();
+    fToast.init(context);
+  }
 
   // Opens the gallery for image selection.
   Future<void> _pickImage() async {
@@ -31,7 +35,14 @@ class _ChangeProfilePictureScreenState
   }
 
   Future<void> _saveImage() async {
-    if (_selectedImage == null) return;
+    if (_selectedImage == null) {
+      fToast.showToast(
+        child: Util.redToast('No changes'),
+        gravity: ToastGravity.BOTTOM,
+        toastDuration: Duration(seconds: 3),
+      );
+      return;
+    }
     try {
       final String storagePath =
           'profile_pictures/${widget.user.id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
@@ -67,8 +78,12 @@ class _ChangeProfilePictureScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Change Profile Picture')),
-      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Change Profile Picture'),
+        backgroundColor: Colors.grey[900],
+        foregroundColor: Colors.white,
+      ),
+      backgroundColor: Colors.grey[900],
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Center(
@@ -92,7 +107,7 @@ class _ChangeProfilePictureScreenState
                                   ? Future.value(
                                     _selectedImage!.path,
                                   ) // Use the selected file immediately
-                                  : ProfileScreen.loadProfilePicture(
+                                  : Util.fetchFromS3(
                                     widget.user.profilePicture!,
                                   ), // Get the URL if no file selected
                           builder: (context, snapshot) {
@@ -123,16 +138,10 @@ class _ChangeProfilePictureScreenState
                           },
                         ),
               ),
+              const SizedBox(height: 40),
+              BlackButton(text: 'Pick Image', onPressed: _pickImage),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _pickImage,
-                child: const Text('Pick Image'),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _saveImage,
-                child: const Text('Save Image'),
-              ),
+              BlackButton(text: 'Save Image', onPressed: _saveImage),
             ],
           ),
         ),

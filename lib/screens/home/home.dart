@@ -1,13 +1,8 @@
-import 'dart:async';
+import 'package:sighttrack/barrel.dart';
+
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart' as geo;
-import 'package:amplify_flutter/amplify_flutter.dart';
-import 'package:sighttrack/barrel.dart';
-import 'package:sighttrack/logging.dart';
-import 'package:sighttrack/models/ModelProvider.dart';
-import 'package:sighttrack/screens/home/view_sighting.dart';
-import 'package:sighttrack/util.dart';
 
 class AnnotationClickListener extends OnCircleAnnotationClickListener {
   /// Callback function to handle annotation click events
@@ -149,18 +144,11 @@ class _HomeScreenState extends State<HomeScreen> {
         enabled: true,
         pulsingEnabled: true,
         puckBearingEnabled: true,
-        locationPuck: LocationPuck(
-          locationPuck3D: LocationPuck3D(
-            modelUri:
-                'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Embedded/Duck.gltf',
-            modelScale: [30.0, 30.0, 30.0],
-          ),
-        ),
       ),
     );
 
     try {
-      final geo.Position pos = await _determinePosition();
+      final geo.Position pos = await Util.getCurrentPosition();
       await _mapboxMap!.setCamera(
         CameraOptions(
           center: Point(coordinates: Position(pos.longitude, pos.latitude)),
@@ -200,27 +188,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _addSightingsToMap();
   }
 
-  Future<geo.Position> _determinePosition() async {
-    bool serviceEnabled = await geo.Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      throw Exception('Location services are disabled.');
-    }
-
-    geo.LocationPermission permission = await geo.Geolocator.checkPermission();
-    if (permission == geo.LocationPermission.denied) {
-      permission = await geo.Geolocator.requestPermission();
-      if (permission == geo.LocationPermission.denied) {
-        throw Exception('Location permissions are denied.');
-      }
-    }
-
-    if (permission == geo.LocationPermission.deniedForever) {
-      throw Exception('Location permissions are permanently denied.');
-    }
-
-    return await geo.Geolocator.getCurrentPosition();
-  }
-
   void _onUserInteraction() {
     _isUserInteracting = true;
     _interactionTimer?.cancel();
@@ -233,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _resetCameraToUserLocation() async {
     try {
-      final geo.Position pos = await _determinePosition();
+      final geo.Position pos = await Util.getCurrentPosition();
       if (_mapboxMap != null) {
         await _mapboxMap!.flyTo(
           CameraOptions(
@@ -278,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Listener(
             onPointerDown: (_) => _onUserInteraction(),
             child: MapWidget(
-              styleUri: 'mapbox://styles/jamestt/cm8c8inqm004b01rxat34g28r',
+              styleUri: Util.mapStyle,
               onMapCreated: onMapCreated,
             ),
           ),
@@ -324,7 +291,7 @@ class _HomeScreenState extends State<HomeScreen> {
             left: 16.0,
             child: FloatingActionButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/allSightings');
+                Navigator.pushNamed(context, '/all_sightings');
               },
               backgroundColor: Colors.grey[850]!.withValues(alpha: 0.9),
               foregroundColor: Colors.white,

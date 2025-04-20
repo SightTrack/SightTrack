@@ -1,10 +1,6 @@
-import 'package:amplify_flutter/amplify_flutter.dart';
-import 'package:amplify_storage_s3/amplify_storage_s3.dart';
+import 'package:sighttrack/barrel.dart';
+
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:sighttrack/logging.dart';
-import 'package:sighttrack/models/Sighting.dart';
-import 'package:sighttrack/util.dart';
 
 class ViewSightingScreen extends StatefulWidget {
   final Sighting sighting;
@@ -13,20 +9,6 @@ class ViewSightingScreen extends StatefulWidget {
 
   @override
   State<ViewSightingScreen> createState() => _ViewSightingScreenState();
-
-  static Future<String> loadSightingPhoto(String path) async {
-    final result =
-        await Amplify.Storage.getUrl(
-          path: StoragePath.fromString(path),
-          options: const StorageGetUrlOptions(
-            pluginOptions: S3GetUrlPluginOptions(
-              validateObjectExistence: true,
-              expiresIn: Duration(hours: 10),
-            ),
-          ),
-        ).result;
-    return result.url.toString();
-  }
 }
 
 class _ViewSightingScreenState extends State<ViewSightingScreen> {
@@ -52,7 +34,7 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
   Future<void> _deleteSighting() async {
     try {
       await Amplify.DataStore.delete(widget.sighting);
-      Log.i('Sighting deleted: ${widget.sighting.id}');
+      Log.i('DELETE: Sighting ${widget.sighting.id}');
       if (mounted) {
         Navigator.pop(context); // Go back after deletion
       }
@@ -69,9 +51,7 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
   @override
   void initState() {
     super.initState();
-    _photoUrlFuture = ViewSightingScreen.loadSightingPhoto(
-      widget.sighting.photo,
-    );
+    _photoUrlFuture = Util.fetchFromS3(widget.sighting.photo);
     _checkAdminStatus();
   }
 
@@ -150,7 +130,6 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
               future: _photoUrlFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  // Show placeholder while loading
                   return Container(
                     width: double.infinity,
                     height: 250,
@@ -163,7 +142,6 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
                     ),
                   );
                 } else if (snapshot.hasError || snapshot.data == null) {
-                  // Show placeholder if there's an error or no data
                   return Container(
                     width: double.infinity,
                     height: 250,
@@ -176,21 +154,16 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
                     ),
                   );
                 } else {
-                  // Show actual image with GestureDetector
                   return GestureDetector(
                     onTap: () {
                       showDialog<void>(
                         context: context,
-                        barrierDismissible:
-                            true, // Allows closing by tapping outside
+                        barrierDismissible: true,
                         builder: (BuildContext context) {
                           return Dialog(
-                            backgroundColor:
-                                Colors.transparent, // Removes white border
-                            elevation: 0, // Removes shadow
-                            insetPadding: const EdgeInsets.all(
-                              16,
-                            ), // Padding from edges
+                            backgroundColor: Colors.transparent,
+                            elevation: 0,
+                            insetPadding: const EdgeInsets.all(16),
                             child: ConstrainedBox(
                               constraints: BoxConstraints(
                                 maxWidth:

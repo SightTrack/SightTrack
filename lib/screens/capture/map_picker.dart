@@ -1,7 +1,8 @@
+import 'package:sighttrack/barrel.dart';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-import 'package:sighttrack/logging.dart';
 
 class MapPickerScreen extends StatefulWidget {
   final geo.Position? initialPosition;
@@ -86,12 +87,13 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
       body: Stack(
         children: [
           MapWidget(
-            styleUri: 'mapbox://styles/jamestt/cm8c8inqm004b01rxat34g28r',
+            styleUri: Util.mapStyle,
             onMapCreated: _onMapCreated,
             onCameraChangeListener: _onCameraChange,
             cameraOptions: CameraOptions(
               center: Point(
                 coordinates: Position(
+                  // Default is San Francisco
                   _selectedPosition?.longitude ?? -122.4194,
                   _selectedPosition?.latitude ?? 37.7749,
                 ),

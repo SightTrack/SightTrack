@@ -1,7 +1,6 @@
 import 'package:sighttrack/barrel.dart';
 
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 class AreaCaptureHome extends StatefulWidget {
   const AreaCaptureHome({super.key});
@@ -86,16 +85,16 @@ class _AreaCaptureHomeState extends State<AreaCaptureHome>
       final photo = await _cameraController!.takePicture();
       final position = await Util.getCurrentPosition();
       final now = DateTime.now();
-      final key = 'sightings/$now.jpg';
+      final key = 'photos/${UUID.getUUID()}.jpg';
       final sighting = Sighting(
         species: await Util.doAWSRekognitionCall(
           photo.path,
         ).then((value) => value[0]),
         photo: key,
-        latitude: position?.latitude ?? 0.0,
-        longitude: position?.longitude ?? 0.0,
-        displayLatitude: position?.latitude ?? 0.0,
-        displayLongitude: position?.longitude ?? 0.0,
+        latitude: position.latitude,
+        longitude: position.longitude,
+        displayLatitude: position.latitude,
+        displayLongitude: position.longitude,
         timestamp: TemporalDateTime(now),
         description: 'Captured during area capture session',
       );

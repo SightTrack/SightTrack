@@ -1,11 +1,6 @@
-import 'dart:async';
+import 'package:sighttrack/barrel.dart';
 
-import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:sighttrack/logging.dart';
-import 'package:sighttrack/models/Sighting.dart';
-import 'package:sighttrack/screens/home/view_sighting.dart';
 
 class AllSightingsScreen extends StatefulWidget {
   const AllSightingsScreen({super.key});

@@ -154,6 +154,7 @@ class _AppState extends State<App> {
       child: MaterialApp(
         builder: Authenticator.builder(),
         title: 'SightTrack',
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           primarySwatch: Colors.indigo,
           scaffoldBackgroundColor: Colors.grey[100],

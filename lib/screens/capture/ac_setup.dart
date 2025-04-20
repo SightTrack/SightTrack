@@ -1,11 +1,9 @@
-import 'dart:math' as math;
-import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:sighttrack/barrel.dart';
+
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart' as geo;
-import 'package:sighttrack/models/UserSettings.dart';
-import 'package:sighttrack/util.dart';
-import 'package:sighttrack/widgets/button.dart';
+import 'dart:math' as math;
 
 class AreaCaptureSetup extends StatefulWidget {
   const AreaCaptureSetup({super.key});
@@ -190,6 +188,7 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
 
         setState(() {}); // Update UI
 
+        if (!mounted) return;
         Navigator.pushNamed(context, '/ac_home');
       } catch (e) {
         debugPrint('Error starting area capture: $e');
@@ -240,8 +239,7 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
                             child: MapWidget(
-                              styleUri:
-                                  'mapbox://styles/jamestt/cm8c8inqm004b01rxat34g28r',
+                              styleUri: Util.mapStyle,
                               cameraOptions: CameraOptions(
                                 center: Point(
                                   coordinates: Position(-122.4194, 37.7749),
@@ -311,7 +309,7 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
                           ],
                         ),
                         const SizedBox(height: 30),
-                        NiceButton(
+                        BlackButton(
                           text: 'Start Area Capture',
                           onPressed: _startAreaCapture,
                         ),

@@ -6,6 +6,8 @@ import 'package:geolocator/geolocator.dart';
 class Util {
   Util._();
 
+  static String mapStyle = 'mapbox://styles/jamestt/cm8c8inqm004b01rxat34g28r';
+
   static Widget greenToast(String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
@@ -85,25 +87,25 @@ class Util {
     }
   }
 
-  static Future<Position?> getCurrentPosition() async {
-    try {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) return null;
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) return null;
-      }
-      if (permission == LocationPermission.deniedForever) return null;
-
-      return await Geolocator.getCurrentPosition(
-        locationSettings: LocationSettings(accuracy: LocationAccuracy.best),
-      );
-    } catch (e) {
-      Log.e('Error getting location: $e');
-      return null;
+  static Future<Position> getCurrentPosition() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw Exception('Location services are disabled.');
     }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        throw Exception('Location permissions are denied.');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw Exception('Location permissions are permanently denied.');
+    }
+
+    return await Geolocator.getCurrentPosition();
   }
 
   static Future<List<String>> doAWSRekognitionCall(String imagePath) async {
@@ -137,5 +139,19 @@ class Util {
       Log.e('Unexpected error in Lambda invocation: $e');
       return [];
     }
+  }
+
+  static Future<String> fetchFromS3(String path) async {
+    final result =
+        await Amplify.Storage.getUrl(
+          path: StoragePath.fromString(path),
+          options: const StorageGetUrlOptions(
+            pluginOptions: S3GetUrlPluginOptions(
+              validateObjectExistence: true,
+              expiresIn: Duration(hours: 10),
+            ),
+          ),
+        ).result;
+    return result.url.toString();
   }
 }

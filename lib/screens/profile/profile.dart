@@ -1,47 +1,21 @@
-import 'dart:async';
+import 'package:sighttrack/barrel.dart';
 
-import 'package:amplify_flutter/amplify_flutter.dart';
-import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:flutter/material.dart';
-import 'package:sighttrack/logging.dart';
-import 'package:sighttrack/models/User.dart';
-import 'package:sighttrack/models/UserSettings.dart';
-import 'package:sighttrack/util.dart';
-import 'package:sighttrack/widgets/button.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
-
-  static Future<String> loadProfilePicture(String path) async {
-    try {
-      final result =
-          await Amplify.Storage.getUrl(
-            path: StoragePath.fromString(path),
-            options: const StorageGetUrlOptions(
-              pluginOptions: S3GetUrlPluginOptions(
-                validateObjectExistence: true,
-                expiresIn: Duration(hours: 2),
-              ),
-            ),
-          ).result;
-      return result.url.toString();
-    } catch (e) {
-      Log.e('Error loading profile picture: $e');
-      rethrow;
-    }
-  }
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  UserSettings? _userSettings;
   User? userDatastore;
   String? cognitoUsername;
-  bool isLoading = true;
   late StreamSubscription subscription;
   Future<String?>? _profilePictureFuture;
-  UserSettings? _userSettings;
+  bool isLoading = true;
   bool _isAreaCaptureActive = false;
 
   Future<void> fetchCurrentUser() async {
@@ -59,7 +33,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           userDatastore = users.first;
           if (userDatastore!.profilePicture != null &&
               userDatastore!.profilePicture!.isNotEmpty) {
-            _profilePictureFuture = ProfileScreen.loadProfilePicture(
+            _profilePictureFuture = Util.fetchFromS3(
               userDatastore!.profilePicture!,
             );
           }
@@ -114,8 +88,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
+        backgroundColor: Colors.grey[900],
         actions: [
           IconButton(
             icon: const Icon(Icons.settings, size: 26, color: Colors.grey),
@@ -124,7 +97,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[900],
       body:
           isLoading
               ? const Center(
@@ -234,6 +207,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         fontSize: 30,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
+                        color: Colors.white,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -252,7 +226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.grey,
+                                    Colors.white,
                                   ),
                                 ),
                               );
@@ -264,14 +238,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.red.withValues(alpha: 0.1),
+                                  color: Colors.white.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Text(
                                   'Admin User',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: Colors.red,
+                                    color: Colors.redAccent,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -314,7 +288,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           userDatastore!.email,
                           style: const TextStyle(
                             fontSize: 15,
-                            color: Colors.grey,
+                            color: Colors.white,
                             fontWeight: FontWeight.w400,
                           ),
                         ),
@@ -336,7 +310,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               : 'Location not set',
                           style: const TextStyle(
                             fontSize: 15,
-                            color: Colors.grey,
+                            color: Colors.white,
                             fontWeight: FontWeight.w400,
                           ),
                         ),
@@ -355,17 +329,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             : 'No bio',
                         style: const TextStyle(
                           fontSize: 16,
-                          color: Colors.black87,
+                          color: Colors.white,
                           height: 1.6,
                         ),
                         textAlign: TextAlign.center,
                       ),
                     ),
-
                     const SizedBox(height: 48),
-                    SightTrackButton(
+                    BlackButton(
                       text: 'Logout',
-                      width: 140,
                       onPressed: () {
                         showDialog(
                           context: context,

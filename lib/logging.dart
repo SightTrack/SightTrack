@@ -1,5 +1,6 @@
+import 'package:sighttrack/barrel.dart';
+
 import 'package:flutter/foundation.dart';
-import 'package:logging/logging.dart';
 
 class Log {
   static final Logger _logger = Logger('SightTrack');

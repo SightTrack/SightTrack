@@ -1,17 +1,9 @@
-import 'dart:convert';
-import 'dart:math';
+import 'package:sighttrack/barrel.dart';
 
-import 'package:amplify_flutter/amplify_flutter.dart';
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'dart:io';
-import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart' as geo;
-import 'package:sighttrack/logging.dart';
-import 'package:sighttrack/models/Sighting.dart';
-import 'package:sighttrack/models/User.dart';
-import 'package:sighttrack/models/UserSettings.dart';
 import 'package:sighttrack/screens/capture/map_picker.dart';
-import 'package:sighttrack/util.dart';
 
 class CreateSightingScreen extends StatefulWidget {
   final String imagePath;
@@ -39,8 +31,8 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
   }
 
   Future<void> _initializerWrapper() async {
-    List<String>? temp = await _invokeLambdaForSpecies(widget.imagePath);
-    if (temp != null && temp.isNotEmpty) {
+    List<String>? temp = await Util.doAWSRekognitionCall(widget.imagePath);
+    if (temp.isNotEmpty) {
       setState(() {
         identifiedSpecies = temp;
         _selectedSpecies = temp[0];
@@ -55,7 +47,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
 
   Future<void> _getCurrentLocation() async {
     try {
-      geo.Position position = await _determinePosition();
+      geo.Position position = await Util.getCurrentPosition();
       setState(() {
         _selectedLocation = position;
         Log.i(
@@ -65,64 +57,6 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
     } catch (e) {
       Log.e('Error getting location: $e');
     }
-  }
-
-  Future<List<String>>? _invokeLambdaForSpecies(String imagePath) async {
-    try {
-      final imageFile = File(imagePath);
-      final imageBytes = await imageFile.readAsBytes();
-      final base64Image = base64Encode(imageBytes);
-      final requestBody = jsonEncode({'image': base64Image});
-
-      final response =
-          await Amplify.API
-              .post(
-                '/analyze',
-                body: HttpPayload.json(requestBody),
-                headers: {'Content-Type': 'application/json'},
-              )
-              .response;
-
-      final responseBody = jsonDecode(response.decodeBody());
-      final labels =
-          (responseBody['labels'] as List)
-              .map((label) => label['Name'] as String)
-              .toList();
-
-      Log.i('Lambda response: $labels');
-      return labels;
-    } on ApiException catch (e) {
-      Log.e('API call to /analyze failed (method: POST): $e');
-      return [];
-    } catch (e) {
-      Log.e('Unexpected error in Lambda invocation: $e');
-      return [];
-    }
-  }
-
-  Future<geo.Position> _determinePosition() async {
-    bool serviceEnabled = await geo.Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      throw Exception('Location services are disabled.');
-    }
-
-    geo.LocationPermission permission = await geo.Geolocator.checkPermission();
-    if (permission == geo.LocationPermission.denied) {
-      permission = await geo.Geolocator.requestPermission();
-      if (permission == geo.LocationPermission.denied) {
-        throw Exception('Location permissions are denied.');
-      }
-    }
-
-    if (permission == geo.LocationPermission.deniedForever) {
-      throw Exception('Location permissions are permanently denied.');
-    }
-
-    return await geo.Geolocator.getCurrentPosition(
-      locationSettings: const geo.LocationSettings(
-        accuracy: geo.LocationAccuracy.best,
-      ),
-    );
   }
 
   Future<void> _selectDateTime(BuildContext context) async {

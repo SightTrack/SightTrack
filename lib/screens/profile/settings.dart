@@ -1,10 +1,5 @@
-import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:sighttrack/barrel.dart';
 import 'package:flutter/material.dart';
-import 'package:sighttrack/models/User.dart';
-import 'package:sighttrack/models/UserSettings.dart';
-import 'package:sighttrack/screens/profile/profile.dart';
-import 'package:sighttrack/screens/profile/profile_picture.dart';
-import 'package:sighttrack/widgets/button.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -74,17 +69,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.grey[900],
       appBar: AppBar(
         title: const Text('Settings'),
         elevation: 0,
-        backgroundColor: Colors.grey[100],
+        backgroundColor: Colors.grey[900],
+        foregroundColor: Colors.white,
       ),
       body:
           isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              )
               : user == null
-              ? const Center(child: Text('No profile found'))
+              ? const Center(
+                child: Text(
+                  'No profile found',
+                  style: TextStyle(color: Colors.white),
+                ),
+              )
               : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
@@ -106,7 +109,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: Colors.grey[600],
+          color: Colors.grey[400],
           letterSpacing: 0.5,
         ),
       ),
@@ -117,6 +120,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.grey[850],
       child: Column(
         children: [
           _buildProfileItem(
@@ -158,6 +162,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.grey[850],
       child: Column(
         children: [
           _buildProfileItem(
@@ -185,13 +190,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       leading: leading,
       title: Text(
         title,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: Colors.white,
+        ),
       ),
       subtitle:
           subtitle != null
               ? Text(
                 subtitle,
-                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                style: TextStyle(color: Colors.grey[400], fontSize: 14),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               )
@@ -206,20 +215,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildProfilePicture() {
     return (user!.profilePicture != null && user!.profilePicture!.isNotEmpty)
         ? FutureBuilder<String?>(
-          future: ProfileScreen.loadProfilePicture(user!.profilePicture!),
+          future: Util.fetchFromS3(user!.profilePicture!),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const SizedBox(
                 width: 40,
                 height: 40,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
               );
             }
             return CircleAvatar(
               radius: 20,
               backgroundImage:
                   snapshot.hasData ? NetworkImage(snapshot.data!) : null,
-              backgroundColor: Colors.grey[300],
+              backgroundColor: Colors.grey[700],
               child:
                   snapshot.hasError || !snapshot.hasData
                       ? const Icon(Icons.person, color: Colors.white)
@@ -229,7 +241,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         )
         : CircleAvatar(
           radius: 20,
-          backgroundColor: Colors.grey[300],
+          backgroundColor: Colors.grey[700],
           child: const Icon(Icons.person, color: Colors.white),
         );
   }
@@ -239,7 +251,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       height: 1,
       indent: 16,
       endIndent: 16,
-      color: Colors.grey[200],
+      color: Colors.grey[700],
     );
   }
 }
@@ -321,11 +333,12 @@ class _EditFieldPageState extends State<EditFieldPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.grey[900],
       appBar: AppBar(
         title: Text('Edit ${widget.field}'),
         elevation: 0,
-        backgroundColor: Colors.grey[100],
+        backgroundColor: Colors.grey[900],
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -337,8 +350,9 @@ class _EditFieldPageState extends State<EditFieldPage> {
                 controller: _controller,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Colors.grey[850],
                   labelText: widget.field,
+                  labelStyle: TextStyle(color: Colors.grey[400]),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -348,6 +362,7 @@ class _EditFieldPageState extends State<EditFieldPage> {
                     borderSide: BorderSide.none,
                   ),
                 ),
+                style: const TextStyle(color: Colors.white),
                 validator: (value) {
                   if (widget.field == 'Username' || widget.field == 'Email') {
                     if (value == null || value.trim().isEmpty) {
@@ -421,8 +436,7 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
       setState(() {
         _currentUser = user;
         _userSettings = settings.isNotEmpty ? settings.first : null;
-        _locationOffset =
-            _userSettings?.locationOffset ?? false; // Default to false if null
+        _locationOffset = _userSettings?.locationOffset ?? false;
         _isLoading = false;
       });
     } catch (e) {
@@ -440,17 +454,14 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
     try {
       UserSettings updatedSettings;
       if (_userSettings == null) {
-        // Create new settings if none exists
         updatedSettings = UserSettings(
           userId: _currentUser!.id,
           locationOffset: value,
         );
         await Amplify.DataStore.save(updatedSettings);
-        // Link to User
         final updatedUser = _currentUser!.copyWith(settings: updatedSettings);
         await Amplify.DataStore.save(updatedUser);
       } else {
-        // Update existing settings
         updatedSettings = _userSettings!.copyWith(locationOffset: value);
         await Amplify.DataStore.save(updatedSettings);
       }
@@ -470,15 +481,18 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.grey[900],
       appBar: AppBar(
         title: const Text('Privacy'),
         elevation: 0,
-        backgroundColor: Colors.grey[100],
+        backgroundColor: Colors.grey[900],
+        foregroundColor: Colors.white,
       ),
       body:
           _isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              )
               : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
@@ -488,20 +502,23 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    color: Colors.grey[850],
                     child: SwitchListTile(
                       title: const Text(
                         'Location Offset',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
+                          color: Colors.white,
                         ),
                       ),
                       subtitle: Text(
                         'Enable to offset your location data for better privacy',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                        style: TextStyle(color: Colors.grey[400], fontSize: 14),
                       ),
                       value: _locationOffset ?? false,
                       onChanged: (value) => _updateLocationOffset(value),
+                      activeColor: Colors.blue,
                       dense: true,
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -521,7 +538,7 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
         style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: Colors.grey[600],
+          color: Colors.grey[400],
           letterSpacing: 0.5,
         ),
       ),

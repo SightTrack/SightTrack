@@ -22,18 +22,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Log.init();
 
-  await dotenv.load().then(
-    (value) => MapboxOptions.setAccessToken(dotenv.env['MAPBOX_TOKEN']!),
-  );
-  // MapboxOptions.setAccessToken(
-  //   'pk.eyJ1IjoiamFtZXN0dCIsImEiOiJjbTlvN3Z3N2kwb3J6MnFvYno5NTV6bTllIn0.SJmS1rdUzaihKG39VgiYvA',
-  // );
-  Log.i('Token set');
-  String a = await MapboxOptions.getAccessToken();
-  Log.i('Token: $a');
+  await dotenv.load();
+  MapboxOptions.setAccessToken(dotenv.env['MAPBOX_TOKEN']!);
 
   try {
-    // DataStore needs to be before AmplifyAPI
+    // DataStore needs to be added first
     await Amplify.addPlugins([
       AmplifyDataStore(modelProvider: ModelProvider.instance),
       AmplifyAPI(),

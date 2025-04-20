@@ -1,12 +1,6 @@
-import 'dart:async';
+import 'package:sighttrack/barrel.dart';
 
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:sighttrack/logging.dart';
-import 'dart:io';
-
-import 'package:sighttrack/screens/capture/create_sighting.dart';
 
 class CaptureScreen extends StatefulWidget {
   const CaptureScreen({super.key});
@@ -397,7 +391,7 @@ class CaptureScreenState extends State<CaptureScreen> {
                       ),
                     ),
                   ),
-                  // Flip camera button (unchanged)
+                  // Flip camera button
                   Container(
                     width: 50,
                     height: 50,
@@ -436,7 +430,7 @@ class CaptureScreenState extends State<CaptureScreen> {
             ),
           ),
 
-          // Timestamp overlay (top-left, placeholder)
+          // Timestamp overlay
           if (_isCameraInitialized && _errorMessage == null)
             LayoutBuilder(
               builder: (context, constraints) {

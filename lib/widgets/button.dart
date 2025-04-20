@@ -166,13 +166,13 @@ class _SightTrackButtonState extends State<SightTrackButton>
   }
 }
 
-class NiceButton extends StatefulWidget {
+class BlackButton extends StatefulWidget {
   final String text;
   final VoidCallback onPressed;
   final double width;
   final double height;
 
-  const NiceButton({
+  const BlackButton({
     super.key,
     required this.text,
     required this.onPressed,
@@ -181,10 +181,10 @@ class NiceButton extends StatefulWidget {
   });
 
   @override
-  NiceButtonState createState() => NiceButtonState();
+  BlackButtonState createState() => BlackButtonState();
 }
 
-class NiceButtonState extends State<NiceButton>
+class BlackButtonState extends State<BlackButton>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
