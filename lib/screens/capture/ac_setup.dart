@@ -1,7 +1,7 @@
 import 'package:sighttrack/barrel.dart';
 
 import 'package:flutter/material.dart';
-import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
 import 'package:geolocator/geolocator.dart' as geo;
 import 'dart:math' as math;
 
@@ -13,11 +13,11 @@ class AreaCaptureSetup extends StatefulWidget {
 }
 
 class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
-  MapboxMap? _mapboxMap;
-  CircleAnnotationManager? _circleManager;
+  mapbox.MapboxMap? _mapboxMap;
+  mapbox.CircleAnnotationManager? _circleManager;
   String? _circleAnnotationId;
   bool _isDisposed = false;
-  Point? _centerPoint;
+  mapbox.Point? _centerPoint;
   final ValueNotifier<double> _radiusMeters = ValueNotifier(300.0);
   double _lastZoom = 15.0;
   bool _isLoading = true;
@@ -51,20 +51,22 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
     });
   }
 
-  void _onMapCreated(MapboxMap mapboxMap) async {
+  void _onMapCreated(mapbox.MapboxMap mapboxMap) async {
     if (_isDisposed || !mounted) return;
     _mapboxMap = mapboxMap;
 
     // Hide extra UI stuff
-    await mapboxMap.logo.updateSettings(LogoSettings(enabled: false));
+    await mapboxMap.logo.updateSettings(mapbox.LogoSettings(enabled: false));
     await mapboxMap.attribution.updateSettings(
-      AttributionSettings(enabled: false),
+      mapbox.AttributionSettings(enabled: false),
     );
-    await mapboxMap.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
+    await mapboxMap.scaleBar.updateSettings(
+      mapbox.ScaleBarSettings(enabled: false),
+    );
 
     // Enable location puck
     await mapboxMap.location.updateSettings(
-      LocationComponentSettings(
+      mapbox.LocationComponentSettings(
         enabled: true,
         pulsingEnabled: true,
         puckBearingEnabled: true,
@@ -75,9 +77,15 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
       final geo.Position pos = await _determinePosition();
       if (_isDisposed || !mounted) return;
 
-      _centerPoint = Point(coordinates: Position(pos.longitude, pos.latitude));
+      _centerPoint = mapbox.Point(
+        coordinates: mapbox.Position(pos.longitude, pos.latitude),
+      );
       await mapboxMap.setCamera(
-        CameraOptions(center: _centerPoint, zoom: 15.0, bearing: pos.heading),
+        mapbox.CameraOptions(
+          center: _centerPoint,
+          zoom: 15.0,
+          bearing: pos.heading,
+        ),
       );
 
       // Initialize circle manager
@@ -113,7 +121,7 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
           math.pow(2, cameraState.zoom);
       final double pixelRadius = _radiusMeters.value / groundResolution;
 
-      final options = CircleAnnotationOptions(
+      final options = mapbox.CircleAnnotationOptions(
         geometry: _centerPoint!,
         circleRadius: pixelRadius,
         circleColor: Color(0xFF33AFFF).toARGB32(),
@@ -127,7 +135,7 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
         _circleAnnotationId = annotation.id;
       } else {
         await _circleManager!.update(
-          CircleAnnotation(
+          mapbox.CircleAnnotation(
             id: _circleAnnotationId!,
             geometry: _centerPoint!,
             circleRadius: pixelRadius,
@@ -238,11 +246,14 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
-                            child: MapWidget(
+                            child: mapbox.MapWidget(
                               styleUri: Util.mapStyle,
-                              cameraOptions: CameraOptions(
-                                center: Point(
-                                  coordinates: Position(-122.4194, 37.7749),
+                              cameraOptions: mapbox.CameraOptions(
+                                center: mapbox.Point(
+                                  coordinates: mapbox.Position(
+                                    -122.4194,
+                                    37.7749,
+                                  ),
                                 ),
                                 zoom: 15.0,
                               ),

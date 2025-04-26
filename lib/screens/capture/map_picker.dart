@@ -2,7 +2,7 @@ import 'package:sighttrack/barrel.dart';
 
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart' as geo;
-import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
 
 class MapPickerScreen extends StatefulWidget {
   final geo.Position? initialPosition;
@@ -14,7 +14,7 @@ class MapPickerScreen extends StatefulWidget {
 }
 
 class _MapPickerScreenState extends State<MapPickerScreen> {
-  MapboxMap? _mapboxMap;
+  mapbox.MapboxMap? _mapboxMap;
   geo.Position? _selectedPosition;
 
   @override
@@ -23,17 +23,19 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     _selectedPosition = widget.initialPosition;
   }
 
-  void _onMapCreated(MapboxMap mapboxMap) async {
+  void _onMapCreated(mapbox.MapboxMap mapboxMap) async {
     _mapboxMap = mapboxMap;
 
-    await _mapboxMap!.logo.updateSettings(LogoSettings(enabled: false));
+    await _mapboxMap!.logo.updateSettings(mapbox.LogoSettings(enabled: false));
     await _mapboxMap!.attribution.updateSettings(
-      AttributionSettings(enabled: false),
+      mapbox.AttributionSettings(enabled: false),
     );
-    await _mapboxMap!.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
+    await _mapboxMap!.scaleBar.updateSettings(
+      mapbox.ScaleBarSettings(enabled: false),
+    );
 
     await _mapboxMap!.location.updateSettings(
-      LocationComponentSettings(
+      mapbox.LocationComponentSettings(
         enabled: true,
         pulsingEnabled: true,
         puckBearingEnabled: true,
@@ -42,9 +44,9 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
 
     if (_selectedPosition != null) {
       await _mapboxMap!.setCamera(
-        CameraOptions(
-          center: Point(
-            coordinates: Position(
+        mapbox.CameraOptions(
+          center: mapbox.Point(
+            coordinates: mapbox.Position(
               _selectedPosition!.longitude,
               _selectedPosition!.latitude,
             ),
@@ -55,7 +57,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     }
   }
 
-  void _onCameraChange(CameraChangedEventData eventData) async {
+  void _onCameraChange(mapbox.CameraChangedEventData eventData) async {
     if (_mapboxMap != null) {
       final cameraState = await _mapboxMap!.getCameraState();
       setState(() {
@@ -86,13 +88,13 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
       ),
       body: Stack(
         children: [
-          MapWidget(
+          mapbox.MapWidget(
             styleUri: Util.mapStyle,
             onMapCreated: _onMapCreated,
             onCameraChangeListener: _onCameraChange,
-            cameraOptions: CameraOptions(
-              center: Point(
-                coordinates: Position(
+            cameraOptions: mapbox.CameraOptions(
+              center: mapbox.Point(
+                coordinates: mapbox.Position(
                   // Default is San Francisco
                   _selectedPosition?.longitude ?? -122.4194,
                   _selectedPosition?.latitude ?? 37.7749,

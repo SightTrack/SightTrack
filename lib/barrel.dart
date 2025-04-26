@@ -25,6 +25,8 @@ export 'package:sighttrack/util.dart';
 export 'package:sighttrack/logging.dart';
 export 'package:sighttrack/app.dart';
 export 'package:sighttrack/widgets/button.dart';
+export 'package:sighttrack/processing.dart';
+export 'package:sighttrack/math/spatial_autocorrection.dart';
 
 // SightTrack pages
 export 'package:sighttrack/navigation.dart';
@@ -53,3 +55,4 @@ export 'package:intl/intl.dart';
 export 'package:image_picker/image_picker.dart';
 export 'package:fluttertoast/fluttertoast.dart';
 export 'package:animated_background/animated_background.dart';
+export 'package:geolocator/geolocator.dart';

@@ -1,7 +1,8 @@
+import 'package:geocoding/geocoding.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
 import 'package:sighttrack/barrel.dart';
 
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 
 class Util {
   Util._();
@@ -153,5 +154,42 @@ class Util {
           ),
         ).result;
     return result.url.toString();
+  }
+
+  static Future<String> getCityName(double latitude, double longitude) async {
+    try {
+      // Get placemarks from coordinates
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        latitude,
+        longitude,
+      );
+
+      // Extract city name (locality) from the first placemark
+      Placemark placemark = placemarks.first;
+      String? city = placemark.locality;
+
+      return city?.isNotEmpty == true ? city! : 'Unknown city';
+    } catch (e) {
+      Log.e('getCityName() failed: $e');
+      return 'Unknown City';
+    }
+  }
+
+  static void setupMapbox(mapbox.MapboxMap mapboxMap) async {
+    await mapboxMap.logo.updateSettings(mapbox.LogoSettings(enabled: false));
+    await mapboxMap.attribution.updateSettings(
+      mapbox.AttributionSettings(enabled: false),
+    );
+    await mapboxMap.scaleBar.updateSettings(
+      mapbox.ScaleBarSettings(enabled: false),
+    );
+
+    await mapboxMap.location.updateSettings(
+      mapbox.LocationComponentSettings(
+        enabled: true,
+        pulsingEnabled: true,
+        puckBearingEnabled: true,
+      ),
+    );
   }
 }

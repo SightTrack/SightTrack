@@ -158,6 +158,10 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
           photo: s3Key,
           latitude: _selectedLocation!.latitude,
           longitude: _selectedLocation!.longitude,
+          city: await Util.getCityName(
+            _selectedLocation!.latitude,
+            _selectedLocation!.longitude,
+          ),
           displayLatitude: displayLat,
           displayLongitude: displayLng,
           timestamp: TemporalDateTime(_selectedDateTime),

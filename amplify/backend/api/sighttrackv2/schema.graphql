@@ -23,6 +23,7 @@ type Sighting @model @auth(rules: [{allow: private}]) {
   photo: String!
   latitude: Float!
   longitude: Float!
+  city: String
   displayLatitude: Float
   displayLongitude: Float
   timestamp: AWSDateTime!

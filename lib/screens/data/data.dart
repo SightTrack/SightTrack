@@ -18,7 +18,7 @@ class DataScreenState extends State<DataScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        title: const Text('Data Page'),
+        title: const Text('Data'),
         backgroundColor: Colors.grey[900],
         foregroundColor: Colors.white,
         elevation: 0,

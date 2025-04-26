@@ -1,18 +1,18 @@
 import 'package:sighttrack/barrel.dart';
 
 import 'package:flutter/material.dart';
-import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
 import 'package:geolocator/geolocator.dart' as geo;
 
-class AnnotationClickListener extends OnCircleAnnotationClickListener {
+class AnnotationClickListener extends mapbox.OnCircleAnnotationClickListener {
   /// Callback function to handle annotation click events
 
-  final void Function(CircleAnnotation) onAnnotationClick;
+  final void Function(mapbox.CircleAnnotation) onAnnotationClick;
 
   AnnotationClickListener({required this.onAnnotationClick});
 
   @override
-  void onCircleAnnotationClick(CircleAnnotation annotation) {
+  void onCircleAnnotationClick(mapbox.CircleAnnotation annotation) {
     onAnnotationClick(annotation);
   }
 }
@@ -27,9 +27,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool _isUserInteracting = false;
   Timer? _interactionTimer;
-  MapboxMap? _mapboxMap;
+  mapbox.MapboxMap? _mapboxMap;
   List<Sighting> _sightings = [];
-  CircleAnnotationManager? _circleAnnotationManager;
+  mapbox.CircleAnnotationManager? _circleAnnotationManager;
   bool _mapLoaded = false;
   final Map<String, Sighting> _annotationSightingMap = {};
   late AnnotationClickListener _annotationClickListener;
@@ -104,12 +104,12 @@ class _HomeScreenState extends State<HomeScreen> {
     await _circleAnnotationManager!.deleteAll();
     _annotationSightingMap.clear();
 
-    final options = <CircleAnnotationOptions>[];
+    final options = <mapbox.CircleAnnotationOptions>[];
     for (final sighting in _sightings) {
       options.add(
-        CircleAnnotationOptions(
-          geometry: Point(
-            coordinates: Position(
+        mapbox.CircleAnnotationOptions(
+          geometry: mapbox.Point(
+            coordinates: mapbox.Position(
               sighting.displayLongitude ?? sighting.longitude,
               sighting.displayLatitude ?? sighting.latitude,
             ),
@@ -130,17 +130,19 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void onMapCreated(MapboxMap mapboxMap) async {
+  void onMapCreated(mapbox.MapboxMap mapboxMap) async {
     _mapboxMap = mapboxMap;
 
-    await _mapboxMap!.logo.updateSettings(LogoSettings(enabled: false));
+    await _mapboxMap!.logo.updateSettings(mapbox.LogoSettings(enabled: false));
     await _mapboxMap!.attribution.updateSettings(
-      AttributionSettings(enabled: false),
+      mapbox.AttributionSettings(enabled: false),
     );
-    await _mapboxMap!.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
+    await _mapboxMap!.scaleBar.updateSettings(
+      mapbox.ScaleBarSettings(enabled: false),
+    );
 
     await _mapboxMap!.location.updateSettings(
-      LocationComponentSettings(
+      mapbox.LocationComponentSettings(
         enabled: true,
         pulsingEnabled: true,
         puckBearingEnabled: true,
@@ -150,8 +152,10 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final geo.Position pos = await Util.getCurrentPosition();
       await _mapboxMap!.setCamera(
-        CameraOptions(
-          center: Point(coordinates: Position(pos.longitude, pos.latitude)),
+        mapbox.CameraOptions(
+          center: mapbox.Point(
+            coordinates: mapbox.Position(pos.longitude, pos.latitude),
+          ),
           zoom: 1.0,
           bearing: pos.heading,
         ),
@@ -168,13 +172,16 @@ class _HomeScreenState extends State<HomeScreen> {
     ).listen((position) async {
       if (!_isUserInteracting && _mapboxMap != null) {
         await _mapboxMap!.flyTo(
-          CameraOptions(
-            center: Point(
-              coordinates: Position(position.longitude, position.latitude),
+          mapbox.CameraOptions(
+            center: mapbox.Point(
+              coordinates: mapbox.Position(
+                position.longitude,
+                position.latitude,
+              ),
             ),
             bearing: position.heading,
           ),
-          MapAnimationOptions(duration: 500),
+          mapbox.MapAnimationOptions(duration: 500),
         );
       }
     });
@@ -203,12 +210,14 @@ class _HomeScreenState extends State<HomeScreen> {
       final geo.Position pos = await Util.getCurrentPosition();
       if (_mapboxMap != null) {
         await _mapboxMap!.flyTo(
-          CameraOptions(
-            center: Point(coordinates: Position(pos.longitude, pos.latitude)),
+          mapbox.CameraOptions(
+            center: mapbox.Point(
+              coordinates: mapbox.Position(pos.longitude, pos.latitude),
+            ),
             zoom: 10.0,
             bearing: pos.heading,
           ),
-          MapAnimationOptions(duration: 500),
+          mapbox.MapAnimationOptions(duration: 500),
         );
       }
     } catch (e) {
@@ -244,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Listener(
             onPointerDown: (_) => _onUserInteraction(),
-            child: MapWidget(
+            child: mapbox.MapWidget(
               styleUri: Util.mapStyle,
               onMapCreated: onMapCreated,
             ),
