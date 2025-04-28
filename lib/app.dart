@@ -9,6 +9,15 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
+  Future<bool> isMissingDetails() async {
+    try {
+      User user = await Util.getUserModel();
+      return user.age == null || user.school == null;
+    } catch (e) {
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Authenticator(
@@ -169,7 +178,25 @@ class _AppState extends State<App> {
             ),
           ),
         ),
-        home: const Navigation(),
+        home: FutureBuilder<bool>(
+          future: isMissingDetails(),
+          builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              Log.e('FUTURE_BUILDER for isMissingDetails: ${snapshot.error}');
+              return Text('Error: ${snapshot.error}');
+            } else if (snapshot.hasData) {
+              if (snapshot.data == true) {
+                return const UserDetailsScreen();
+              } else {
+                return const Navigation();
+              }
+            }
+            // Fallback widget
+            return const SizedBox(height: 2);
+          },
+        ),
       ),
     );
   }

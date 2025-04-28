@@ -35,6 +35,8 @@ class User extends amplify_core.Model {
   final String? _country;
   final List<Sighting>? _sightings;
   final UserSettings? _settings;
+  final int? _age;
+  final String? _school;
   final amplify_core.TemporalDateTime? _createdAt;
   final amplify_core.TemporalDateTime? _updatedAt;
   final String? _userSettingsId;
@@ -98,6 +100,14 @@ class User extends amplify_core.Model {
     return _settings;
   }
   
+  int? get age {
+    return _age;
+  }
+  
+  String? get school {
+    return _school;
+  }
+  
   amplify_core.TemporalDateTime? get createdAt {
     return _createdAt;
   }
@@ -110,9 +120,9 @@ class User extends amplify_core.Model {
     return _userSettingsId;
   }
   
-  const User._internal({required this.id, required display_username, required email, profilePicture, bio, country, sightings, settings, createdAt, updatedAt, userSettingsId}): _display_username = display_username, _email = email, _profilePicture = profilePicture, _bio = bio, _country = country, _sightings = sightings, _settings = settings, _createdAt = createdAt, _updatedAt = updatedAt, _userSettingsId = userSettingsId;
+  const User._internal({required this.id, required display_username, required email, profilePicture, bio, country, sightings, settings, age, school, createdAt, updatedAt, userSettingsId}): _display_username = display_username, _email = email, _profilePicture = profilePicture, _bio = bio, _country = country, _sightings = sightings, _settings = settings, _age = age, _school = school, _createdAt = createdAt, _updatedAt = updatedAt, _userSettingsId = userSettingsId;
   
-  factory User({String? id, required String display_username, required String email, String? profilePicture, String? bio, String? country, List<Sighting>? sightings, UserSettings? settings, String? userSettingsId}) {
+  factory User({String? id, required String display_username, required String email, String? profilePicture, String? bio, String? country, List<Sighting>? sightings, UserSettings? settings, int? age, String? school, String? userSettingsId}) {
     return User._internal(
       id: id == null ? amplify_core.UUID.getUUID() : id,
       display_username: display_username,
@@ -122,6 +132,8 @@ class User extends amplify_core.Model {
       country: country,
       sightings: sightings != null ? List<Sighting>.unmodifiable(sightings) : sightings,
       settings: settings,
+      age: age,
+      school: school,
       userSettingsId: userSettingsId);
   }
   
@@ -141,6 +153,8 @@ class User extends amplify_core.Model {
       _country == other._country &&
       DeepCollectionEquality().equals(_sightings, other._sightings) &&
       _settings == other._settings &&
+      _age == other._age &&
+      _school == other._school &&
       _userSettingsId == other._userSettingsId;
   }
   
@@ -158,6 +172,8 @@ class User extends amplify_core.Model {
     buffer.write("profilePicture=" + "$_profilePicture" + ", ");
     buffer.write("bio=" + "$_bio" + ", ");
     buffer.write("country=" + "$_country" + ", ");
+    buffer.write("age=" + (_age != null ? _age!.toString() : "null") + ", ");
+    buffer.write("school=" + "$_school" + ", ");
     buffer.write("createdAt=" + (_createdAt != null ? _createdAt!.format() : "null") + ", ");
     buffer.write("updatedAt=" + (_updatedAt != null ? _updatedAt!.format() : "null") + ", ");
     buffer.write("userSettingsId=" + "$_userSettingsId");
@@ -166,7 +182,7 @@ class User extends amplify_core.Model {
     return buffer.toString();
   }
   
-  User copyWith({String? display_username, String? email, String? profilePicture, String? bio, String? country, List<Sighting>? sightings, UserSettings? settings, String? userSettingsId}) {
+  User copyWith({String? display_username, String? email, String? profilePicture, String? bio, String? country, List<Sighting>? sightings, UserSettings? settings, int? age, String? school, String? userSettingsId}) {
     return User._internal(
       id: id,
       display_username: display_username ?? this.display_username,
@@ -176,6 +192,8 @@ class User extends amplify_core.Model {
       country: country ?? this.country,
       sightings: sightings ?? this.sightings,
       settings: settings ?? this.settings,
+      age: age ?? this.age,
+      school: school ?? this.school,
       userSettingsId: userSettingsId ?? this.userSettingsId);
   }
   
@@ -187,6 +205,8 @@ class User extends amplify_core.Model {
     ModelFieldValue<String?>? country,
     ModelFieldValue<List<Sighting>?>? sightings,
     ModelFieldValue<UserSettings?>? settings,
+    ModelFieldValue<int?>? age,
+    ModelFieldValue<String?>? school,
     ModelFieldValue<String?>? userSettingsId
   }) {
     return User._internal(
@@ -198,6 +218,8 @@ class User extends amplify_core.Model {
       country: country == null ? this.country : country.value,
       sightings: sightings == null ? this.sightings : sightings.value,
       settings: settings == null ? this.settings : settings.value,
+      age: age == null ? this.age : age.value,
+      school: school == null ? this.school : school.value,
       userSettingsId: userSettingsId == null ? this.userSettingsId : userSettingsId.value
     );
   }
@@ -227,12 +249,14 @@ class User extends amplify_core.Model {
           ? UserSettings.fromJson(new Map<String, dynamic>.from(json['settings']['serializedData']))
           : UserSettings.fromJson(new Map<String, dynamic>.from(json['settings']))
         : null,
+      _age = (json['age'] as num?)?.toInt(),
+      _school = json['school'],
       _createdAt = json['createdAt'] != null ? amplify_core.TemporalDateTime.fromString(json['createdAt']) : null,
       _updatedAt = json['updatedAt'] != null ? amplify_core.TemporalDateTime.fromString(json['updatedAt']) : null,
       _userSettingsId = json['userSettingsId'];
   
   Map<String, dynamic> toJson() => {
-    'id': id, 'display_username': _display_username, 'email': _email, 'profilePicture': _profilePicture, 'bio': _bio, 'country': _country, 'sightings': _sightings?.map((Sighting? e) => e?.toJson()).toList(), 'settings': _settings?.toJson(), 'createdAt': _createdAt?.format(), 'updatedAt': _updatedAt?.format(), 'userSettingsId': _userSettingsId
+    'id': id, 'display_username': _display_username, 'email': _email, 'profilePicture': _profilePicture, 'bio': _bio, 'country': _country, 'sightings': _sightings?.map((Sighting? e) => e?.toJson()).toList(), 'settings': _settings?.toJson(), 'age': _age, 'school': _school, 'createdAt': _createdAt?.format(), 'updatedAt': _updatedAt?.format(), 'userSettingsId': _userSettingsId
   };
   
   Map<String, Object?> toMap() => {
@@ -244,6 +268,8 @@ class User extends amplify_core.Model {
     'country': _country,
     'sightings': _sightings,
     'settings': _settings,
+    'age': _age,
+    'school': _school,
     'createdAt': _createdAt,
     'updatedAt': _updatedAt,
     'userSettingsId': _userSettingsId
@@ -262,6 +288,8 @@ class User extends amplify_core.Model {
   static final SETTINGS = amplify_core.QueryField(
     fieldName: "settings",
     fieldType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.model, ofModelName: 'UserSettings'));
+  static final AGE = amplify_core.QueryField(fieldName: "age");
+  static final SCHOOL = amplify_core.QueryField(fieldName: "school");
   static final USERSETTINGSID = amplify_core.QueryField(fieldName: "userSettingsId");
   static var schema = amplify_core.Model.defineSchema(define: (amplify_core.ModelSchemaDefinition modelSchemaDefinition) {
     modelSchemaDefinition.name = "User";
@@ -322,6 +350,18 @@ class User extends amplify_core.Model {
       isRequired: false,
       ofModelName: 'UserSettings',
       associatedKey: UserSettings.ID
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: User.AGE,
+      isRequired: false,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.int)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: User.SCHOOL,
+      isRequired: false,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.string)
     ));
     
     modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.nonQueryField(

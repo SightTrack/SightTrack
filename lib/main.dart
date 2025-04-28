@@ -35,7 +35,7 @@ void main() async {
     ]);
 
     await Amplify.configure(amplifyconfig);
-    // await Amplify.DataStore.clear(); // Uncomment to force DataStore to sync
+    // await Amplify.DataStore.clear();
     await Amplify.DataStore.start();
 
     // Listen for global sync events

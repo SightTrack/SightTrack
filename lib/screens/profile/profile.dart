@@ -18,6 +18,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool isLoading = true;
   bool _isAreaCaptureActive = false;
 
+  Future<int>? getTotalSightingNumber() async {
+    try {
+      final sightings = await Amplify.DataStore.query(
+        Sighting.classType,
+        where: Sighting.USER.eq(userDatastore!.id),
+      );
+      return sightings.length;
+    } catch (e) {
+      Log.e('FETCH ERROR for total sightings: $e');
+      return 0;
+    }
+  }
+
   Future<void> fetchCurrentUser() async {
     try {
       final currentUser = await Amplify.Auth.getCurrentUser();
@@ -336,6 +349,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 48),
+                    FutureBuilder<int>(
+                      future: getTotalSightingNumber(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          );
+                        }
+                        if (snapshot.hasData) {
+                          return Text(
+                            'Has ${snapshot.data} Sightings',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                    const SizedBox(height: 40),
                     BlackButton(
                       text: 'Logout',
                       onPressed: () {

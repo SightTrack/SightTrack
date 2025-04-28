@@ -149,8 +149,17 @@ class _AreaCaptureHomeState extends State<AreaCaptureHome>
   }
 
   Future<void> _saveSessionSightings() async {
-    for (var entry in _sessionSightings) {
-      await Amplify.DataStore.save(entry['sighting'] as Sighting);
+    try {
+      final user = await Util.getUserModel();
+
+      for (var entry in _sessionSightings) {
+        Sighting sighting = entry['sighting'] as Sighting;
+        final updatedSighting = sighting.copyWith(user: user);
+        await Amplify.DataStore.save(updatedSighting);
+      }
+    } catch (e) {
+      Log.e('AC SAVE ERROR: $e');
+      rethrow;
     }
   }
 

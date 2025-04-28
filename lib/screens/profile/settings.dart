@@ -1,5 +1,6 @@
 import 'package:sighttrack/barrel.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -32,6 +33,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       setState(() {
         isLoading = false;
       });
+      Log.e('Error fetching user: $e');
     }
   }
 
@@ -140,6 +142,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: 'Email',
             subtitle: user!.email,
             onTap: () => _navigateToEditPage('Email', user!.email),
+          ),
+          _buildDivider(),
+          _buildProfileItem(
+            title: 'Age',
+            subtitle: user!.age != null ? '${user!.age}' : 'Not set',
+            onTap: () => _navigateToEditPage('Age', user!.age?.toString()),
+          ),
+          _buildDivider(),
+          _buildProfileItem(
+            title: 'School',
+            subtitle: user!.school ?? 'Not set',
+            onTap: () => _navigateToEditPage('School', user!.school),
           ),
           _buildDivider(),
           _buildProfileItem(
@@ -308,6 +322,16 @@ class _EditFieldPageState extends State<EditFieldPage> {
           case 'Bio':
             updatedUser = widget.user.copyWith(bio: newValue);
             break;
+          case 'Age':
+            final age = int.tryParse(newValue);
+            if (age == null) {
+              throw Exception('Invalid age format');
+            }
+            updatedUser = widget.user.copyWith(age: age);
+            break;
+          case 'School':
+            updatedUser = widget.user.copyWith(school: newValue);
+            break;
           default:
             updatedUser = widget.user;
         }
@@ -361,8 +385,23 @@ class _EditFieldPageState extends State<EditFieldPage> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF39FF14), // Green accent
+                      width: 2,
+                    ),
+                  ),
                 ),
                 style: const TextStyle(color: Colors.white),
+                keyboardType:
+                    widget.field == 'Age'
+                        ? TextInputType.number
+                        : TextInputType.text,
+                inputFormatters:
+                    widget.field == 'Age'
+                        ? [FilteringTextInputFormatter.digitsOnly]
+                        : null,
                 validator: (value) {
                   if (widget.field == 'Username' || widget.field == 'Email') {
                     if (value == null || value.trim().isEmpty) {
@@ -375,16 +414,24 @@ class _EditFieldPageState extends State<EditFieldPage> {
                       !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value.trim())) {
                     return 'Enter a valid email';
                   }
+                  if (widget.field == 'Age') {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Age cannot be empty';
+                    }
+                    final age = int.tryParse(value);
+                    if (age == null || age < 1 || age > 120) {
+                      return 'Enter a valid age (1-120)';
+                    }
+                  }
+                  if (widget.field == 'School' &&
+                      (value != null && value.trim().isEmpty)) {
+                    return 'Enter a valid school';
+                  }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
-              SightTrackButton(
-                text: 'Save',
-                onPressed: isSaving ? null : _saveField,
-                loading: isSaving,
-                width: double.infinity,
-              ),
+              BlackButton(text: 'Save', onPressed: _saveField),
             ],
           ),
         ),
@@ -518,7 +565,7 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
                       ),
                       value: _locationOffset ?? false,
                       onChanged: (value) => _updateLocationOffset(value),
-                      activeColor: Colors.blue,
+                      activeColor: const Color(0xFF39FF14), // Green accent
                       dense: true,
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,

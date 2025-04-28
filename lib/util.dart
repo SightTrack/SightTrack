@@ -1,6 +1,5 @@
-import 'package:geocoding/geocoding.dart';
-import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
 import 'package:sighttrack/barrel.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
 
 import 'package:flutter/material.dart';
 
@@ -62,6 +61,18 @@ class Util {
       Log.e('Util.getUserSettings(): $e');
       return null;
     }
+  }
+
+  static Future<User> getUserModel() async {
+    final currentCognitoUser = await Amplify.Auth.getCurrentUser();
+    final userId = currentCognitoUser.userId;
+
+    final users = await Amplify.DataStore.query(
+      User.classType,
+      where: User.ID.eq(userId),
+    );
+
+    return users.first;
   }
 
   static Future<bool> isAdmin() async {

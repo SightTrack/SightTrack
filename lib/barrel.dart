@@ -45,6 +45,7 @@ export 'package:sighttrack/screens/data/data.dart';
 export 'package:sighttrack/screens/data/global_page.dart';
 export 'package:sighttrack/screens/data/local_page.dart';
 export 'package:sighttrack/screens/community/community.dart';
+export 'package:sighttrack/screens/user/user_details.dart';
 
 // Other imports
 export 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
@@ -56,3 +57,4 @@ export 'package:image_picker/image_picker.dart';
 export 'package:fluttertoast/fluttertoast.dart';
 export 'package:animated_background/animated_background.dart';
 export 'package:geolocator/geolocator.dart';
+export 'package:geocoding/geocoding.dart';
