@@ -19,6 +19,23 @@ class _AppState extends State<App> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    Amplify.DataStore.observe(User.classType).listen((event) {
+      Log.i('Global DataStore sync event: ${event.item.toJson()}');
+      if (event.item.school == null || event.item.age == null) {
+        Log.i('User details are missing, navigating to UserDetailsScreen');
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const UserDetailsScreen()),
+        );
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Authenticator(
       authenticatorBuilder: (context, state) {
@@ -187,7 +204,8 @@ class _AppState extends State<App> {
               Log.e('FUTURE_BUILDER for isMissingDetails: ${snapshot.error}');
               return Text('Error: ${snapshot.error}');
             } else if (snapshot.hasData) {
-              if (snapshot.data == true) {
+              bool isMissing = snapshot.data!;
+              if (isMissing) {
                 return const UserDetailsScreen();
               } else {
                 return const Navigation();

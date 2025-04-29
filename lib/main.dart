@@ -38,11 +38,6 @@ void main() async {
     // await Amplify.DataStore.clear();
     await Amplify.DataStore.start();
 
-    // Listen for global sync events
-    Amplify.DataStore.observe(User.classType).listen((event) {
-      Log.i('Global DataStore sync event: ${event.item.toJson()}');
-    });
-
     // Validate and update UserSettings (check if Area Capture mode is activated when not supposed to)
     Amplify.DataStore.observe(UserSettings.classType).listen((event) async {
       final settings = event.item;

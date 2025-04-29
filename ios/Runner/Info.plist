@@ -47,13 +47,13 @@
 	</array>
 
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>To choose a photo for uploading and changing profile pictures</string>
+	<string>We need access to your photo album to enable choosing a profile picture</string>
 	<key>NSCameraUsageDescription</key>
-	<string>To take a picture for photo uploads and profile pictures</string>
+	<string>We need access to your camera to take pictures for sightings - one of the core features</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to location when open to access the map</string>
+	<string>We need access to your location while in use to update the map in real-time. We also need it to create sightings, as each sighting requires location coordinates. For privacy, one may turn on location offset</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Needed to take pictures for sightings. Audio isn't used, but needed for camera access</string>
+	<string>We need access to your audio, since taking a capture requires this. Audio isn't used in the app, but is just a requirement for taking photos</string>
 
 	<key>NSAppTransportSecurity</key>
 	<dict>
