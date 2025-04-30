@@ -22,17 +22,17 @@ class _AppState extends State<App> {
   void initState() {
     super.initState();
 
-    Amplify.DataStore.observe(User.classType).listen((event) {
-      Log.i('Global DataStore sync event: ${event.item.toJson()}');
-      if (event.item.school == null || event.item.age == null) {
-        Log.i('User details are missing, navigating to UserDetailsScreen');
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const UserDetailsScreen()),
-        );
-      }
-    });
+    // Amplify.DataStore.observe(User.classType).listen((event) {
+    //   Log.i('Global DataStore sync event: ${event.item.toJson()}');
+    //   if (event.item.school == null || event.item.age == null) {
+    //     Log.i('User details are missing, navigating to UserDetailsScreen');
+    //     if (!mounted) return;
+    //     Navigator.pushReplacement(
+    //       context,
+    //       MaterialPageRoute(builder: (context) => const UserDetailsScreen()),
+    //     );
+    //   }
+    // });
   }
 
   @override
@@ -195,26 +195,27 @@ class _AppState extends State<App> {
             ),
           ),
         ),
-        home: FutureBuilder<bool>(
-          future: isMissingDetails(),
-          builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              Log.e('FUTURE_BUILDER for isMissingDetails: ${snapshot.error}');
-              return Text('Error: ${snapshot.error}');
-            } else if (snapshot.hasData) {
-              bool isMissing = snapshot.data!;
-              if (isMissing) {
-                return const UserDetailsScreen();
-              } else {
-                return const Navigation();
-              }
-            }
-            // Fallback widget
-            return const SizedBox(height: 2);
-          },
-        ),
+        home: const Navigation(),
+        // FutureBuilder<bool>(
+        //   future: isMissingDetails(),
+        //   builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+        //     if (snapshot.connectionState == ConnectionState.waiting) {
+        //       return const Center(child: CircularProgressIndicator());
+        //     } else if (snapshot.hasError) {
+        //       Log.e('FUTURE_BUILDER for isMissingDetails: ${snapshot.error}');
+        //       return Text('Error: ${snapshot.error}');
+        //     } else if (snapshot.hasData) {
+        //       bool isMissing = snapshot.data!;
+        //       if (isMissing) {
+        //         return const UserDetailsScreen();
+        //       } else {
+        //         return const Navigation();
+        //       }
+        //     }
+        //     // Fallback widget
+        //     return const SizedBox(height: 2);
+        //   },
+        // ),
       ),
     );
   }
