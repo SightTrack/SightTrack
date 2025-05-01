@@ -13,7 +13,7 @@ type User @model @auth(rules: [{allow: private}]) {
 
 type UserSettings @model @auth(rules: [{ allow: private }]) {
   id: ID!
-  userId: ID! # Foreign key to User
+  userId: ID!
   locationOffset: Boolean
   isAreaCaptureActive: Boolean
   areaCaptureEnd: AWSDateTime
