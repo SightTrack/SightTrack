@@ -22,6 +22,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Log.init();
 
+  // Will not work for iOS 18.4
   await dotenv.load();
   MapboxOptions.setAccessToken(dotenv.env['MAPBOX_TOKEN']!);
 
@@ -38,7 +39,7 @@ void main() async {
     // await Amplify.DataStore.clear();
     await Amplify.DataStore.start();
 
-    // Validate and update UserSettings (check if Area Capture mode is activated when not supposed to)
+    // We need to regularly check if the user settings are updated
     Amplify.DataStore.observe(UserSettings.classType).listen((event) async {
       final settings = event.item;
       print('UserSettings observer triggered: ${settings.toJson()}');
@@ -55,7 +56,6 @@ void main() async {
       }
     });
 
-    // Check for user auth status
     Amplify.Hub.listen(HubChannel.Auth, (hubEvent) async {
       if (hubEvent.eventName == 'SIGNED_IN') {
         Log.i('Event: SIGNED_IN - Waiting for DataStore sync');
@@ -69,7 +69,7 @@ void main() async {
           isSynced = true;
         });
 
-        // Wait up to 10 seconds for sync to occur
+        // Wait up to 10 seconds
         for (int i = 0; i < 20; i++) {
           if (isSynced) break;
           await Future.delayed(const Duration(milliseconds: 500));

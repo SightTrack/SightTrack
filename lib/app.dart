@@ -21,18 +21,6 @@ class _AppState extends State<App> {
   @override
   void initState() {
     super.initState();
-
-    // Amplify.DataStore.observe(User.classType).listen((event) {
-    //   Log.i('Global DataStore sync event: ${event.item.toJson()}');
-    //   if (event.item.school == null || event.item.age == null) {
-    //     Log.i('User details are missing, navigating to UserDetailsScreen');
-    //     if (!mounted) return;
-    //     Navigator.pushReplacement(
-    //       context,
-    //       MaterialPageRoute(builder: (context) => const UserDetailsScreen()),
-    //     );
-    //   }
-    // });
   }
 
   @override
@@ -48,11 +36,11 @@ class _AppState extends State<App> {
               padding: const EdgeInsets.all(24),
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Colors.grey[900],
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: const [
                   BoxShadow(
-                    color: Colors.black12,
+                    color: Colors.black54,
                     blurRadius: 10,
                     offset: Offset(0, 4),
                   ),
@@ -62,8 +50,9 @@ class _AppState extends State<App> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    const SizedBox(height: 20),
                     Image.asset(
-                      'assets/logo.jpg',
+                      'assets/logo_transparent.png',
                       height: 150,
                       width: 150,
                       fit: BoxFit.contain,
@@ -74,7 +63,7 @@ class _AppState extends State<App> {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.indigo,
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -93,7 +82,7 @@ class _AppState extends State<App> {
                               () => state.changeStep(AuthenticatorStep.signUp),
                           child: const Text(
                             'Create Account',
-                            style: TextStyle(color: Colors.indigo),
+                            style: TextStyle(color: Colors.indigoAccent),
                           ),
                         ),
                         TextButton(
@@ -103,7 +92,7 @@ class _AppState extends State<App> {
                               ),
                           child: const Text(
                             'Forgot Password?',
-                            style: TextStyle(color: Colors.indigo),
+                            style: TextStyle(color: Colors.indigoAccent),
                           ),
                         ),
                       ],
@@ -122,11 +111,11 @@ class _AppState extends State<App> {
               padding: const EdgeInsets.all(24),
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Colors.grey[900],
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: const [
                   BoxShadow(
-                    color: Colors.black12,
+                    color: Colors.black54,
                     blurRadius: 10,
                     offset: Offset(0, 4),
                   ),
@@ -136,8 +125,9 @@ class _AppState extends State<App> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    const SizedBox(height: 20),
                     Image.asset(
-                      'assets/logo.jpg',
+                      'assets/logo_transparent.png',
                       height: 150,
                       width: 150,
                       fit: BoxFit.contain,
@@ -148,7 +138,7 @@ class _AppState extends State<App> {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.indigo,
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -166,7 +156,7 @@ class _AppState extends State<App> {
                           () => state.changeStep(AuthenticatorStep.signIn),
                       child: const Text(
                         'Already have an account? Sign In',
-                        style: TextStyle(color: Colors.indigo),
+                        style: TextStyle(color: Colors.indigoAccent),
                       ),
                     ),
                   ],
@@ -179,11 +169,28 @@ class _AppState extends State<App> {
       },
       child: MaterialApp(
         builder: Authenticator.builder(),
-        title: 'SightTrack',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           primarySwatch: Colors.indigo,
-          scaffoldBackgroundColor: Colors.grey[100],
+          scaffoldBackgroundColor: Colors.grey[850],
+          cardColor: Colors.grey[900],
+          textTheme: const TextTheme(
+            bodyMedium: TextStyle(color: Colors.white),
+            labelLarge: TextStyle(color: Colors.white),
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: Colors.grey[800],
+            labelStyle: const TextStyle(color: Colors.white70),
+            enabledBorder: OutlineInputBorder(
+              borderSide: const BorderSide(color: Colors.grey),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: const BorderSide(color: Colors.indigoAccent),
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.indigo,
@@ -196,26 +203,6 @@ class _AppState extends State<App> {
           ),
         ),
         home: const Navigation(),
-        // FutureBuilder<bool>(
-        //   future: isMissingDetails(),
-        //   builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
-        //     if (snapshot.connectionState == ConnectionState.waiting) {
-        //       return const Center(child: CircularProgressIndicator());
-        //     } else if (snapshot.hasError) {
-        //       Log.e('FUTURE_BUILDER for isMissingDetails: ${snapshot.error}');
-        //       return Text('Error: ${snapshot.error}');
-        //     } else if (snapshot.hasData) {
-        //       bool isMissing = snapshot.data!;
-        //       if (isMissing) {
-        //         return const UserDetailsScreen();
-        //       } else {
-        //         return const Navigation();
-        //       }
-        //     }
-        //     // Fallback widget
-        //     return const SizedBox(height: 2);
-        //   },
-        // ),
       ),
     );
   }

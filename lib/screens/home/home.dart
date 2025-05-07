@@ -5,7 +5,7 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
 import 'package:geolocator/geolocator.dart' as geo;
 
 class AnnotationClickListener extends mapbox.OnCircleAnnotationClickListener {
-  /// Callback function to handle annotation click events
+  // Callback function to handle annotation click events
 
   final void Function(mapbox.CircleAnnotation) onAnnotationClick;
 

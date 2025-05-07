@@ -45,4 +45,5 @@ flutter:
   uses-material-design: true
   assets:
     - "assets/logo.jpg"
+    - "assets/logo_transparent.png"
     - ".env"
