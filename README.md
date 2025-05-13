@@ -1,4 +1,5 @@
 # [SightTrack V2](https://www.sighttrack.org/)
+<img src="https://github.com/user-attachments/assets/8c7d9af7-62c7-4637-8011-655792b00b1c" alt="drawing" width="150"/>
 
 ### Changes from V1
 - Use Amplify SDK for backend (so no need for making custom APIS)
