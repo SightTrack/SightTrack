@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sighttrack/barrel.dart';
+import 'package:sighttrack/screens/community/view_user.dart';
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({super.key});
@@ -179,7 +180,12 @@ class _CommunityScreenState extends State<CommunityScreen>
                 style: TextStyle(color: Colors.grey[400], fontSize: 14),
               ),
               onTap: () {
-                // TODO: Create user page
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ViewUserScreen(user: user),
+                  ),
+                );
               },
             ),
           ),
