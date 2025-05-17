@@ -398,16 +398,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               content: const Text(
                                 'Are you sure you want to log out?',
-                                style: TextStyle(fontSize: 16, color: Colors.black),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black,
+                                ),
                               ),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.of(context).pop(),
-                                  child: const Text(
+                                  child: Text(
                                     'Cancel',
                                     style: TextStyle(
                                       fontSize: 15,
-                                      color: Colors.fromARGB(255, 96, 95, 95),
+                                      color: Color.fromARGB(255, 96, 95, 95),
                                     ),
                                   ),
                                 ),
