@@ -1,5 +1,4 @@
 import 'package:sighttrack/barrel.dart';
-
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatefulWidget {

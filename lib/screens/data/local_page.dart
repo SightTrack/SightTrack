@@ -207,6 +207,40 @@ class _LocalViewState extends State<LocalView> {
                                 ),
                                 end: DateTime.now(),
                               ),
+                              builder: (context, child) {
+                                return Theme(
+                                  data: ThemeData(
+                                    primaryColor: Colors.teal,
+                                    colorScheme: ColorScheme.light(
+                                      primary: Colors.teal,
+                                      onPrimary: Colors.white,
+                                      surface: Colors.white,
+                                      onSurface: Colors.black87,
+                                    ),
+                                    textTheme: TextTheme(
+                                      headlineSmall: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.teal[900],
+                                      ),
+                                      bodyMedium: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    textButtonTheme: TextButtonThemeData(
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: Colors.teal,
+                                        textStyle: TextStyle(fontSize: 16),
+                                      ),
+                                    ),
+                                    dialogTheme: DialogThemeData(
+                                      backgroundColor: Colors.white,
+                                    ),
+                                  ),
+                                  child: child!,
+                                );
+                              },
                             );
                             if (picked != null) {
                               setState(() {
@@ -254,7 +288,7 @@ class _LocalViewState extends State<LocalView> {
                                     style: const TextStyle(color: Colors.white),
                                   ),
                                   subtitle: Text(
-                                    'Moran\'s I: ${moransI.toStringAsFixed(2)} ($distribution)',
+                                    'Score: ${moransI.toStringAsFixed(2)} ($distribution)',
                                     style: const TextStyle(
                                       color: Colors.white70,
                                     ),

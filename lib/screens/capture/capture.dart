@@ -1,5 +1,4 @@
 import 'package:sighttrack/barrel.dart';
-
 import 'package:flutter/material.dart';
 
 class CaptureScreen extends StatefulWidget {
@@ -40,7 +39,6 @@ class CaptureScreenState extends State<CaptureScreen> {
   }
 
   Future<void> _initializeCamera() async {
-    // Get available cameras
     try {
       _cameras = await availableCameras();
       if (_cameras.isEmpty) {
@@ -57,7 +55,7 @@ class CaptureScreenState extends State<CaptureScreen> {
       return;
     }
 
-    // Default to back camera (index 0)
+    // Default to back camera
     _selectedCameraIndex = 0;
     await _setupCameraController();
   }
@@ -69,29 +67,24 @@ class CaptureScreenState extends State<CaptureScreen> {
       _errorMessage = null;
     });
 
-    // Dispose of the previous controller if it exists
     if (_controller != null) {
       await _controller!.dispose();
       _controller = null;
     }
 
-    // Create a new controller for the selected camera
     _controller = CameraController(
       _cameras[_selectedCameraIndex],
       ResolutionPreset.high,
       enableAudio: false,
     );
 
-    // Initialize the controller and wait for completion
+    // Must wait for completion
     _initializeControllerFuture = _controller!
         .initialize()
         .then((_) {
           Log.i('Camera initialized successfully');
-          // Check flash support for the new camera
           _checkFlashSupport();
-          // Set flash mode
           _controller!.setFlashMode(_flashMode);
-          // Mark as initialized
           setState(() {
             _isCameraInitialized = true;
           });
@@ -121,7 +114,6 @@ class CaptureScreenState extends State<CaptureScreen> {
   }
 
   Future<void> _switchCamera() async {
-    // Toggle between front and back cameras
     _selectedCameraIndex = (_selectedCameraIndex + 1) % _cameras.length;
     await _setupCameraController();
   }
@@ -157,7 +149,6 @@ class CaptureScreenState extends State<CaptureScreen> {
       await _initializeControllerFuture;
       final image = await _controller!.takePicture();
 
-      // Navigate to a preview screen with the captured image
       if (!mounted) return;
       Navigator.push(
         context,
@@ -215,7 +206,6 @@ class CaptureScreenState extends State<CaptureScreen> {
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {
-                        // Retry initialization
                         _initializeCamera();
                       },
                       child: const Text('Retry'),
@@ -231,7 +221,6 @@ class CaptureScreenState extends State<CaptureScreen> {
               )
               : const Center(child: CircularProgressIndicator()),
 
-          // Top gradient overlay
           if (_isCameraInitialized && _errorMessage == null)
             Positioned(
               top: 0,
@@ -252,7 +241,6 @@ class CaptureScreenState extends State<CaptureScreen> {
               ),
             ),
 
-          // Bottom gradient overlay
           if (_isCameraInitialized && _errorMessage == null)
             Positioned(
               bottom: 0,
@@ -273,7 +261,6 @@ class CaptureScreenState extends State<CaptureScreen> {
               ),
             ),
 
-          // Top-right icon (flash toggle only)
           if (_isCameraInitialized && _errorMessage == null)
             Positioned(
               top: 40,
@@ -305,7 +292,6 @@ class CaptureScreenState extends State<CaptureScreen> {
               ),
             ),
 
-          // Bottom controls
           if (_isCameraInitialized && _errorMessage == null)
             Positioned(
               bottom: 30,
@@ -314,7 +300,6 @@ class CaptureScreenState extends State<CaptureScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Album button (unchanged)
                   GestureDetector(
                     onTap: () {
                       _pickFromGallery();
@@ -341,7 +326,6 @@ class CaptureScreenState extends State<CaptureScreen> {
                       ),
                     ),
                   ),
-                  // Modified Capture button
                   GestureDetector(
                     onTapDown: (_) {
                       setState(() {
@@ -391,7 +375,6 @@ class CaptureScreenState extends State<CaptureScreen> {
                       ),
                     ),
                   ),
-                  // Flip camera button
                   Container(
                     width: 50,
                     height: 50,
@@ -430,7 +413,6 @@ class CaptureScreenState extends State<CaptureScreen> {
             ),
           ),
 
-          // Timestamp overlay
           if (_isCameraInitialized && _errorMessage == null)
             LayoutBuilder(
               builder: (context, constraints) {
@@ -501,7 +483,6 @@ class PhotoPreviewScreen extends StatelessWidget {
               );
             },
           ),
-          // Back button
           Positioned(
             top: MediaQuery.of(context).padding.top + 10,
             left: 20,

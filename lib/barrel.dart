@@ -1,13 +1,13 @@
 /* 
-  MapBox and Geolocator need to be imported manually in every file that uses it
+  MapBox and Geolocator need to be imported manually in every file that uses it because they share too many similar names
 */
 
-// Dart imports
+// Dart
 export 'dart:async';
 export 'dart:convert';
 export 'dart:io';
 
-// Amplify imports
+// Amplify
 export 'package:amplify_flutter/amplify_flutter.dart'
     hide BadCertificateCallback, X509Certificate;
 export 'package:amplify_api/amplify_api.dart';
@@ -28,12 +28,12 @@ export 'package:sighttrack/widgets/button.dart';
 export 'package:sighttrack/processing.dart';
 export 'package:sighttrack/math/spatial_autocorrection.dart';
 
-// SightTrack pages
+// SightTrack main
 export 'package:sighttrack/navigation.dart';
-export 'package:sighttrack/screens/capture/ac_setup.dart';
-export 'package:sighttrack/screens/capture/ac_home.dart';
+export 'package:sighttrack/screens/capture/quick_capture/ac_setup.dart';
+export 'package:sighttrack/screens/capture/area_capture/ac_home.dart';
 export 'package:sighttrack/screens/capture/capture.dart';
-export 'package:sighttrack/screens/capture/capture_type.dart';
+export 'package:sighttrack/screens/capture/choose_capture_type.dart';
 export 'package:sighttrack/screens/capture/create_sighting.dart';
 export 'package:sighttrack/screens/home/all_sightings.dart';
 export 'package:sighttrack/screens/home/home.dart';
@@ -45,7 +45,7 @@ export 'package:sighttrack/screens/data/data.dart';
 export 'package:sighttrack/screens/data/global_page.dart';
 export 'package:sighttrack/screens/data/local_page.dart';
 export 'package:sighttrack/screens/community/community.dart';
-export 'package:sighttrack/screens/user/user_details.dart';
+export 'package:sighttrack/screens/other/user_details.dart';
 
 // Other imports
 export 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
