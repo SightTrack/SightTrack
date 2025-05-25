@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 class Util {
   Util._();
 
-  static String mapStyle = 'mapbox://styles/jamestt/cm8c8inqm004b01rxat34g28r';
+  // static String mapStyle = 'mapbox://styles/jamestt/cm8c8inqm004b01rxat34g28r';
+  static String mapStyle =
+      'mapbox://styles/jamestt/cm8c8inqm004b01rxat34g28r/draft';
 
   static Widget greenToast(String text) {
     return Container(

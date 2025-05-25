@@ -42,10 +42,11 @@ export 'package:sighttrack/screens/profile/profile.dart';
 export 'package:sighttrack/screens/profile/settings.dart';
 export 'package:sighttrack/screens/profile/profile_picture.dart';
 export 'package:sighttrack/screens/data/data.dart';
-export 'package:sighttrack/screens/data/global_page.dart';
-export 'package:sighttrack/screens/data/local_page.dart';
+export 'package:sighttrack/screens/data/global/global_page.dart';
+export 'package:sighttrack/screens/data/local/local_page.dart';
 export 'package:sighttrack/screens/community/community.dart';
 export 'package:sighttrack/screens/other/user_details.dart';
+export 'package:sighttrack/screens/data/global/view_statistics.dart';
 
 // Other imports
 export 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
