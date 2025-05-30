@@ -1,0 +1,34 @@
+type User @model @auth(rules: [{allow: private}]) {
+  id: ID!
+  display_username: String!
+  email: String!
+  profilePicture: String
+  bio: String
+  country: String
+  sightings: [Sighting] @hasMany
+  settings: UserSettings @hasOne
+  age: Int
+  school: String
+}
+
+type UserSettings @model @auth(rules: [{ allow: private }]) {
+  id: ID!
+  userId: ID!
+  locationOffset: Boolean
+  isAreaCaptureActive: Boolean
+  areaCaptureEnd: AWSDateTime
+}
+
+type Sighting @model @auth(rules: [{allow: private}]) {
+  id: ID!
+  species: String!
+  photo: String!
+  latitude: Float!
+  longitude: Float!
+  city: String
+  displayLatitude: Float
+  displayLongitude: Float
+  timestamp: AWSDateTime!
+  description: String
+  user: User @belongsTo
+}

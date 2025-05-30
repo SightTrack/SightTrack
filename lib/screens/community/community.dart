@@ -1,5 +1,8 @@
+import 'dart:ui'; // For ImageFilter
 import 'package:flutter/material.dart';
 import 'package:sighttrack/barrel.dart';
+import 'package:sighttrack/screens/community/user_detail_screen.dart';
+import 'package:sighttrack/screens/community/enlarged_user_preview.dart'; // Import the new widget
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({super.key});
@@ -16,6 +19,7 @@ class _CommunityScreenState extends State<CommunityScreen>
   String? _errorMessage;
   late TabController _tabController;
   StreamSubscription? _userSubscription;
+  OverlayEntry? _overlayEntry; // For the enlarged user preview
 
   @override
   void initState() {
@@ -27,9 +31,52 @@ class _CommunityScreenState extends State<CommunityScreen>
 
   @override
   void dispose() {
+    _removeEnlargedPreview(); // Ensure overlay is removed when screen is disposed
     _userSubscription?.cancel();
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _removeEnlargedPreview() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  void _showEnlargedPreview(BuildContext context, User user, Offset tapPosition) {
+    _removeEnlargedPreview(); // Remove any existing overlay
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Stack(
+        children: <Widget>[
+          // Full screen GestureDetector to dismiss the overlay
+          GestureDetector(
+            onTap: _removeEnlargedPreview,
+            behavior: HitTestBehavior.opaque, // Ensures it catches taps on the whole area
+            child: Container( // Needed to make GestureDetector work over the whole screen
+              color: Colors.transparent, // Or a very faint color for visual feedback if desired
+            ),
+          ),
+          // BackdropFilter for blur effect
+          BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+            child: Container(
+              color: Colors.black.withOpacity(0.3), // Adjust opacity for desired blur darkness
+            ),
+          ),
+          // Positioned EnlargedUserPreview
+          Positioned(
+            // Center the preview on the screen. Adjust as needed.
+            // Using tapPosition to influence might be complex due to screen edges.
+            // For now, let's center it.
+            left: (MediaQuery.of(context).size.width - 200) / 2, // Assuming preview width is 200
+            top: (MediaQuery.of(context).size.height - 220) / 2, // Assuming preview height is 220
+            child: EnlargedUserPreview(user: user),
+          ),
+        ],
+      ),
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
   }
 
   Future<void> _fetchData() async {
@@ -157,16 +204,52 @@ class _CommunityScreenState extends State<CommunityScreen>
                 ModalRoute.of(context)?.animation ?? AlwaysStoppedAnimation(1),
             curve: Curves.easeIn,
           ),
-          child: Card(
-            color: Colors.grey[850],
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            elevation: 4,
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            child: ListTile(
-              leading: _buildProfilePicture(user),
-              title: Text(
+          child: GestureDetector(
+            onLongPressStart: (details) {
+              _showEnlargedPreview(context, user, details.globalPosition);
+            },
+            onTap: () { // Keep the original onTap for navigation
+              Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      UserDetailScreen(user: user),
+                  transitionDuration: const Duration(milliseconds: 300),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    var begin = const Offset(1.0, 0.0);
+                    var end = Offset.zero;
+                    var curve = Curves.ease;
+                    var tween = Tween(begin: begin, end: end)
+                        .chain(CurveTween(curve: curve));
+                    var slideInAnimation = animation.drive(tween);
+
+                    var slideOutTween = Tween(
+                            begin: Offset.zero, end: const Offset(-0.3, 0.0))
+                        .chain(CurveTween(curve: curve));
+                    var slideOutAnimation = secondaryAnimation.drive(slideOutTween);
+
+                    return SlideTransition(
+                      position: slideOutAnimation,
+                      child: SlideTransition(
+                        position: slideInAnimation,
+                        child: child,
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+            child: Card(
+              color: Colors.grey[850],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 4,
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              child: ListTile(
+                leading: _buildProfilePicture(user),
+                title: Text(
                 user.display_username,
                 style: const TextStyle(
                   color: Colors.white,
@@ -178,12 +261,10 @@ class _CommunityScreenState extends State<CommunityScreen>
                 isGlobal ? (user.school ?? 'No school') : (user.email),
                 style: TextStyle(color: Colors.grey[400], fontSize: 14),
               ),
-              onTap: () {
-                // TODO: Create user page
-              },
+              // onTap is now part of the GestureDetector above
             ),
           ),
-        );
+        ));
       },
     );
   }

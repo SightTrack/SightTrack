@@ -1,0 +1,35 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-sighttrackv2-dev-220519-authRole",
+      "UnauthRoleArn": "arn:aws:iam::602506844737:role/amplify-sighttrackv2-dev-220519-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::602506844737:role/amplify-sighttrackv2-dev-220519-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-sighttrackv2-dev-220519-deployment",
+      "UnauthRoleName": "amplify-sighttrackv2-dev-220519-unauthRole",
+      "StackName": "amplify-sighttrackv2-dev-220519",
+      "StackId": "arn:aws:cloudformation:us-east-1:602506844737:stack/amplify-sighttrackv2-dev-220519/722b1420-039d-11f0-abee-0affe8f069a7",
+      "AmplifyAppId": "di9v8lgjtge3e",
+      "APIGatewayAuthURL": "https://s3.amazonaws.com/amplify-sighttrackv2-dev-220519-deployment/amplify-cfn-templates/api/APIGatewayAuthStack.json"
+    },
+    "categories": {
+      "auth": {
+        "sighttrackv28644ebea": {},
+        "userPoolGroups": {}
+      },
+      "storage": {
+        "StorageResource": {}
+      },
+      "api": {
+        "sighttrackv2": {},
+        "restApiResource": {}
+      },
+      "function": {
+        "sightingComputerVision": {
+          "deploymentBucketName": "amplify-sighttrackv2-dev-220519-deployment",
+          "s3Key": "amplify-builds/sightingComputerVision-5347304a4a42337a5764-build.zip"
+        }
+      }
+    }
+  }
+}
