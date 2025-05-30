@@ -1,7 +1,7 @@
 import 'package:sighttrack/barrel.dart';
 
 class StatisticsService {
-  static StatisticsService? _instance;
+  static StatisticsService? instance;
   StatisticsService._();
 
   // Method to fetch statistics
