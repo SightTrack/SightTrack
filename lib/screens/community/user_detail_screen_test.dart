@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sighttrack/models/user.dart'; // Assuming this is the path
+import 'package:sighttrack/models/user.dart'; 
 import 'package:sighttrack/screens/community/user_detail_screen.dart';
-import '/Users/ft2x/SightTrack/lib/util.dart'; // Assuming this is the path for Util
+import 'package:sighttrack/util.dart'; 
 
 // Mock User class
 class MockUser extends User {

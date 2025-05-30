@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sighttrack/barrel.dart'; // Assuming User model is here
+import 'package:sighttrack/barrel.dart'; 
 
 class UserDetailScreen extends StatelessWidget {
   final User user;

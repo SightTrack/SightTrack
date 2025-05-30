@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sighttrack/barrel.dart';
 import 'package:sighttrack/screens/community/view_user.dart';
 import 'package:sighttrack/screens/community/user_detail_screen.dart';
-import 'package:sighttrack/screens/community/enlarged_user_preview.dart'; // Import the new widget
+import 'package:sighttrack/screens/community/enlarged_user_preview.dart';
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({super.key});

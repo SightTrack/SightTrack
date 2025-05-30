@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sighttrack/barrel.dart'; // Assuming User model and Util are here
+import 'package:sighttrack/barrel.dart'; 
 
 class EnlargedUserPreview extends StatelessWidget {
   final User user;
