@@ -286,7 +286,7 @@ class _GlobalViewState extends State<GlobalView> {
                                   textStyle: const TextStyle(fontSize: 16),
                                 ),
                               ),
-                              dialogTheme: const DialogTheme(
+                              dialogTheme: DialogThemeData(
                                 backgroundColor: Colors.white,
                               ),
                             ),
