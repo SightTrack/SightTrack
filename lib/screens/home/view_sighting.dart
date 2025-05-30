@@ -58,6 +58,7 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Sighting Details'),
         actions: [
@@ -344,12 +345,16 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
         children: [
           Text(
             '$label:',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.black,
+            ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: 16, color: Colors.black),
               textAlign: TextAlign.right,
             ),
           ),
@@ -366,9 +371,16 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
         children: [
           Text(
             '$label:',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.black,
+            ),
           ),
-          Text(value, style: const TextStyle(fontSize: 12)),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 12, color: Colors.black),
+          ),
         ],
       ),
     );

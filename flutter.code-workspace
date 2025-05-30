@@ -1,0 +1,13 @@
+{
+    "folders": [
+        {
+            "path": "."
+        },
+    ],
+    "settings": {
+        "problems.decorations.enabled": false,
+        "dart.analysisExcludedFolders": [
+            "./lib/models"
+        ]
+    },
+}

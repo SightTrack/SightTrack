@@ -22,7 +22,7 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
   double _lastZoom = 15.0;
   bool _isLoading = true;
 
-  int? _selectedDuration;
+  int _selectedDuration = 10;
   final List<int> _durations = [1, 5, 10, 30, 60, 120, 300]; // Minutes
 
   UserSettings? _userSettings;
@@ -175,38 +175,28 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
   }
 
   void _startAreaCapture() async {
-    if (_selectedDuration == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Center(child: Text('Please select a duration'))),
+    try {
+      // Calculate end time: current time + selected duration (in minutes)
+      final endTime = DateTime.now().add(Duration(minutes: _selectedDuration));
+
+      // Create UserSettings for new fields
+      final updatedSettings = _userSettings!.copyWith(
+        isAreaCaptureActive: true,
+        areaCaptureEnd: TemporalDateTime(endTime),
       );
-    } else {
-      try {
-        // Calculate end time: current time + selected duration (in minutes)
-        final endTime = DateTime.now().add(
-          Duration(minutes: _selectedDuration!),
-        );
+      await Amplify.DataStore.save(updatedSettings);
+      _userSettings = updatedSettings;
 
-        // Create UserSettings for new fields
-        final updatedSettings = _userSettings!.copyWith(
-          isAreaCaptureActive: true,
-          areaCaptureEnd: TemporalDateTime(endTime),
-        );
-        await Amplify.DataStore.save(updatedSettings);
-        _userSettings = updatedSettings;
+      setState(() {}); // Update UI
 
-        setState(() {}); // Update UI
-
-        if (!mounted) return;
-        Navigator.pushNamed(context, '/ac_home');
-      } catch (e) {
-        debugPrint('Error starting area capture: $e');
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Center(child: Text('Failed to start area capture')),
-          ),
-        );
-      }
+      if (!mounted) return;
+      Navigator.pushNamed(context, '/ac_home');
+    } catch (e) {
+      debugPrint('Error starting area capture: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Center(child: Text('Failed to start area capture'))),
+      );
     }
   }
 
@@ -294,10 +284,6 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
                             ),
                             const SizedBox(width: 20),
                             DropdownButton<int>(
-                              hint: Text(
-                                'Select (Minutes)',
-                                style: TextStyle(color: Colors.white),
-                              ),
                               value: _selectedDuration,
                               dropdownColor: Colors.black,
                               style: TextStyle(color: Colors.white),
@@ -313,7 +299,7 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
                                   }).toList(),
                               onChanged: (value) {
                                 setState(() {
-                                  _selectedDuration = value;
+                                  _selectedDuration = value!;
                                 });
                               },
                             ),

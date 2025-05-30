@@ -1,6 +1,7 @@
 import 'dart:ui'; // For ImageFilter
 import 'package:flutter/material.dart';
 import 'package:sighttrack/barrel.dart';
+import 'package:sighttrack/screens/community/view_user.dart';
 import 'package:sighttrack/screens/community/user_detail_screen.dart';
 import 'package:sighttrack/screens/community/enlarged_user_preview.dart'; // Import the new widget
 
@@ -261,6 +262,14 @@ class _CommunityScreenState extends State<CommunityScreen>
                 isGlobal ? (user.school ?? 'No school') : (user.email),
                 style: TextStyle(color: Colors.grey[400], fontSize: 14),
               ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ViewUserScreen(user: user),
+                  ),
+                );
+              },
               // onTap is now part of the GestureDetector above
             ),
           ),

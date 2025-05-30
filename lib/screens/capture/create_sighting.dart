@@ -22,6 +22,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
   String? _selectedSpecies;
   List<String>? identifiedSpecies;
   UserSettings? _userSettings;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -87,7 +88,9 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
   }
 
   Future<void> _saveSighting() async {
+    if (_isSaving) return;
     if (_formKey.currentState!.validate()) {
+      setState(() => _isSaving = true);
       try {
         // Get the current authenticated user
         final authUser = await Amplify.Auth.getCurrentUser();
@@ -181,6 +184,8 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
             context,
           ).showSnackBar(SnackBar(content: Text('Error saving sighting: $e')));
         }
+      } finally {
+        if (mounted) setState(() => _isSaving = false);
       }
     }
   }
@@ -493,7 +498,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     ElevatedButton(
-                      onPressed: _saveSighting,
+                      onPressed: _isSaving ? null : _saveSighting,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.greenAccent,
                         foregroundColor: Colors.black,
