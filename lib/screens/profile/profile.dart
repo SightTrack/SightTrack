@@ -10,18 +10,18 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   UserSettings? _userSettings;
-  User? userDatastore;
-  String? cognitoUsername;
-  late StreamSubscription subscription;
+  User? _user;
+  String? _cognitoUsername;
+  late StreamSubscription _subscription;
   Future<String?>? _profilePictureFuture;
-  bool isLoading = true;
+  bool _isLoading = true;
   bool _isAreaCaptureActive = false;
 
   Future<int>? getTotalSightingNumber() async {
     try {
       final sightings = await Amplify.DataStore.query(
         Sighting.classType,
-        where: Sighting.USER.eq(userDatastore!.id),
+        where: Sighting.USER.eq(_user!.id),
       );
       return sightings.length;
     } catch (e) {
@@ -31,34 +31,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> fetchCurrentUser() async {
-    try {
-      final currentUser = await Amplify.Auth.getCurrentUser();
-      final userId = currentUser.userId;
+    final user = await Util.getUserModel();
+    final cognitoUsername = await Util.getCognitoUsername();
+    setState(() {
+      _user = user;
+      _isLoading = false;
+      _cognitoUsername = cognitoUsername;
 
-      final users = await Amplify.DataStore.query(
-        User.classType,
-        where: User.ID.eq(userId),
-      );
-
-      setState(() {
-        if (users.isNotEmpty) {
-          userDatastore = users.first;
-          if (userDatastore!.profilePicture != null &&
-              userDatastore!.profilePicture!.isNotEmpty) {
-            _profilePictureFuture = Util.fetchFromS3(
-              userDatastore!.profilePicture!,
-            );
-          }
-        }
-        isLoading = false;
-        cognitoUsername = currentUser.username;
-      });
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      Log.e('Error fetching user: $e');
-    }
+      if (_user!.profilePicture != null && _user!.profilePicture!.isNotEmpty) {
+        _profilePictureFuture = Util.fetchFromS3(_user!.profilePicture!);
+      }
+    });
   }
 
   Future<void> _initializeWrapper() async {
@@ -77,14 +60,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  void _onVolunteerHoursTap() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => VolunteerHoursScreen()),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     _initializeWrapper();
 
     fetchCurrentUser();
-    subscription = Amplify.DataStore.observe(User.classType).listen((event) {
-      if (userDatastore != null && event.item.id == userDatastore!.id) {
+    _subscription = Amplify.DataStore.observe(User.classType).listen((event) {
+      if (_user != null && event.item.id == _user!.id) {
         fetchCurrentUser();
       }
     });
@@ -92,15 +82,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   void dispose() {
-    subscription.cancel();
+    _subscription.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.grey[900],
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings, size: 26, color: Colors.grey),
@@ -111,14 +103,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       backgroundColor: Colors.grey[900],
       body:
-          isLoading
+          _isLoading
               ? const Center(
                 child: CircularProgressIndicator(
                   strokeWidth: 3,
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
                 ),
               )
-              : userDatastore == null
+              : _user == null
               ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -138,300 +130,418 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ],
               )
-              : SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 28.0,
-                  vertical: 40.0,
-                ),
+              : SafeArea(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child:
-                          _profilePictureFuture != null
-                              ? FutureBuilder<String?>(
-                                future: _profilePictureFuture,
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return const SizedBox(
-                                      height: 120,
-                                      child: Center(
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 3,
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 24,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // Profile Picture & Edit
+                            Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.grey[800]!,
+                                        Colors.grey[700]!,
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.25,
+                                        ),
+                                        blurRadius: 16,
+                                        offset: const Offset(0, 8),
+                                      ),
+                                    ],
+                                  ),
+                                  child:
+                                      _profilePictureFuture != null
+                                          ? FutureBuilder<String?>(
+                                            future: _profilePictureFuture,
+                                            builder: (context, snapshot) {
+                                              if (snapshot.connectionState ==
+                                                  ConnectionState.waiting) {
+                                                return const SizedBox(
+                                                  height: 120,
+                                                  width: 120,
+                                                  child: Center(
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          strokeWidth: 3,
+                                                        ),
+                                                  ),
+                                                );
+                                              } else if (snapshot.hasError ||
+                                                  !snapshot.hasData) {
+                                                return const CircleAvatar(
+                                                  radius: 60,
+                                                  backgroundColor: Colors.grey,
+                                                  child: Icon(
+                                                    Icons.person,
+                                                    size: 48,
+                                                    color: Colors.white,
+                                                  ),
+                                                );
+                                              } else {
+                                                return CircleAvatar(
+                                                  radius: 60,
+                                                  backgroundImage: NetworkImage(
+                                                    snapshot.data!,
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                          )
+                                          : const CircleAvatar(
+                                            radius: 60,
+                                            backgroundColor: Colors.grey,
+                                            child: Icon(
+                                              Icons.person,
+                                              size: 48,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 8,
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(20),
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) =>
+                                                    ChangeProfilePictureScreen(
+                                                      user: _user!,
+                                                    ),
+                                          ),
+                                        );
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.9,
+                                          ),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.edit,
+                                          size: 20,
+                                          color: Colors.black87,
                                         ),
                                       ),
-                                    );
-                                  } else if (snapshot.hasError ||
-                                      !snapshot.hasData) {
-                                    return const CircleAvatar(
-                                      radius: 60,
-                                      backgroundColor: Colors.grey,
-                                      child: Icon(
-                                        Icons.person,
-                                        size: 48,
-                                        color: Colors.white,
-                                      ),
-                                    );
-                                  } else {
-                                    return CircleAvatar(
-                                      radius: 60,
-                                      backgroundImage: NetworkImage(
-                                        snapshot.data!,
-                                      ),
-                                    );
-                                  }
-                                },
-                              )
-                              : const CircleAvatar(
-                                radius: 60,
-                                backgroundColor: Colors.grey,
-                                child: Icon(
-                                  Icons.person,
-                                  size: 48,
-                                  color: Colors.white,
-                                ),
-                              ),
-                    ),
-                    const SizedBox(height: 28),
-                    Text(
-                      cognitoUsername ?? '',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      userDatastore!.display_username,
-                      style: const TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        FutureBuilder<bool>(
-                          future: Util.isAdmin(),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
-                                ),
-                              );
-                            }
-                            if (snapshot.hasData && snapshot.data == true) {
-                              return Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Text(
-                                  'Admin User',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.redAccent,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              );
-                            }
-                            return const SizedBox.shrink();
-                          },
-                        ),
-                        if (_isAreaCaptureActive)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 15),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.red.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Text(
-                                'Area Capture Active',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.green,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.email, size: 22, color: Colors.grey),
-                        const SizedBox(width: 12),
-                        Text(
-                          userDatastore!.email,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.pin_drop,
-                          size: 22,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          userDatastore!.country!.isNotEmpty
-                              ? userDatastore!.country!
-                              : 'Location not set',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        userDatastore!.bio!.isNotEmpty
-                            ? userDatastore!.bio!
-                            : 'No bio',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                          height: 1.6,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const SizedBox(height: 48),
-                    FutureBuilder<int>(
-                      future: getTotalSightingNumber(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                            ),
-                          );
-                        }
-                        if (snapshot.hasData) {
-                          return Text(
-                            'Has ${snapshot.data} Sightings',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      },
-                    ),
-                    const SizedBox(height: 40),
-                    BlackButton(
-                      text: 'Logout',
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              title: const Text(
-                                'Logout',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              content: const Text(
-                                'Are you sure you want to log out?',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  child: Text(
-                                    'Cancel',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      color: Color.fromARGB(255, 96, 95, 95),
-                                    ),
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Amplify.Auth.signOut();
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text(
-                                    'Logout',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      color: Colors.red,
-                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ),
                               ],
+                            ),
+                            const SizedBox(height: 18),
+                            // Username & Display Name
+                            Text(
+                              _user!.display_username,
+                              style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              _cognitoUsername ?? '',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: Colors.grey,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+                            // Badges & Stats
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                FutureBuilder<bool>(
+                                  future: Util.isAdmin(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return const SizedBox(
+                                        height: 24,
+                                        width: 24,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                        ),
+                                      );
+                                    }
+                                    if (snapshot.hasData &&
+                                        snapshot.data == true) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                          right: 8,
+                                        ),
+                                        child: Chip(
+                                          backgroundColor: Colors.grey[800]!
+                                              .withValues(alpha: 0.99),
+                                          label: Row(
+                                            children: const [
+                                              Icon(
+                                                Icons.verified_user,
+                                                color: Colors.orange,
+                                                size: 18,
+                                              ),
+                                              SizedBox(width: 4),
+                                              Text(
+                                                'Admin User',
+                                                style: TextStyle(
+                                                  color: Colors.orange,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                    return const SizedBox.shrink();
+                                  },
+                                ),
+                                if (_isAreaCaptureActive)
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: Chip(
+                                      backgroundColor: Colors.grey[800]!
+                                          .withValues(alpha: 0.99),
+                                      label: Row(
+                                        children: const [
+                                          Icon(
+                                            Icons.location_on,
+                                            color: Colors.green,
+                                            size: 18,
+                                          ),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            'Area Capture Active',
+                                            style: TextStyle(
+                                              color: Colors.green,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  ),
+                                FutureBuilder<int>(
+                                  future: getTotalSightingNumber(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return const SizedBox(
+                                        height: 24,
+                                        width: 24,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                        ),
+                                      );
+                                    }
+                                    if (snapshot.hasData) {
+                                      return Chip(
+                                        backgroundColor: Colors.grey[800]!
+                                            .withValues(alpha: 0.99),
+                                        label: Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.visibility,
+                                              color: Colors.blue,
+                                              size: 18,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              'Sightings: ${snapshot.data}',
+                                              style: const TextStyle(
+                                                color: Colors.blue,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                    return const SizedBox.shrink();
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 28),
+                            // Info Rows
+                            Card(
+                              color: Colors.grey[850],
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                children: [
+                                  ListTile(
+                                    leading: const Icon(
+                                      Icons.email,
+                                      color: Colors.grey,
+                                      size: 22,
+                                    ),
+                                    title: Text(
+                                      _user!.email,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                                  const Divider(height: 1, color: Colors.grey),
+                                  ListTile(
+                                    leading: const Icon(
+                                      Icons.pin_drop,
+                                      color: Colors.grey,
+                                      size: 22,
+                                    ),
+                                    title: Text(
+                                      _user!.country!.isNotEmpty
+                                          ? _user!.country!
+                                          : 'Location not set',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                                  const Divider(height: 1, color: Colors.grey),
+                                  ListTile(
+                                    leading: const Icon(
+                                      Icons.nature_people,
+                                      color: Colors.grey,
+                                      size: 22,
+                                    ),
+                                    title: Text(
+                                      'Volunteer Hours',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    onTap: _onVolunteerHoursTap,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Logout Button at Bottom
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: BlackButton(
+                          text: 'Logout',
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  title: const Text(
+                                    'Logout',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  content: const Text(
+                                    'Are you sure you want to log out?',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed:
+                                          () => Navigator.of(context).pop(),
+                                      child: Text(
+                                        'Cancel',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          color: Color.fromARGB(
+                                            255,
+                                            96,
+                                            95,
+                                            95,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Amplify.Auth.signOut();
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text(
+                                        'Logout',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          color: Colors.red,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
                             );
                           },
-                        );
-                      },
+                        ),
+                      ),
                     ),
                   ],
                 ),

@@ -4,7 +4,7 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
 import 'package:flutter/material.dart';
 
 class Util {
-  Util._();
+  Util._(); // Prevent instantiation
 
   // static String mapStyle = 'mapbox://styles/jamestt/cm8c8inqm004b01rxat34g28r';
   static String mapStyle =
@@ -75,6 +75,11 @@ class Util {
     );
 
     return users.first;
+  }
+
+  static Future<String> getCognitoUsername() async {
+    final currentCognitoUser = await Amplify.Auth.getCurrentUser();
+    return currentCognitoUser.username;
   }
 
   static Future<bool> isAdmin() async {

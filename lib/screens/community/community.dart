@@ -1,9 +1,6 @@
-import 'dart:ui'; // For ImageFilter
 import 'package:flutter/material.dart';
 import 'package:sighttrack/barrel.dart';
-import 'package:sighttrack/screens/community/view_user.dart';
 import 'package:sighttrack/screens/community/user_detail_screen.dart';
-import 'package:sighttrack/screens/community/enlarged_user_preview.dart';
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({super.key});
@@ -59,11 +56,11 @@ class _CommunityScreenState extends State<CommunityScreen>
               width: 260,
               padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
               decoration: BoxDecoration(
-                color: Colors.grey[900]?.withOpacity(0.98),
+                color: Colors.grey[900]?.withValues(alpha: 0.98),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.25),
+                    color: Colors.black.withValues(alpha: 0.25),
                     blurRadius: 24,
                     offset: const Offset(0, 8),
                   ),
