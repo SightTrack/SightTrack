@@ -296,11 +296,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           Positioned(
-            top: 50.0,
-            left: 16.0,
+            top: 60.0,
+            left: 20.0,
             child: FloatingActionButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/all_sightings');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AllSightingsScreen()),
+                );
               },
               backgroundColor: Colors.grey[850]!.withValues(alpha: 0.9),
               foregroundColor: Colors.white,
@@ -364,11 +367,5 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-  }
-}
-
-extension ColorExtension on Color {
-  int toARGB32() {
-    return (alpha << 24) | (red << 16) | (green << 8) | blue;
   }
 }

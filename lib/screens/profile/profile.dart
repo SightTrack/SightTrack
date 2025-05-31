@@ -88,7 +88,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.grey[900],
@@ -123,7 +122,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  SightTrackButton(
+                  ModernDarkButton(
                     text: 'Logout',
                     width: 140,
                     onPressed: () => Amplify.Auth.signOut(),
@@ -480,7 +479,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                       child: SizedBox(
                         width: double.infinity,
-                        child: BlackButton(
+                        child: ModernDarkButton(
                           text: 'Logout',
                           onPressed: () {
                             showDialog(

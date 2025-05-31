@@ -1,7 +1,9 @@
 import 'package:sighttrack/barrel.dart';
 import 'dart:math';
 
-class VolunteerService {
+class Volunteer {
+  Volunteer._();
+
   /// Calculates total service hours for a list of sightings
   /// Takes into account factors like:
   /// - Time between sightings (to account for travel/observation time)

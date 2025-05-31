@@ -148,7 +148,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                       },
                     ),
                     const SizedBox(height: 40),
-                    BlackButton(
+                    ModernDarkButton(
                       text: 'Save & Continue',
                       onPressed: _submitForm,
                     ),

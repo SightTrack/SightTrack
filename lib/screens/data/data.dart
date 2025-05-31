@@ -39,7 +39,7 @@ class DataScreenState extends State<DataScreen> {
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.4),
+                    color: Colors.black.withOpacity(0.4),
                     offset: const Offset(0, 2),
                     blurRadius: 8,
                   ),

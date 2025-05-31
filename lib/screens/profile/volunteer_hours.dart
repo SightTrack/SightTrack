@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sighttrack/barrel.dart';
-import 'package:intl/intl.dart';
 
 class VolunteerHoursScreen extends StatefulWidget {
   const VolunteerHoursScreen({super.key});
@@ -181,7 +180,7 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Total Volunteer Hours: ${VolunteerService.calculateTotalServiceHours(_sightings).round()}',
+                      'Total Volunteer Hours: ${Volunteer.calculateTotalServiceHours(_sightings).round()}',
                       style: TextStyle(fontSize: 20),
                     ),
                     const SizedBox(height: 16),

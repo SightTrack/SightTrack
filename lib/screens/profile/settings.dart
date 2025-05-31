@@ -99,7 +99,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _buildSectionTitle('Settings'),
                   _buildSettingsCard(),
                   const SizedBox(height: 24),
-                  BlackButton(
+                  ModernDarkButton(
                     text: 'Delete Account',
                     onPressed: () {
                       showDialog(
@@ -486,7 +486,7 @@ class _EditFieldPageState extends State<EditFieldPage> {
                 },
               ),
               const SizedBox(height: 16),
-              BlackButton(text: 'Save', onPressed: _saveField),
+              ModernDarkButton(text: 'Save', onPressed: _saveField),
             ],
           ),
         ),
