@@ -43,41 +43,99 @@ class _CommunityScreenState extends State<CommunityScreen>
     _overlayEntry = null;
   }
 
-  void _showEnlargedPreview(BuildContext context, User user, Offset tapPosition) {
-    _removeEnlargedPreview(); // Remove any existing overlay
-
-    _overlayEntry = OverlayEntry(
-      builder: (context) => Stack(
-        children: <Widget>[
-          // Full screen GestureDetector to dismiss the overlay
-          GestureDetector(
-            onTap: _removeEnlargedPreview,
-            behavior: HitTestBehavior.opaque, // Ensures it catches taps on the whole area
-            child: Container( // Needed to make GestureDetector work over the whole screen
-              color: Colors.transparent, // Or a very faint color for visual feedback if desired
-            ),
-          ),
-          // BackdropFilter for blur effect
-          BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+  void _showEnlargedPreview(
+    BuildContext context,
+    User user,
+    Offset tapPosition,
+  ) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.transparent, // No background
+      builder: (context) {
+        return Center(
+          child: Material(
+            type: MaterialType.transparency,
             child: Container(
-              color: Colors.black.withOpacity(0.3), // Adjust opacity for desired blur darkness
+              width: 260,
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
+              decoration: BoxDecoration(
+                color: Colors.grey[900]?.withOpacity(0.98),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Stack(
+                children: [
+                  // Close button
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.white70,
+                        size: 24,
+                      ),
+                      splashRadius: 20,
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                  // Avatar centered
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(
+                        height: 8,
+                      ), // For spacing below close button
+                      _buildLargeProfilePicture(user),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-          // Positioned EnlargedUserPreview
-          Positioned(
-            // Center the preview on the screen. Adjust as needed.
-            // Using tapPosition to influence might be complex due to screen edges.
-            // For now, let's center it.
-            left: (MediaQuery.of(context).size.width - 200) / 2, // Assuming preview width is 200
-            top: (MediaQuery.of(context).size.height - 220) / 2, // Assuming preview height is 220
-            child: EnlargedUserPreview(user: user),
-          ),
-        ],
-      ),
+        );
+      },
     );
+  }
 
-    Overlay.of(context).insert(_overlayEntry!);
+  Widget _buildLargeProfilePicture(User user) {
+    return (user.profilePicture != null && user.profilePicture!.isNotEmpty)
+        ? FutureBuilder<String?>(
+          future: Util.fetchFromS3(user.profilePicture!),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SizedBox(
+                width: 220,
+                height: 220,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  color: Color(0xFF39FF14),
+                ),
+              );
+            }
+            return CircleAvatar(
+              radius: 90,
+              backgroundImage:
+                  snapshot.hasData ? NetworkImage(snapshot.data!) : null,
+              backgroundColor: Colors.grey[700],
+              child:
+                  snapshot.hasError || !snapshot.hasData
+                      ? const Icon(Icons.person, color: Colors.white, size: 90)
+                      : null,
+            );
+          },
+        )
+        : CircleAvatar(
+          radius: 90,
+          backgroundColor: Colors.grey[700],
+          child: const Icon(Icons.person, color: Colors.white, size: 90),
+        );
   }
 
   Future<void> _fetchData() async {
@@ -209,26 +267,37 @@ class _CommunityScreenState extends State<CommunityScreen>
             onLongPressStart: (details) {
               _showEnlargedPreview(context, user, details.globalPosition);
             },
-            onTap: () { // Keep the original onTap for navigation
+            onTap: () {
+              // Keep the original onTap for navigation
               Navigator.push(
                 context,
                 PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) =>
-                      UserDetailScreen(user: user),
+                  pageBuilder:
+                      (context, animation, secondaryAnimation) =>
+                          UserDetailScreen(user: user),
                   transitionDuration: const Duration(milliseconds: 300),
-                  transitionsBuilder:
-                      (context, animation, secondaryAnimation, child) {
+                  transitionsBuilder: (
+                    context,
+                    animation,
+                    secondaryAnimation,
+                    child,
+                  ) {
                     var begin = const Offset(1.0, 0.0);
                     var end = Offset.zero;
                     var curve = Curves.ease;
-                    var tween = Tween(begin: begin, end: end)
-                        .chain(CurveTween(curve: curve));
+                    var tween = Tween(
+                      begin: begin,
+                      end: end,
+                    ).chain(CurveTween(curve: curve));
                     var slideInAnimation = animation.drive(tween);
 
                     var slideOutTween = Tween(
-                            begin: Offset.zero, end: const Offset(-0.3, 0.0))
-                        .chain(CurveTween(curve: curve));
-                    var slideOutAnimation = secondaryAnimation.drive(slideOutTween);
+                      begin: Offset.zero,
+                      end: const Offset(-0.3, 0.0),
+                    ).chain(CurveTween(curve: curve));
+                    var slideOutAnimation = secondaryAnimation.drive(
+                      slideOutTween,
+                    );
 
                     return SlideTransition(
                       position: slideOutAnimation,
@@ -251,29 +320,30 @@ class _CommunityScreenState extends State<CommunityScreen>
               child: ListTile(
                 leading: _buildProfilePicture(user),
                 title: Text(
-                user.display_username,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              subtitle: Text(
-                isGlobal ? (user.school ?? 'No school') : (user.email),
-                style: TextStyle(color: Colors.grey[400], fontSize: 14),
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ViewUserScreen(user: user),
+                  user.display_username,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
                   ),
-                );
-              },
-              // onTap is now part of the GestureDetector above
+                ),
+                subtitle: Text(
+                  isGlobal ? (user.school ?? 'No school') : (user.email),
+                  style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UserDetailScreen(user: user),
+                    ),
+                  );
+                },
+                // onTap is now part of the GestureDetector above
+              ),
             ),
           ),
-        ));
+        );
       },
     );
   }

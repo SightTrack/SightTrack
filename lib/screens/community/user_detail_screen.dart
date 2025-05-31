@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:sighttrack/barrel.dart'; 
+import 'package:sighttrack/barrel.dart';
 
 class UserDetailScreen extends StatelessWidget {
   final User user;
 
-  const UserDetailScreen({Key? key, required this.user}) : super(key: key);
+  const UserDetailScreen({super.key, required this.user});
 
   Widget _buildProfilePicture(BuildContext context) {
     final String? picUrl = user.profilePicture;
@@ -20,7 +20,9 @@ class UserDetailScreen extends StatelessWidget {
       } else {
         // Assuming it's an S3 key and Util.fetchFromS3 is available
         return FutureBuilder<String?>(
-          future: Util.fetchFromS3(picUrl), // Ensure Util is imported and this method exists
+          future: Util.fetchFromS3(
+            picUrl,
+          ), // Ensure Util is imported and this method exists
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return CircleAvatar(
@@ -43,7 +45,11 @@ class UserDetailScreen extends StatelessWidget {
               return CircleAvatar(
                 radius: 50,
                 backgroundColor: Colors.grey[700],
-                child: const Icon(Icons.person, size: 50, color: Colors.white70),
+                child: const Icon(
+                  Icons.person,
+                  size: 50,
+                  color: Colors.white70,
+                ),
               );
             }
           },
@@ -70,10 +76,7 @@ class UserDetailScreen extends StatelessWidget {
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(
-          'User Details',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: Text('User Details', style: TextStyle(color: Colors.white)),
       ),
       body: Center(
         child: Padding(
@@ -96,10 +99,7 @@ class UserDetailScreen extends StatelessWidget {
               SizedBox(height: 8),
               Text(
                 user.school ?? 'No school information',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[400],
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.grey[400]),
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 20),
