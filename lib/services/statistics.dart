@@ -1,8 +1,6 @@
 import 'package:sighttrack/barrel.dart';
 
-// TODO: Implement this
-class Statistics {
-  Statistics._();
+
 
   // Method to fetch statistics
   Future<Map<String, dynamic>> fetchStatistics() async {
