@@ -303,8 +303,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           right: 8,
                                         ),
                                         child: Chip(
-                                          backgroundColor: Colors.grey[800]!
-                                              .withValues(alpha: 0.99),
                                           label: Row(
                                             children: const [
                                               Icon(

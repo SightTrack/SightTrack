@@ -84,14 +84,9 @@ class _AllSightingsScreenState extends State<AllSightingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'All Sightings',
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20.0),
-        ),
-      ),
+      appBar: AppBar(title: Text('All Sightings')),
       body: Container(
-        color: Colors.grey[100],
+        // color: Colors.grey[100],
         child:
             isLoading
                 ? const Center(child: CircularProgressIndicator())

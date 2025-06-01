@@ -189,7 +189,7 @@ class CaptureScreenState extends State<CaptureScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      appBar: AppBar(),
       body: Stack(
         children: [
           // Full-screen camera preview or error message
@@ -200,15 +200,15 @@ class CaptureScreenState extends State<CaptureScreen> {
                   children: [
                     Text(
                       _errorMessage!,
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                      style: Theme.of(context).textTheme.bodyMedium,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
-                    ElevatedButton(
+                    ModernDarkButton(
                       onPressed: () {
                         _initializeCamera();
                       },
-                      child: const Text('Retry'),
+                      text: 'Retry',
                     ),
                   ],
                 ),

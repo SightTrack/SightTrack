@@ -63,12 +63,10 @@ class _ChangeProfilePictureScreenState
 
       if (!mounted) return;
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile picture updated successfully!'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.green,
-        ),
+      fToast.showToast(
+        child: Util.greenToast('Updated successfully!'),
+        gravity: ToastGravity.BOTTOM,
+        toastDuration: Duration(seconds: 2),
       );
     } catch (e) {
       if (!mounted) return;

@@ -31,7 +31,7 @@ export 'package:core_ui/core_ui.dart';
 
 // SightTrack main
 export 'package:sighttrack/navigation.dart';
-export 'package:sighttrack/screens/capture/quick_capture/ac_setup.dart';
+export 'package:sighttrack/screens/capture/area_capture/ac_setup.dart';
 export 'package:sighttrack/screens/capture/area_capture/ac_home.dart';
 export 'package:sighttrack/screens/capture/capture.dart';
 export 'package:sighttrack/screens/capture/choose_capture_type.dart';
