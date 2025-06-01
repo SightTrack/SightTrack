@@ -57,10 +57,7 @@ class _LocalViewState extends State<LocalView> {
                           children: [
                             Row(
                               children: [
-                                Icon(
-                                  Icons.info_outline,
-                                  color: Theme.of(context).primaryColor,
-                                ),
+                                Icon(Icons.info_outline),
                                 const SizedBox(width: 12),
                                 const Text(
                                   'Feature in Development',

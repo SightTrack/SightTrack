@@ -59,11 +59,7 @@ class _CommunityScreenState extends State<CommunityScreen>
                 color: Colors.grey[900]?.withValues(alpha: 0.98),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.25),
-                    blurRadius: 24,
-                    offset: const Offset(0, 8),
-                  ),
+                  BoxShadow(blurRadius: 24, offset: const Offset(0, 8)),
                 ],
               ),
               child: Stack(

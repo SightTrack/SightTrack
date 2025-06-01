@@ -152,12 +152,7 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
-              title: const Text(
-                'Volunteer Hours',
-                style: TextStyle(color: Colors.white),
-              ),
-              foregroundColor: Colors.white,
-              backgroundColor: Colors.transparent,
+              title: const Text('Volunteer Hours'),
               floating: true,
               snap: true,
             ),

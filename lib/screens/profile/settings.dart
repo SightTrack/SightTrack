@@ -232,13 +232,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildDivider(),
           Consumer<ThemeProvider>(
             builder:
-                (context, themeProvider, _) => SwitchListTile(
+                (context, themeProvider, _) => ListTile(
                   title: Text(
                     'Dark Mode',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
-                  value: themeProvider.isDarkMode,
-                  onChanged: (_) => themeProvider.toggleTheme(),
+                  trailing: Transform.scale(
+                    scale: 0.8,
+                    child: Switch(
+                      value: themeProvider.isDarkMode,
+                      onChanged: (_) => themeProvider.toggleTheme(),
+                      activeColor: Theme.of(context).colorScheme.primary,
+                      inactiveTrackColor: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.3),
+                    ),
+                  ),
                   dense: true,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 ),
@@ -592,7 +601,7 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     // color: Colors.grey[850],
-                    child: SwitchListTile(
+                    child: ListTile(
                       title: Text(
                         'Location Offset',
                         style: Theme.of(context).textTheme.bodyLarge,
@@ -601,8 +610,17 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
                         'Enable to offset your location data for better privacy',
                         style: Theme.of(context).textTheme.labelMedium,
                       ),
-                      value: _locationOffset ?? false,
-                      onChanged: (value) => _updateLocationOffset(value),
+                      trailing: Transform.scale(
+                        scale: 0.8,
+                        child: Switch(
+                          value: _locationOffset ?? false,
+                          onChanged: (value) => _updateLocationOffset(value),
+                          activeColor: Theme.of(context).colorScheme.primary,
+                          inactiveTrackColor: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.3),
+                        ),
+                      ),
                       dense: true,
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
