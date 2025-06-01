@@ -58,7 +58,6 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Sighting Details'),
         actions: [
@@ -115,201 +114,206 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
             ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (widget.sighting.description != null &&
-                widget.sighting.description!.isNotEmpty)
-              _buildSection('Description', widget.sighting.description!),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          setState(() {
+            _photoUrlFuture = Util.fetchFromS3(widget.sighting.photo);
+          });
+        },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (widget.sighting.description != null &&
+                  widget.sighting.description!.isNotEmpty)
+                _buildSection('Description', widget.sighting.description!),
 
-            if (widget.sighting.user != null)
-              _buildSection('User', widget.sighting.user!.display_username),
+              if (widget.sighting.user != null)
+                _buildSection('User', widget.sighting.user!.display_username),
 
-            FutureBuilder<String>(
-              future: _photoUrlFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Container(
-                    width: double.infinity,
-                    height: 250,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    child: const Center(
-                      child: Icon(Icons.image, size: 80, color: Colors.grey),
-                    ),
-                  );
-                } else if (snapshot.hasError || snapshot.data == null) {
-                  return Container(
-                    width: double.infinity,
-                    height: 250,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    child: const Center(
-                      child: Icon(Icons.image, size: 80, color: Colors.grey),
-                    ),
-                  );
-                } else {
-                  return GestureDetector(
-                    onTap: () {
-                      showDialog<void>(
-                        context: context,
-                        barrierDismissible: true,
-                        builder: (BuildContext context) {
-                          return Dialog(
-                            backgroundColor: Colors.transparent,
-                            elevation: 0,
-                            insetPadding: const EdgeInsets.all(16),
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                maxWidth:
-                                    MediaQuery.of(context).size.width * 0.9,
-                                maxHeight:
-                                    MediaQuery.of(context).size.height * 0.9,
-                              ),
-                              child: Stack(
-                                alignment: Alignment.topRight,
-                                children: [
-                                  Image.network(
-                                    snapshot.data!,
-                                    fit: BoxFit.contain,
-                                    width: double.infinity,
-                                    height: double.infinity,
-                                  ),
-                                  Positioned(
-                                    right: 8,
-                                    top: 8,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.all(4),
-                                        decoration: const BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: Colors.black54,
-                                        ),
-                                        child: const Icon(
-                                          Icons.close,
-                                          color: Colors.white,
-                                          size: 24,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                    child: Container(
+              FutureBuilder<String>(
+                future: _photoUrlFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Container(
                       width: double.infinity,
                       height: 250,
                       decoration: BoxDecoration(
+                        color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(12.0),
-                        image: DecorationImage(
-                          image: NetworkImage(snapshot.data!),
-                          fit: BoxFit.cover,
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.image, size: 80, color: Colors.grey),
+                      ),
+                    );
+                  } else if (snapshot.hasError || snapshot.data == null) {
+                    return Container(
+                      width: double.infinity,
+                      height: 250,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.image, size: 80, color: Colors.grey),
+                      ),
+                    );
+                  } else {
+                    return GestureDetector(
+                      onTap: () {
+                        showDialog<void>(
+                          context: context,
+                          barrierDismissible: true,
+                          builder: (BuildContext context) {
+                            return Dialog(
+                              backgroundColor: Colors.transparent,
+                              elevation: 0,
+                              insetPadding: const EdgeInsets.all(16),
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth:
+                                      MediaQuery.of(context).size.width * 0.9,
+                                  maxHeight:
+                                      MediaQuery.of(context).size.height * 0.9,
+                                ),
+                                child: Stack(
+                                  alignment: Alignment.topRight,
+                                  children: [
+                                    Image.network(
+                                      snapshot.data!,
+                                      fit: BoxFit.contain,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                    ),
+                                    Positioned(
+                                      right: 8,
+                                      top: 8,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: const BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.black54,
+                                          ),
+                                          child: const Icon(
+                                            Icons.close,
+                                            color: Colors.white,
+                                            size: 24,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        height: 250,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12.0),
+                          image: DecorationImage(
+                            image: NetworkImage(snapshot.data!),
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                }
-              },
-            ),
-
-            const SizedBox(height: 20),
-            _buildSection('Species', widget.sighting.species),
-            _buildSection(
-              'Timestamp',
-              DateFormat(
-                'MMMM dd, yyyy HH:mm',
-              ).format(widget.sighting.timestamp.getDateTimeInUtc().toLocal()),
-            ),
-
-            Divider(),
-
-            ExpansionTile(
-              title: const Text(
-                'Location Details',
-                style: TextStyle(fontWeight: FontWeight.w600),
+                    );
+                  }
+                },
               ),
-              initiallyExpanded: _isLocationExpanded,
-              onExpansionChanged: (expanded) {
-                setState(() {
-                  _isLocationExpanded = expanded;
-                });
-              },
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildDetailRow(
-                        'Latitude',
-                        '${widget.sighting.latitude}',
-                      ),
-                      _buildDetailRow(
-                        'Longitude',
-                        '${widget.sighting.longitude}',
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                  ),
+
+              const SizedBox(height: 20),
+              _buildSection('Species', widget.sighting.species),
+              _buildSection(
+                'Timestamp',
+                DateFormat('MMMM dd, yyyy HH:mm').format(
+                  widget.sighting.timestamp.getDateTimeInUtc().toLocal(),
                 ),
-              ],
-            ),
-
-            ExpansionTile(
-              title: const Text(
-                'Technical Details',
-                style: TextStyle(fontWeight: FontWeight.w600),
               ),
-              initiallyExpanded: _isTechnicalExpanded,
-              onExpansionChanged: (expanded) {
-                setState(() {
-                  _isTechnicalExpanded = expanded;
-                });
-              },
-              children: [
-                Align(
-                  // Wrap the Column in an Align widget
-                  alignment: Alignment.topLeft,
-                  child: Padding(
+
+              ExpansionTile(
+                title: Text(
+                  'Location Details',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                initiallyExpanded: _isLocationExpanded,
+                onExpansionChanged: (expanded) {
+                  setState(() {
+                    _isLocationExpanded = expanded;
+                  });
+                },
+                children: [
+                  Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildTechnicalDetailRow(
-                          'Sighting ID',
-                          widget.sighting.id,
+                        _buildDetailRow(
+                          'Latitude',
+                          '${widget.sighting.latitude}',
                         ),
-                        if (widget.sighting.user != null)
-                          _buildTechnicalDetailRow(
-                            'User ID',
-                            widget.sighting.user!.id,
-                          ),
-                        _buildTechnicalDetailRow(
-                          'Photo URL',
-                          widget.sighting.photo,
+                        _buildDetailRow(
+                          'Longitude',
+                          '${widget.sighting.longitude}',
                         ),
+                        const SizedBox(height: 12),
                       ],
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
 
-            SizedBox(height: 100),
-          ],
+              ExpansionTile(
+                title: Text(
+                  'Technical Details',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                initiallyExpanded: _isTechnicalExpanded,
+                onExpansionChanged: (expanded) {
+                  setState(() {
+                    _isTechnicalExpanded = expanded;
+                  });
+                },
+                children: [
+                  Align(
+                    // Wrap the Column in an Align widget
+                    alignment: Alignment.topLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildTechnicalDetailRow(
+                            'Sighting ID',
+                            widget.sighting.id,
+                          ),
+                          if (widget.sighting.user != null)
+                            _buildTechnicalDetailRow(
+                              'User ID',
+                              widget.sighting.user!.id,
+                            ),
+                          _buildTechnicalDetailRow(
+                            'Photo URL',
+                            widget.sighting.photo,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 100),
+            ],
+          ),
         ),
       ),
     );
@@ -319,19 +323,9 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
+        Text(title, style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 6),
-        Text(
-          content,
-          style: const TextStyle(fontSize: 16, color: Colors.black54),
-        ),
+        Text(content, style: Theme.of(context).textTheme.bodyLarge),
         const SizedBox(height: 20),
       ],
     );
@@ -343,18 +337,11 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            '$label:',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.black,
-            ),
-          ),
+          Text(label, style: Theme.of(context).textTheme.bodyLarge),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontSize: 16, color: Colors.black),
+              style: Theme.of(context).textTheme.labelLarge,
               textAlign: TextAlign.right,
             ),
           ),
@@ -370,17 +357,14 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '$label:',
+            label,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
               color: Colors.black,
             ),
           ),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 12, color: Colors.black),
-          ),
+          Text(value, style: Theme.of(context).textTheme.labelMedium),
         ],
       ),
     );

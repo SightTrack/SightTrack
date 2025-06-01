@@ -1,6 +1,4 @@
 import 'package:sighttrack/barrel.dart';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class DataScreen extends StatefulWidget {
@@ -16,13 +14,7 @@ class DataScreenState extends State<DataScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[900],
-      appBar: AppBar(
-        title: const Text('Data'),
-        backgroundColor: Colors.grey[900],
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Data')),
       body: Column(
         children: [
           // Toggle for Global/Local
@@ -32,87 +24,78 @@ class DataScreenState extends State<DataScreen> {
               vertical: 12.0,
             ),
             child: Container(
+              height: 48,
               width: double.infinity,
-              padding: const EdgeInsets.all(4.0),
               decoration: BoxDecoration(
-                color: Colors.grey[850],
                 borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.4),
-                    offset: const Offset(0, 2),
-                    blurRadius: 8,
-                  ),
-                ],
               ),
-              child: CupertinoSegmentedControl<String>(
-                groupValue: _viewMode,
-                onValueChanged: (String value) {
-                  setState(() {
-                    _viewMode = value;
-                  });
-                },
-                children: {
-                  'Global': DecoratedBox(
-                    decoration: BoxDecoration(
-                      color:
-                          _viewMode == 'Global'
-                              ? Colors.teal.shade500
-                              : Colors.grey[850],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Container(
-                      width: 100,
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      color:
-                          Colors
-                              .transparent, // Transparent to avoid grey background
-                      child: Text(
-                        'Global',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _viewMode = 'Global';
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        margin: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
                           color:
                               _viewMode == 'Global'
-                                  ? Colors.white
-                                  : Colors.grey[400],
-                          fontWeight: FontWeight.w500,
+                                  ? Colors.teal.shade500
+                                  : Colors.teal.shade500.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Global',
+                            style: TextStyle(
+                              color:
+                                  _viewMode == 'Global'
+                                      ? Colors.white
+                                      : Colors.grey[400],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                  'Local': DecoratedBox(
-                    decoration: BoxDecoration(
-                      color:
-                          _viewMode == 'Local'
-                              ? Colors.teal.shade500
-                              : Colors.grey[850],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Container(
-                      width: 100,
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      color: Colors.transparent,
-                      child: Text(
-                        'Local',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _viewMode = 'Local';
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        margin: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
                           color:
                               _viewMode == 'Local'
-                                  ? Colors.white
-                                  : Colors.grey[400],
-                          fontWeight: FontWeight.w500,
+                                  ? Colors.teal.shade500
+                                  : Colors.teal.shade500.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Local',
+                            style: TextStyle(
+                              color:
+                                  _viewMode == 'Local'
+                                      ? Colors.white
+                                      : Colors.grey[400],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                },
-                borderColor: Colors.transparent,
-                selectedColor: Colors.teal.shade500,
-                unselectedColor: Colors.grey[850]!,
-                pressedColor: Colors.teal.shade600,
-                padding: const EdgeInsets.all(0),
+                ],
               ),
             ),
           ),

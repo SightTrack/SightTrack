@@ -89,9 +89,6 @@ class _AllSightingsScreenState extends State<AllSightingsScreen> {
           'All Sightings',
           style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20.0),
         ),
-        elevation: 0,
-        backgroundColor: Colors.grey[900],
-        foregroundColor: Colors.white,
       ),
       body: Container(
         color: Colors.grey[100],

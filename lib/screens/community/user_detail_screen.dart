@@ -68,15 +68,12 @@ class UserDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[900], // Dark theme background
       appBar: AppBar(
-        backgroundColor: Colors.grey[900], // Dark theme AppBar
         elevation: 0, // Remove shadow for a flatter look
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+        title: Text(
+          'User Details',
+          style: Theme.of(context).appBarTheme.titleTextStyle,
         ),
-        title: Text('User Details', style: TextStyle(color: Colors.white)),
       ),
       body: Center(
         child: Padding(
@@ -89,17 +86,13 @@ class UserDetailScreen extends StatelessWidget {
               SizedBox(height: 20),
               Text(
                 user.display_username,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+                style: Theme.of(context).textTheme.titleLarge,
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 8),
               Text(
                 user.school ?? 'No school information',
-                style: TextStyle(fontSize: 16, color: Colors.grey[400]),
+                style: Theme.of(context).textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 20),

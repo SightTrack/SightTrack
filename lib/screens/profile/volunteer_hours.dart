@@ -60,9 +60,12 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
 
     if (_sightings.isEmpty) {
       return SliverFillRemaining(
-        child: Center(
+        hasScrollBody: false,
+        child: Container(
+          alignment: Alignment.center,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 Icons.nature_outlined,

@@ -64,3 +64,5 @@ export 'package:fluttertoast/fluttertoast.dart';
 export 'package:animated_background/animated_background.dart';
 export 'package:geolocator/geolocator.dart';
 export 'package:geocoding/geocoding.dart';
+export 'providers/theme_provider.dart';
+export 'package:provider/provider.dart';

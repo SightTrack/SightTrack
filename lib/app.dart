@@ -21,20 +21,29 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    return Authenticator(
-      authenticatorBuilder: (context, state) {
-        if (state.currentStep == AuthenticatorStep.signIn) {
-          return SignInScreen(state: state);
-        } else if (state.currentStep == AuthenticatorStep.signUp) {
-          return SignUpScreen(state: state);
-        }
-        return null;
-      },
-      child: MaterialApp(
-        builder: Authenticator.builder(),
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.defaultTheme,
-        home: const Navigation(),
+    return ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: Consumer<ThemeProvider>(
+        builder:
+            (context, themeProvider, _) => Authenticator(
+              authenticatorBuilder: (context, state) {
+                if (state.currentStep == AuthenticatorStep.signIn) {
+                  return SignInScreen(state: state);
+                } else if (state.currentStep == AuthenticatorStep.signUp) {
+                  return SignUpScreen(state: state);
+                }
+                return null;
+              },
+              child: MaterialApp(
+                builder: Authenticator.builder(),
+                debugShowCheckedModeBanner: false,
+                theme:
+                    themeProvider.isDarkMode
+                        ? AppTheme.darkTheme
+                        : AppTheme.lightTheme,
+                home: const Navigation(),
+              ),
+            ),
       ),
     );
   }

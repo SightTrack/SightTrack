@@ -190,34 +190,23 @@ class _CommunityScreenState extends State<CommunityScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        backgroundColor: Colors.grey[900],
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Community',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
+          style: Theme.of(context).appBarTheme.titleTextStyle,
         ),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: const Color(0xFF39FF14),
-          labelColor: const Color(0xFF39FF14),
-          unselectedLabelColor: Colors.grey[400],
-          labelStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
           tabs: const [Tab(text: 'Global'), Tab(text: 'School')],
         ),
       ),
       body:
           _isLoading
-              ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFF39FF14)),
+              ? Center(
+                child: CircularProgressIndicator(
+                  color: Theme.of(context).primaryColor,
+                ),
               )
               : _errorMessage != null
               ? Center(
@@ -244,7 +233,6 @@ class _CommunityScreenState extends State<CommunityScreen>
           isGlobal
               ? 'No global users found'
               : 'No users found from your school',
-          style: TextStyle(color: Colors.grey[400], fontSize: 16),
         ),
       );
     }
@@ -308,7 +296,7 @@ class _CommunityScreenState extends State<CommunityScreen>
               );
             },
             child: Card(
-              color: Colors.grey[850],
+              // color: Colors.grey[850],
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -316,17 +304,10 @@ class _CommunityScreenState extends State<CommunityScreen>
               margin: const EdgeInsets.symmetric(vertical: 8),
               child: ListTile(
                 leading: _buildProfilePicture(user),
-                title: Text(
-                  user.display_username,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                title: Text(user.display_username),
                 subtitle: Text(
                   isGlobal ? (user.school ?? 'No school') : (user.email),
-                  style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
                 onTap: () {
                   Navigator.push(
@@ -354,10 +335,7 @@ class _CommunityScreenState extends State<CommunityScreen>
               return const SizedBox(
                 width: 40,
                 height: 40,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Color(0xFF39FF14),
-                ),
+                child: CircularProgressIndicator(strokeWidth: 2),
               );
             }
             return CircleAvatar(

@@ -1,5 +1,4 @@
 import 'package:sighttrack/barrel.dart';
-
 import 'package:flutter/material.dart';
 
 class ChangeProfilePictureScreen extends StatefulWidget {
@@ -16,6 +15,7 @@ class _ChangeProfilePictureScreenState
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
   late FToast fToast;
+  bool _isUploading = false;
 
   @override
   void initState() {
@@ -24,12 +24,11 @@ class _ChangeProfilePictureScreenState
     fToast.init(context);
   }
 
-  // Opens the gallery for image selection.
   Future<void> _pickImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       setState(() {
-        _selectedImage = File(image.path); // Update the selected image
+        _selectedImage = File(image.path);
       });
     }
   }
@@ -43,6 +42,9 @@ class _ChangeProfilePictureScreenState
       );
       return;
     }
+
+    setState(() => _isUploading = true);
+
     try {
       final String storagePath =
           'profile_pictures/${widget.user.id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
@@ -60,91 +62,211 @@ class _ChangeProfilePictureScreenState
       await Amplify.DataStore.save(updatedUser);
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile picture updated successfully!')),
-      );
       Navigator.of(context).pop();
-    } on StorageException catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('StorageException: ${e.message}')));
-    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating profile picture: $e')),
+        const SnackBar(
+          content: Text('Profile picture updated successfully!'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.green,
+        ),
       );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error updating profile picture: $e'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isUploading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Change Profile Picture'),
-        backgroundColor: Colors.grey[900],
-        foregroundColor: Colors.white,
+        title: const Text('Profile Photo'),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
       ),
-      backgroundColor: Colors.grey[900],
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Display the selected image, user's current image, or a default icon.
-              CircleAvatar(
-                radius: 150,
-                backgroundColor: Colors.grey,
-                child:
-                    _selectedImage == null && widget.user.profilePicture == null
-                        ? const Icon(
-                          Icons.person,
-                          size: 50,
-                          color: Colors.white,
-                        )
-                        : FutureBuilder<String>(
-                          future:
-                              _selectedImage != null
-                                  ? Future.value(
-                                    _selectedImage!.path,
-                                  ) // Use the selected file immediately
-                                  : Util.fetchFromS3(
-                                    widget.user.profilePicture!,
-                                  ), // Get the URL if no file selected
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const CircularProgressIndicator(); // Show loading indicator
-                            } else if (snapshot.hasError || !snapshot.hasData) {
-                              return const Icon(
-                                Icons.person,
-                                size: 50,
-                                color: Colors.white,
-                              );
-                            } else {
-                              return CircleAvatar(
-                                radius: 150,
-                                backgroundColor: Colors.grey,
-                                backgroundImage:
-                                    _selectedImage != null
-                                        ? FileImage(
-                                          _selectedImage!,
-                                        ) // Show the selected image
-                                        : NetworkImage(snapshot.data!)
-                                            as ImageProvider<
-                                              Object
-                                            >?, // Show the fetched image
-                              );
-                            }
-                          },
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 32),
+                  // Profile image section with overlay
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        height: 200,
+                        width: 200,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: theme.colorScheme.surfaceContainerHighest,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                            ),
+                          ],
                         ),
+                        child: ClipOval(
+                          child:
+                              _selectedImage == null &&
+                                      widget.user.profilePicture == null
+                                  ? Icon(
+                                    Icons.person,
+                                    size: 80,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  )
+                                  : FutureBuilder<String>(
+                                    future:
+                                        _selectedImage != null
+                                            ? Future.value(_selectedImage!.path)
+                                            : Util.fetchFromS3(
+                                              widget.user.profilePicture!,
+                                            ),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return const Center(
+                                          child: CircularProgressIndicator(),
+                                        );
+                                      }
+                                      if (snapshot.hasError ||
+                                          !snapshot.hasData) {
+                                        return Icon(
+                                          Icons.person,
+                                          size: 80,
+                                          color:
+                                              theme
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                        );
+                                      }
+                                      return Image(
+                                        image:
+                                            _selectedImage != null
+                                                ? FileImage(_selectedImage!)
+                                                : NetworkImage(snapshot.data!)
+                                                    as ImageProvider,
+                                        fit: BoxFit.cover,
+                                        width: 200,
+                                        height: 200,
+                                      );
+                                    },
+                                  ),
+                        ),
+                      ),
+                      // Camera overlay button
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: _pickImage,
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.camera_alt,
+                              color: theme.colorScheme.onPrimary,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  // Instructions text
+                  Text(
+                    'Choose a photo that represents you',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'A clear photo will help others recognize you',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 48),
+                  // Action buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _pickImage,
+                          icon: const Icon(Icons.photo_library),
+                          label: const Text('Choose Photo'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: _isUploading ? null : _saveImage,
+                          icon:
+                              _isUploading
+                                  ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                  : const Icon(Icons.check),
+                          label: Text(_isUploading ? 'Saving...' : 'Save'),
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              const SizedBox(height: 40),
-              ModernDarkButton(text: 'Pick Image', onPressed: _pickImage),
-              const SizedBox(height: 20),
-              ModernDarkButton(text: 'Save Image', onPressed: _saveImage),
-            ],
+            ),
           ),
-        ),
+          // Loading overlay
+          if (_isUploading)
+            Container(
+              color: Colors.black.withValues(alpha: 0.3),
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+        ],
       ),
     );
   }

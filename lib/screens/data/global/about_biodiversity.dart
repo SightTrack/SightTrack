@@ -87,34 +87,31 @@ class _AboutBiodiversityScreenState extends State<AboutBiodiversityScreen> {
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             sliver: SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildDistributionPattern(
-                        'Clustered',
-                        Icons.circle,
-                        Colors.green,
-                        'Score > 0.3',
-                      ),
-                      _buildDistributionPattern(
-                        'Random',
-                        Icons.circle,
-                        Colors.yellow,
-                        '-0.3 to 0.3',
-                      ),
-                      _buildDistributionPattern(
-                        'Dispersed',
-                        Icons.circle,
-                        Colors.red,
-                        'Score < -0.3',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16.0, bottom: 24.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildDistributionPattern(
+                      'Clustered',
+                      Icons.circle,
+                      Colors.green,
+                      'Score > 0.3',
+                    ),
+                    _buildDistributionPattern(
+                      'Random',
+                      Icons.circle,
+                      Colors.yellow,
+                      '-0.3 to 0.3',
+                    ),
+                    _buildDistributionPattern(
+                      'Dispersed',
+                      Icons.circle,
+                      Colors.red,
+                      'Score < -0.3',
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -170,9 +167,11 @@ class _AboutBiodiversityScreenState extends State<AboutBiodiversityScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.science, color: Colors.blue),
                         SizedBox(width: 8),

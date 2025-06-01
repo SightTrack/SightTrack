@@ -1,5 +1,6 @@
 import 'package:sighttrack/barrel.dart';
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -90,17 +91,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.grey[900],
+        // backgroundColor: Colors.grey[900],
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings, size: 26, color: Colors.grey),
+            icon: const Icon(Icons.settings, size: 26),
             padding: const EdgeInsets.all(12),
-            onPressed: () => Navigator.pushNamed(context, '/settings'),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsScreen()),
+              );
+            },
           ),
         ],
       ),
-      backgroundColor: Colors.grey[900],
+      // backgroundColor: Colors.grey[900],
       body:
           _isLoading
               ? const Center(
@@ -256,11 +262,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             // Username & Display Name
                             Text(
                               _user!.display_username,
-                              style: const TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
+                              style: Theme.of(context).textTheme.titleLarge,
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 6),
@@ -378,22 +380,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     }
                                     if (snapshot.hasData) {
                                       return Chip(
-                                        backgroundColor: Colors.grey[800]!
-                                            .withValues(alpha: 0.99),
                                         label: Row(
                                           children: [
                                             const Icon(
                                               Icons.visibility,
-                                              color: Colors.blue,
                                               size: 18,
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
                                               'Sightings: ${snapshot.data}',
-                                              style: const TextStyle(
-                                                color: Colors.blue,
-                                                fontWeight: FontWeight.w600,
-                                              ),
+                                              style:
+                                                  Theme.of(
+                                                    context,
+                                                  ).textTheme.bodyMedium,
                                             ),
                                           ],
                                         ),
@@ -409,10 +408,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 28),
+                            const SizedBox(height: 18),
                             // Info Rows
                             Card(
-                              color: Colors.grey[850],
+                              // color: Colors.grey[850],
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -420,49 +419,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               child: Column(
                                 children: [
                                   ListTile(
-                                    leading: const Icon(
-                                      Icons.email,
-                                      color: Colors.grey,
-                                      size: 22,
-                                    ),
+                                    leading: const Icon(Icons.email, size: 22),
                                     title: Text(
                                       _user!.email,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                      ),
+                                      style:
+                                          Theme.of(
+                                            context,
+                                          ).textTheme.bodyMedium,
                                     ),
                                   ),
                                   const Divider(height: 1, color: Colors.grey),
                                   ListTile(
                                     leading: const Icon(
                                       Icons.pin_drop,
-                                      color: Colors.grey,
                                       size: 22,
                                     ),
                                     title: Text(
                                       _user!.country!.isNotEmpty
                                           ? _user!.country!
                                           : 'Location not set',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                      ),
+                                      style:
+                                          Theme.of(
+                                            context,
+                                          ).textTheme.bodyMedium,
+                                    ),
+                                  ),
+                                  const Divider(height: 1, color: Colors.grey),
+                                  ListTile(
+                                    leading: Icon(Icons.location_on, size: 22),
+                                    title: AutoSizeText(
+                                      _user!.bio!.isNotEmpty
+                                          ? _user!.bio!
+                                          : 'Bio not set',
+                                      style:
+                                          Theme.of(
+                                            context,
+                                          ).textTheme.bodyMedium,
+                                      minFontSize: 6,
+                                      maxFontSize: 16,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                   const Divider(height: 1, color: Colors.grey),
                                   ListTile(
                                     leading: const Icon(
-                                      Icons.nature_people,
-                                      color: Colors.grey,
+                                      Icons.volunteer_activism,
                                       size: 22,
                                     ),
                                     title: Text(
                                       'Volunteer Hours',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                      ),
+                                      style:
+                                          Theme.of(
+                                            context,
+                                          ).textTheme.bodyMedium,
                                     ),
                                     onTap: _onVolunteerHoursTap,
                                   ),
@@ -496,12 +506,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  content: const Text(
+                                  content: Text(
                                     'Are you sure you want to log out?',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black,
-                                    ),
+                                    style:
+                                        Theme.of(context).textTheme.bodyMedium,
                                   ),
                                   actions: [
                                     TextButton(
@@ -509,15 +517,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           () => Navigator.of(context).pop(),
                                       child: Text(
                                         'Cancel',
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          color: Color.fromARGB(
-                                            255,
-                                            96,
-                                            95,
-                                            95,
-                                          ),
-                                        ),
+                                        style:
+                                            Theme.of(
+                                              context,
+                                            ).textTheme.labelMedium,
                                       ),
                                     ),
                                     TextButton(
