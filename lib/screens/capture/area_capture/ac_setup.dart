@@ -203,11 +203,7 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: Text('Set your capture area')),
       body:
           _isLoading
               ? CircularProgressIndicator()
@@ -217,15 +213,10 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
                     padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
                     child: Column(
                       children: [
-                        Text(
-                          'Set your capture area',
-                          style: TextStyle(color: Colors.white, fontSize: 25),
-                          textAlign: TextAlign.center,
-                        ),
                         const SizedBox(height: 10),
                         Text(
                           'Sightings will be captured within this area only',
-                          style: TextStyle(color: Colors.white, fontSize: 15),
+                          style: Theme.of(context).textTheme.bodyMedium,
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 30),
@@ -256,14 +247,30 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
                         ValueListenableBuilder<double>(
                           valueListenable: _radiusMeters,
                           builder:
-                              (context, radius, _) => Slider(
-                                value: radius,
-                                min: 100.0,
-                                max: 2000.0,
-                                onChanged: (newRadius) {
-                                  _radiusMeters.value = newRadius;
-                                  _updateCircle(forceUpdate: true);
-                                },
+                              (context, radius, _) => SliderTheme(
+                                data: SliderThemeData(
+                                  activeTrackColor:
+                                      Theme.of(context).colorScheme.primary,
+                                  inactiveTrackColor: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.2),
+                                  thumbColor:
+                                      Theme.of(context).colorScheme.primary,
+                                  overlayColor: Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withValues(alpha: 0.12),
+                                  trackHeight: 4.0,
+                                ),
+                                child: Slider(
+                                  value: radius,
+                                  min: 100.0,
+                                  max: 2000.0,
+                                  onChanged: (newRadius) {
+                                    _radiusMeters.value = newRadius;
+                                    _updateCircle(forceUpdate: true);
+                                  },
+                                ),
                               ),
                         ),
                         ValueListenableBuilder<double>(
@@ -271,7 +278,7 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
                           builder:
                               (context, _, _) => Text(
                                 'Capture radius: ${_radiusMeters.value.toInt()}m',
-                                style: TextStyle(color: Colors.white),
+                                style: Theme.of(context).textTheme.labelLarge,
                               ),
                         ),
                         const SizedBox(height: 20),
@@ -280,20 +287,20 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
                           children: [
                             Text(
                               'Session duration',
-                              style: TextStyle(color: Colors.white),
+                              style: Theme.of(context).textTheme.bodyMedium,
                             ),
                             const SizedBox(width: 20),
                             DropdownButton<int>(
                               value: _selectedDuration,
-                              dropdownColor: Colors.black,
-                              style: TextStyle(color: Colors.white),
+                              // dropdownColor: Colors.black,
+                              // style: TextStyle(color: Colors.white),
                               items:
                                   _durations.map((duration) {
                                     return DropdownMenuItem<int>(
                                       value: duration,
                                       child: Text(
                                         '$duration minutes',
-                                        style: TextStyle(color: Colors.white),
+                                        // style: TextStyle(color: Colors.white),
                                       ),
                                     );
                                   }).toList(),
@@ -306,7 +313,7 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
                           ],
                         ),
                         const SizedBox(height: 30),
-                        BlackButton(
+                        ModernDarkButton(
                           text: 'Start Area Capture',
                           onPressed: _startAreaCapture,
                         ),
@@ -316,11 +323,5 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
                 ),
               ),
     );
-  }
-}
-
-extension ColorToARGB on Color {
-  int toARGB32() {
-    return (alpha << 24) | (red << 16) | (green << 8) | blue;
   }
 }

@@ -71,25 +71,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[900],
+      // backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(
+          'Settings',
+          style: Theme.of(context).appBarTheme.titleTextStyle,
+        ),
         elevation: 0,
-        backgroundColor: Colors.grey[900],
-        foregroundColor: Colors.white,
       ),
       body:
           isLoading
-              ? const Center(
-                child: CircularProgressIndicator(color: Colors.white),
-              )
+              ? const Center(child: CircularProgressIndicator())
               : user == null
-              ? const Center(
-                child: Text(
-                  'No profile found',
-                  style: TextStyle(color: Colors.white),
-                ),
-              )
+              ? const Center(child: Text('No profile found'))
               : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
@@ -99,7 +93,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _buildSectionTitle('Settings'),
                   _buildSettingsCard(),
                   const SizedBox(height: 24),
-                  BlackButton(
+                  ModernDarkButton(
                     text: 'Delete Account',
                     onPressed: () {
                       showDialog(
@@ -160,16 +154,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: Colors.grey[400],
-          letterSpacing: 0.5,
-        ),
-      ),
+      padding: const EdgeInsets.only(bottom: 8, left: 5),
+      child: Text(title, style: Theme.of(context).textTheme.bodyMedium),
     );
   }
 
@@ -177,7 +163,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: Colors.grey[850],
+      // color: Colors.grey[850],
       child: Column(
         children: [
           _buildProfileItem(
@@ -231,7 +217,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: Colors.grey[850],
       child: Column(
         children: [
           _buildProfileItem(
@@ -242,6 +227,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   MaterialPageRoute(
                     builder: (context) => const PrivacySettingsPage(),
                   ),
+                ),
+          ),
+          _buildDivider(),
+          Consumer<ThemeProvider>(
+            builder:
+                (context, themeProvider, _) => ListTile(
+                  title: Text(
+                    'Dark Mode',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  trailing: Transform.scale(
+                    scale: 0.8,
+                    child: Switch(
+                      value: themeProvider.isDarkMode,
+                      onChanged: (_) => themeProvider.toggleTheme(),
+                      activeColor: Theme.of(context).colorScheme.primary,
+                      inactiveTrackColor: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  dense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 ),
           ),
         ],
@@ -257,19 +265,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     return ListTile(
       leading: leading,
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: Colors.white,
-        ),
-      ),
+      title: Text(title, style: Theme.of(context).textTheme.bodyLarge),
       subtitle:
           subtitle != null
               ? Text(
                 subtitle,
-                style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                style: Theme.of(context).textTheme.labelMedium,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               )
@@ -345,11 +346,14 @@ class _EditFieldPageState extends State<EditFieldPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _controller;
   bool isSaving = false;
+  late FToast fToast;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.currentValue ?? '');
+    fToast = FToast();
+    fToast.init(context);
   }
 
   @override
@@ -392,9 +396,11 @@ class _EditFieldPageState extends State<EditFieldPage> {
         }
         await Amplify.DataStore.save(updatedUser);
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Updated')));
+          fToast.showToast(
+            child: Util.greenToast('Updated'),
+            gravity: ToastGravity.BOTTOM,
+            toastDuration: Duration(seconds: 2),
+          );
           Navigator.pop(context);
         }
       } catch (e) {
@@ -412,12 +418,12 @@ class _EditFieldPageState extends State<EditFieldPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        title: Text('Edit ${widget.field}'),
+        title: Text(
+          'Edit ${widget.field}',
+          style: Theme.of(context).appBarTheme.titleTextStyle,
+        ),
         elevation: 0,
-        backgroundColor: Colors.grey[900],
-        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -429,26 +435,16 @@ class _EditFieldPageState extends State<EditFieldPage> {
                 controller: _controller,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Colors.grey[850],
                   labelText: widget.field,
-                  labelStyle: TextStyle(color: Colors.grey[400]),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF39FF14), // Green accent
-                      width: 2,
-                    ),
-                  ),
+                  // border: OutlineInputBorder(
+                  //   borderRadius: BorderRadius.circular(12),
+                  //   borderSide: BorderSide.none,
+                  // ),
+                  // enabledBorder: OutlineInputBorder(
+                  //   borderRadius: BorderRadius.circular(12),
+                  //   borderSide: BorderSide.none,
+                  // ),
                 ),
-                style: const TextStyle(color: Colors.white),
                 keyboardType:
                     widget.field == 'Age'
                         ? TextInputType.number
@@ -486,7 +482,7 @@ class _EditFieldPageState extends State<EditFieldPage> {
                 },
               ),
               const SizedBox(height: 16),
-              BlackButton(text: 'Save', onPressed: _saveField),
+              ModernDarkButton(text: 'Save', onPressed: _saveField),
             ],
           ),
         ),
@@ -583,12 +579,12 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        title: const Text('Privacy'),
+        title: Text(
+          'Privacy',
+          style: Theme.of(context).appBarTheme.titleTextStyle,
+        ),
         elevation: 0,
-        backgroundColor: Colors.grey[900],
-        foregroundColor: Colors.white,
       ),
       body:
           _isLoading
@@ -604,23 +600,27 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    color: Colors.grey[850],
-                    child: SwitchListTile(
-                      title: const Text(
+                    // color: Colors.grey[850],
+                    child: ListTile(
+                      title: Text(
                         'Location Offset',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
+                        style: Theme.of(context).textTheme.bodyLarge,
                       ),
                       subtitle: Text(
                         'Enable to offset your location data for better privacy',
-                        style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                        style: Theme.of(context).textTheme.labelMedium,
                       ),
-                      value: _locationOffset ?? false,
-                      onChanged: (value) => _updateLocationOffset(value),
-                      activeColor: const Color(0xFF39FF14), // Green accent
+                      trailing: Transform.scale(
+                        scale: 0.8,
+                        child: Switch(
+                          value: _locationOffset ?? false,
+                          onChanged: (value) => _updateLocationOffset(value),
+                          activeColor: Theme.of(context).colorScheme.primary,
+                          inactiveTrackColor: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.3),
+                        ),
+                      ),
                       dense: true,
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -634,13 +634,12 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
 
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 8, left: 5),
       child: Text(
         title,
         style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: Colors.grey[400],
           letterSpacing: 0.5,
         ),
       ),

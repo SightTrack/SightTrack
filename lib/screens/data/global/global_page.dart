@@ -16,8 +16,6 @@ class _GlobalViewState extends State<GlobalView> {
   bool _isLoading = true;
   DateTime? _startTimeFilter;
   mapbox.MapboxMap? _mapboxMap;
-  int _totalSightings = 0;
-  int _uniqueSpecies = 0;
 
   @override
   void initState() {
@@ -163,87 +161,65 @@ class _GlobalViewState extends State<GlobalView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[900],
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            // Fixed section: View Statistics button
-            const SizedBox(height: 20),
-            Container(
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 45, 45, 45),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(10),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ViewStatisticsPage(),
-                      ),
-                    );
-                  },
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 8),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.analytics_outlined,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'View Statistics',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
             Stack(
               children: [
-                SizedBox(
-                  height: 200,
-                  width: double.infinity,
-                  child: mapbox.MapWidget(
-                    key: const ValueKey('mapWidget'),
-                    onMapCreated: (controller) async {
-                      try {
-                        Util.setupMapbox(controller);
-                        _mapboxMap = controller;
-                        _addMarkersToMap();
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error initializing map: $e')),
-                        );
-                      }
-                    },
-                    cameraOptions: mapbox.CameraOptions(
-                      center: mapbox.Point(
-                        coordinates: mapbox.Position(
-                          _calculateMapCenter().longitude,
-                          _calculateMapCenter().latitude,
+                mapbox.MapWidget(
+                  key: const ValueKey('mapWidget'),
+                  onMapCreated: (controller) async {
+                    try {
+                      Util.setupMapbox(controller);
+                      _mapboxMap = controller;
+                      _addMarkersToMap();
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error initializing map: $e')),
+                      );
+                    }
+                  },
+                  cameraOptions: mapbox.CameraOptions(
+                    center: mapbox.Point(
+                      coordinates: mapbox.Position(
+                        _calculateMapCenter().longitude,
+                        _calculateMapCenter().latitude,
+                      ),
+                    ),
+                    zoom: 1.0,
+                  ),
+                  styleUri: Util.mapStyle,
+                ),
+                Positioned(
+                  top: 20,
+                  left: 10,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 45, 45, 45),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        child: ModernDarkButton(
+                          text: 'View Statistics',
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => const ViewStatisticsPage(),
+                              ),
+                            );
+                          },
                         ),
                       ),
-                      zoom: 1.0,
                     ),
-                    styleUri: Util.mapStyle,
                   ),
                 ),
                 Positioned(
-                  top: 10,
+                  top: 20,
                   right: 10,
                   child: FloatingActionButton(
                     mini: true,
@@ -260,34 +236,32 @@ class _GlobalViewState extends State<GlobalView> {
                           end: DateTime.now(),
                         ),
                         builder: (context, child) {
+                          final theme = Theme.of(context);
                           return Theme(
-                            data: ThemeData(
-                              primaryColor: Colors.teal,
-                              colorScheme: const ColorScheme.light(
-                                primary: Colors.teal,
-                                onPrimary: Colors.white,
-                                surface: Colors.white,
-                                onSurface: Colors.black87,
-                              ),
-                              textTheme: const TextTheme(
-                                headlineSmall: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.teal,
-                                ),
-                                bodyMedium: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black87,
-                                ),
+                            data: theme.copyWith(
+                              colorScheme: theme.colorScheme.copyWith(
+                                surface: theme.colorScheme.surface,
+                                onSurface: theme.colorScheme.onSurface,
                               ),
                               textButtonTheme: TextButtonThemeData(
                                 style: TextButton.styleFrom(
-                                  foregroundColor: Colors.teal,
-                                  textStyle: const TextStyle(fontSize: 16),
+                                  foregroundColor: theme.colorScheme.primary,
                                 ),
                               ),
+                              datePickerTheme: DatePickerThemeData(
+                                rangeSelectionBackgroundColor: theme
+                                    .colorScheme
+                                    .primary
+                                    .withValues(alpha: 0.5),
+                                backgroundColor: theme.colorScheme.surface,
+                                headerBackgroundColor:
+                                    theme.colorScheme.primary,
+                                headerForegroundColor:
+                                    theme.colorScheme.onSurface,
+                                surfaceTintColor: Colors.transparent,
+                              ),
                               dialogTheme: DialogThemeData(
-                                backgroundColor: Colors.white,
+                                backgroundColor: theme.colorScheme.surface,
                               ),
                             ),
                             child: child!,
@@ -306,78 +280,133 @@ class _GlobalViewState extends State<GlobalView> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            // Scrollable section: Moran's I results
-            Expanded(
-              child:
-                  _isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : _moransIResults.isEmpty
-                      ? const Center(
-                        child: Text(
-                          'No sightings found for the selected period.',
-                          style: TextStyle(color: Colors.white70),
-                        ),
-                      )
-                      : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 15.0,
+            DraggableScrollableSheet(
+              initialChildSize: 0.15,
+              minChildSize: 0.15,
+              maxChildSize: 0.8,
+              builder: (context, scrollController) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                    // boxShadow: [
+                    //   BoxShadow(
+                    //     color: Colors.black.withValues(alpha: 50),
+                    //     blurRadius: 10,
+                    //     offset: const Offset(0, -2),
+                    //   ),
+                    // ],
+                  ),
+                  child:
+                      _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : _moransIResults.isEmpty
+                          ? const Center(
+                            child: Text(
+                              'No sightings found for the selected period.',
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Biodiversity Scores',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
+                          )
+                          : CustomScrollView(
+                            controller: scrollController,
+                            slivers: [
+                              SliverToBoxAdapter(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 22,
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 40,
+                                        height: 4,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[600]!.withValues(
+                                            alpha: 0.2,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            2,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox.shrink(),
+                                    ],
                                   ),
                                 ),
-
-                                IconButton(
-                                  icon: Icon(Icons.help, color: Colors.white),
-                                  onPressed: () {},
-                                ),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: _moransIResults.length,
-                              itemBuilder: (context, index) {
-                                final species = _moransIResults.keys.elementAt(
-                                  index,
-                                );
-                                final moransI = _moransIResults[species] ?? 0.0;
-                                String distribution;
-                                if (moransI > 0.3) {
-                                  distribution = 'Clustered';
-                                } else if (moransI < -0.3) {
-                                  distribution = 'Dispersed';
-                                } else {
-                                  distribution = 'Random';
-                                }
-                                return ListTile(
-                                  title: Text(
-                                    species,
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                  subtitle: Text(
-                                    'Score: ${moransI.toStringAsFixed(2)} ($distribution)',
-                                    style: const TextStyle(
-                                      color: Colors.white70,
+                              ),
+                              SliverToBoxAdapter(
+                                child: Column(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 15.0,
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            'Biodiversity Scores',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: Icon(Icons.help),
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder:
+                                                      (context) =>
+                                                          AboutBiodiversityScreen(),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
-                            ),
+                                  ],
+                                ),
+                              ),
+                              SliverList(
+                                delegate: SliverChildBuilderDelegate((
+                                  context,
+                                  index,
+                                ) {
+                                  final species = _moransIResults.keys
+                                      .elementAt(index);
+                                  final moransI =
+                                      _moransIResults[species] ?? 0.0;
+                                  String distribution;
+                                  if (moransI > 0.3) {
+                                    distribution = 'Clustered';
+                                  } else if (moransI < -0.3) {
+                                    distribution = 'Dispersed';
+                                  } else {
+                                    distribution = 'Random';
+                                  }
+                                  return ListTile(
+                                    title: Text(
+                                      species,
+                                      style: const TextStyle(),
+                                    ),
+                                    subtitle: Text(
+                                      'Score: ${moransI.toStringAsFixed(2)} ($distribution)',
+                                      style: const TextStyle(),
+                                    ),
+                                  );
+                                }, childCount: _moransIResults.length),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                );
+              },
             ),
           ],
         ),

@@ -189,7 +189,7 @@ class CaptureScreenState extends State<CaptureScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      appBar: AppBar(),
       body: Stack(
         children: [
           // Full-screen camera preview or error message
@@ -200,15 +200,15 @@ class CaptureScreenState extends State<CaptureScreen> {
                   children: [
                     Text(
                       _errorMessage!,
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                      style: Theme.of(context).textTheme.bodyMedium,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
-                    ElevatedButton(
+                    ModernDarkButton(
                       onPressed: () {
                         _initializeCamera();
                       },
-                      child: const Text('Retry'),
+                      text: 'Retry',
                     ),
                   ],
                 ),
@@ -232,10 +232,7 @@ class CaptureScreenState extends State<CaptureScreen> {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.5),
-                      Colors.transparent,
-                    ],
+                    colors: [Colors.black.withOpacity(0.5), Colors.transparent],
                   ),
                 ),
               ),
@@ -252,10 +249,7 @@ class CaptureScreenState extends State<CaptureScreen> {
                   gradient: LinearGradient(
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.5),
-                      Colors.transparent,
-                    ],
+                    colors: [Colors.black.withOpacity(0.5), Colors.transparent],
                   ),
                 ),
               ),
@@ -268,10 +262,10 @@ class CaptureScreenState extends State<CaptureScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.black.withValues(alpha: 0.6),
+                  color: Colors.black.withOpacity(0.6),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.3),
+                      color: Colors.black.withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -309,11 +303,11 @@ class CaptureScreenState extends State<CaptureScreen> {
                       height: 50,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.grey.withValues(alpha: 0.8),
+                        color: Colors.grey.withOpacity(0.8),
                         border: Border.all(color: Colors.white, width: 2),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.3),
+                            color: Colors.black.withOpacity(0.3),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -356,7 +350,7 @@ class CaptureScreenState extends State<CaptureScreen> {
                           border: Border.all(color: Colors.white, width: 4),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.white.withValues(alpha: 0.3),
+                              color: Colors.white.withOpacity(0.3),
                               blurRadius: 10,
                               spreadRadius: 2,
                             ),
@@ -380,10 +374,10 @@ class CaptureScreenState extends State<CaptureScreen> {
                     height: 50,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.black.withValues(alpha: 0.6),
+                      color: Colors.black.withOpacity(0.6),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.3),
+                          color: Colors.black.withOpacity(0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),

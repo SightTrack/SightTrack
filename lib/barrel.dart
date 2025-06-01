@@ -24,13 +24,14 @@ export 'package:sighttrack/models/UserSettings.dart';
 export 'package:sighttrack/util.dart';
 export 'package:sighttrack/logging.dart';
 export 'package:sighttrack/app.dart';
-export 'package:sighttrack/widgets/button.dart';
-export 'package:sighttrack/processing.dart';
+export 'package:sighttrack/services/geography.dart';
 export 'package:sighttrack/math/spatial_autocorrection.dart';
+export 'package:sighttrack/services/volunteer.dart';
+export 'package:core_ui/core_ui.dart';
 
 // SightTrack main
 export 'package:sighttrack/navigation.dart';
-export 'package:sighttrack/screens/capture/quick_capture/ac_setup.dart';
+export 'package:sighttrack/screens/capture/area_capture/ac_setup.dart';
 export 'package:sighttrack/screens/capture/area_capture/ac_home.dart';
 export 'package:sighttrack/screens/capture/capture.dart';
 export 'package:sighttrack/screens/capture/choose_capture_type.dart';
@@ -47,6 +48,10 @@ export 'package:sighttrack/screens/data/local/local_page.dart';
 export 'package:sighttrack/screens/community/community.dart';
 export 'package:sighttrack/screens/other/user_details.dart';
 export 'package:sighttrack/screens/data/global/view_statistics.dart';
+export 'package:sighttrack/screens/profile/volunteer_hours.dart';
+export 'package:sighttrack/screens/auth/signin.dart';
+export 'package:sighttrack/screens/auth/signup.dart';
+export 'package:sighttrack/screens/data/global/about_biodiversity.dart';
 
 // Other imports
 export 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
@@ -59,3 +64,5 @@ export 'package:fluttertoast/fluttertoast.dart';
 export 'package:animated_background/animated_background.dart';
 export 'package:geolocator/geolocator.dart';
 export 'package:geocoding/geocoding.dart';
+export 'providers/theme_provider.dart';
+export 'package:provider/provider.dart';

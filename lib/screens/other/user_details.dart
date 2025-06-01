@@ -47,16 +47,15 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Set Up Your Profile',
-          style: TextStyle(
-            color: Colors.white,
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.bold,
-            fontSize: 24,
           ),
         ),
       ),
@@ -74,12 +73,12 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
+                    Text(
                       'Tell us about yourself',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -87,22 +86,30 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                     // Age Input
                     TextFormField(
                       controller: _ageController,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: InputDecoration(
                         labelText: 'Age',
-                        labelStyle: const TextStyle(color: Colors.white70),
+                        labelStyle: TextStyle(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.7),
+                        ),
                         filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.1),
+                        fillColor: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.1),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF39FF14), // Vibrant green
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.secondary,
                             width: 2,
                           ),
                         ),
@@ -122,20 +129,28 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                     // School Name Input
                     TextFormField(
                       controller: _schoolController,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                       decoration: InputDecoration(
                         labelText: 'School Name',
-                        labelStyle: const TextStyle(color: Colors.white70),
+                        labelStyle: TextStyle(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.7),
+                        ),
                         filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.1),
+                        fillColor: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.1),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF39FF14),
+                          borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.secondary,
                             width: 2,
                           ),
                         ),
@@ -148,7 +163,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                       },
                     ),
                     const SizedBox(height: 40),
-                    BlackButton(
+                    ModernDarkButton(
                       text: 'Save & Continue',
                       onPressed: _submitForm,
                     ),

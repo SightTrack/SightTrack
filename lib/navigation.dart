@@ -81,20 +81,12 @@ class Navigation extends StatelessWidget {
         title: 'Community',
         activeColorPrimary: CupertinoColors.activeGreen,
         inactiveColorPrimary: CupertinoColors.systemGrey,
-        routeAndNavigatorSettings: RouteAndNavigatorSettings(
-          initialRoute: '/',
-          routes: {},
-        ),
       ),
       PersistentBottomNavBarItem(
         icon: const Icon(CupertinoIcons.profile_circled),
         title: 'Profile',
         activeColorPrimary: CupertinoColors.activeGreen,
         inactiveColorPrimary: CupertinoColors.systemGrey,
-        routeAndNavigatorSettings: RouteAndNavigatorSettings(
-          initialRoute: '/',
-          routes: {'/settings': (context) => SettingsScreen()},
-        ),
       ),
     ];
   }

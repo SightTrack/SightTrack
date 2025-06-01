@@ -1,7 +1,7 @@
 import 'package:sighttrack/barrel.dart';
 
-class Processing {
-  Processing._();
+class Geography {
+  Geography._();
 
   // Builds the Sighting model database by filling nullable field `city` from each coordinates
   static Future<void> setCityNameForAllSightings() async {
