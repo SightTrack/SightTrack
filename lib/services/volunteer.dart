@@ -93,4 +93,44 @@ class Volunteer {
 
     return earthRadius * c;
   }
+
+  static Future<List<String>> getActivitySupervisors() async {
+    User user = await Util.getUserModel();
+    String userId = user.id;
+
+    final existingSettings = await Amplify.DataStore.query(
+      UserSettings.classType,
+      where: UserSettings.USERID.eq(userId),
+    );
+
+    if (existingSettings.isEmpty) {
+      return [];
+    }
+
+    return existingSettings.first.activitySupervisor ?? [];
+  }
+
+  static Future<List<String>> getSchoolSupervisors() async {
+    User user = await Util.getUserModel();
+    String userId = user.id;
+
+    final existingSettings = await Amplify.DataStore.query(
+      UserSettings.classType,
+      where: UserSettings.USERID.eq(userId),
+    );
+
+    if (existingSettings.isEmpty) {
+      return [];
+    }
+
+    return existingSettings.first.schoolSupervisor ?? [];
+  }
+
+  static Future<void> initiateVolunteerHoursRequest(
+    String activitySupervisor,
+    String schoolSupervisor,
+  ) async {
+    // TODO: Implement this
+    await Future.delayed(const Duration(seconds: 3));
+  }
 }

@@ -17,6 +17,8 @@ type UserSettings @model @auth(rules: [{ allow: private }]) {
   locationOffset: Boolean
   isAreaCaptureActive: Boolean
   areaCaptureEnd: AWSDateTime
+  activitySupervisor: [String]
+  schoolSupervisor: [String]
 }
 
 type Sighting @model @auth(rules: [{allow: private}]) {
@@ -31,4 +33,5 @@ type Sighting @model @auth(rules: [{allow: private}]) {
   timestamp: AWSDateTime!
   description: String
   user: User @belongsTo
+  isTimeClaimed: Boolean!
 }

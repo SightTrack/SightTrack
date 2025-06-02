@@ -19,6 +19,35 @@ class _AppState extends State<App> {
     }
   }
 
+  Future<void> doesUserHaveSettings() async {
+    User user = await Util.getUserModel();
+    String userId = user.id;
+
+    final existingSettings = await Amplify.DataStore.query(
+      UserSettings.classType,
+      where: UserSettings.USERID.eq(userId),
+    );
+
+    if (existingSettings.isEmpty) {
+      final newSettings = UserSettings(
+        userId: userId,
+        isAreaCaptureActive: false,
+        areaCaptureEnd: null,
+      );
+
+      await Amplify.DataStore.save(newSettings);
+      Log.i('New user settings created for $userId');
+    } else {
+      Log.i('User settings exist: ${existingSettings.first.toJson()}');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    doesUserHaveSettings();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(

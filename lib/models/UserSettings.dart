@@ -21,6 +21,7 @@
 
 import 'ModelProvider.dart';
 import 'package:amplify_core/amplify_core.dart' as amplify_core;
+import 'package:collection/collection.dart';
 
 
 /** This is an auto generated class representing the UserSettings type in your schema. */
@@ -31,6 +32,8 @@ class UserSettings extends amplify_core.Model {
   final bool? _locationOffset;
   final bool? _isAreaCaptureActive;
   final amplify_core.TemporalDateTime? _areaCaptureEnd;
+  final List<String>? _activitySupervisor;
+  final List<String>? _schoolSupervisor;
   final amplify_core.TemporalDateTime? _createdAt;
   final amplify_core.TemporalDateTime? _updatedAt;
 
@@ -72,6 +75,14 @@ class UserSettings extends amplify_core.Model {
     return _areaCaptureEnd;
   }
   
+  List<String>? get activitySupervisor {
+    return _activitySupervisor;
+  }
+  
+  List<String>? get schoolSupervisor {
+    return _schoolSupervisor;
+  }
+  
   amplify_core.TemporalDateTime? get createdAt {
     return _createdAt;
   }
@@ -80,15 +91,17 @@ class UserSettings extends amplify_core.Model {
     return _updatedAt;
   }
   
-  const UserSettings._internal({required this.id, required userId, locationOffset, isAreaCaptureActive, areaCaptureEnd, createdAt, updatedAt}): _userId = userId, _locationOffset = locationOffset, _isAreaCaptureActive = isAreaCaptureActive, _areaCaptureEnd = areaCaptureEnd, _createdAt = createdAt, _updatedAt = updatedAt;
+  const UserSettings._internal({required this.id, required userId, locationOffset, isAreaCaptureActive, areaCaptureEnd, activitySupervisor, schoolSupervisor, createdAt, updatedAt}): _userId = userId, _locationOffset = locationOffset, _isAreaCaptureActive = isAreaCaptureActive, _areaCaptureEnd = areaCaptureEnd, _activitySupervisor = activitySupervisor, _schoolSupervisor = schoolSupervisor, _createdAt = createdAt, _updatedAt = updatedAt;
   
-  factory UserSettings({String? id, required String userId, bool? locationOffset, bool? isAreaCaptureActive, amplify_core.TemporalDateTime? areaCaptureEnd}) {
+  factory UserSettings({String? id, required String userId, bool? locationOffset, bool? isAreaCaptureActive, amplify_core.TemporalDateTime? areaCaptureEnd, List<String>? activitySupervisor, List<String>? schoolSupervisor}) {
     return UserSettings._internal(
       id: id == null ? amplify_core.UUID.getUUID() : id,
       userId: userId,
       locationOffset: locationOffset,
       isAreaCaptureActive: isAreaCaptureActive,
-      areaCaptureEnd: areaCaptureEnd);
+      areaCaptureEnd: areaCaptureEnd,
+      activitySupervisor: activitySupervisor != null ? List<String>.unmodifiable(activitySupervisor) : activitySupervisor,
+      schoolSupervisor: schoolSupervisor != null ? List<String>.unmodifiable(schoolSupervisor) : schoolSupervisor);
   }
   
   bool equals(Object other) {
@@ -103,7 +116,9 @@ class UserSettings extends amplify_core.Model {
       _userId == other._userId &&
       _locationOffset == other._locationOffset &&
       _isAreaCaptureActive == other._isAreaCaptureActive &&
-      _areaCaptureEnd == other._areaCaptureEnd;
+      _areaCaptureEnd == other._areaCaptureEnd &&
+      DeepCollectionEquality().equals(_activitySupervisor, other._activitySupervisor) &&
+      DeepCollectionEquality().equals(_schoolSupervisor, other._schoolSupervisor);
   }
   
   @override
@@ -119,6 +134,8 @@ class UserSettings extends amplify_core.Model {
     buffer.write("locationOffset=" + (_locationOffset != null ? _locationOffset!.toString() : "null") + ", ");
     buffer.write("isAreaCaptureActive=" + (_isAreaCaptureActive != null ? _isAreaCaptureActive!.toString() : "null") + ", ");
     buffer.write("areaCaptureEnd=" + (_areaCaptureEnd != null ? _areaCaptureEnd!.format() : "null") + ", ");
+    buffer.write("activitySupervisor=" + (_activitySupervisor != null ? _activitySupervisor!.toString() : "null") + ", ");
+    buffer.write("schoolSupervisor=" + (_schoolSupervisor != null ? _schoolSupervisor!.toString() : "null") + ", ");
     buffer.write("createdAt=" + (_createdAt != null ? _createdAt!.format() : "null") + ", ");
     buffer.write("updatedAt=" + (_updatedAt != null ? _updatedAt!.format() : "null"));
     buffer.write("}");
@@ -126,27 +143,33 @@ class UserSettings extends amplify_core.Model {
     return buffer.toString();
   }
   
-  UserSettings copyWith({String? userId, bool? locationOffset, bool? isAreaCaptureActive, amplify_core.TemporalDateTime? areaCaptureEnd}) {
+  UserSettings copyWith({String? userId, bool? locationOffset, bool? isAreaCaptureActive, amplify_core.TemporalDateTime? areaCaptureEnd, List<String>? activitySupervisor, List<String>? schoolSupervisor}) {
     return UserSettings._internal(
       id: id,
       userId: userId ?? this.userId,
       locationOffset: locationOffset ?? this.locationOffset,
       isAreaCaptureActive: isAreaCaptureActive ?? this.isAreaCaptureActive,
-      areaCaptureEnd: areaCaptureEnd ?? this.areaCaptureEnd);
+      areaCaptureEnd: areaCaptureEnd ?? this.areaCaptureEnd,
+      activitySupervisor: activitySupervisor ?? this.activitySupervisor,
+      schoolSupervisor: schoolSupervisor ?? this.schoolSupervisor);
   }
   
   UserSettings copyWithModelFieldValues({
     ModelFieldValue<String>? userId,
     ModelFieldValue<bool?>? locationOffset,
     ModelFieldValue<bool?>? isAreaCaptureActive,
-    ModelFieldValue<amplify_core.TemporalDateTime?>? areaCaptureEnd
+    ModelFieldValue<amplify_core.TemporalDateTime?>? areaCaptureEnd,
+    ModelFieldValue<List<String>?>? activitySupervisor,
+    ModelFieldValue<List<String>?>? schoolSupervisor
   }) {
     return UserSettings._internal(
       id: id,
       userId: userId == null ? this.userId : userId.value,
       locationOffset: locationOffset == null ? this.locationOffset : locationOffset.value,
       isAreaCaptureActive: isAreaCaptureActive == null ? this.isAreaCaptureActive : isAreaCaptureActive.value,
-      areaCaptureEnd: areaCaptureEnd == null ? this.areaCaptureEnd : areaCaptureEnd.value
+      areaCaptureEnd: areaCaptureEnd == null ? this.areaCaptureEnd : areaCaptureEnd.value,
+      activitySupervisor: activitySupervisor == null ? this.activitySupervisor : activitySupervisor.value,
+      schoolSupervisor: schoolSupervisor == null ? this.schoolSupervisor : schoolSupervisor.value
     );
   }
   
@@ -156,11 +179,13 @@ class UserSettings extends amplify_core.Model {
       _locationOffset = json['locationOffset'],
       _isAreaCaptureActive = json['isAreaCaptureActive'],
       _areaCaptureEnd = json['areaCaptureEnd'] != null ? amplify_core.TemporalDateTime.fromString(json['areaCaptureEnd']) : null,
+      _activitySupervisor = json['activitySupervisor']?.cast<String>(),
+      _schoolSupervisor = json['schoolSupervisor']?.cast<String>(),
       _createdAt = json['createdAt'] != null ? amplify_core.TemporalDateTime.fromString(json['createdAt']) : null,
       _updatedAt = json['updatedAt'] != null ? amplify_core.TemporalDateTime.fromString(json['updatedAt']) : null;
   
   Map<String, dynamic> toJson() => {
-    'id': id, 'userId': _userId, 'locationOffset': _locationOffset, 'isAreaCaptureActive': _isAreaCaptureActive, 'areaCaptureEnd': _areaCaptureEnd?.format(), 'createdAt': _createdAt?.format(), 'updatedAt': _updatedAt?.format()
+    'id': id, 'userId': _userId, 'locationOffset': _locationOffset, 'isAreaCaptureActive': _isAreaCaptureActive, 'areaCaptureEnd': _areaCaptureEnd?.format(), 'activitySupervisor': _activitySupervisor, 'schoolSupervisor': _schoolSupervisor, 'createdAt': _createdAt?.format(), 'updatedAt': _updatedAt?.format()
   };
   
   Map<String, Object?> toMap() => {
@@ -169,6 +194,8 @@ class UserSettings extends amplify_core.Model {
     'locationOffset': _locationOffset,
     'isAreaCaptureActive': _isAreaCaptureActive,
     'areaCaptureEnd': _areaCaptureEnd,
+    'activitySupervisor': _activitySupervisor,
+    'schoolSupervisor': _schoolSupervisor,
     'createdAt': _createdAt,
     'updatedAt': _updatedAt
   };
@@ -179,6 +206,8 @@ class UserSettings extends amplify_core.Model {
   static final LOCATIONOFFSET = amplify_core.QueryField(fieldName: "locationOffset");
   static final ISAREACAPTUREACTIVE = amplify_core.QueryField(fieldName: "isAreaCaptureActive");
   static final AREACAPTUREEND = amplify_core.QueryField(fieldName: "areaCaptureEnd");
+  static final ACTIVITYSUPERVISOR = amplify_core.QueryField(fieldName: "activitySupervisor");
+  static final SCHOOLSUPERVISOR = amplify_core.QueryField(fieldName: "schoolSupervisor");
   static var schema = amplify_core.Model.defineSchema(define: (amplify_core.ModelSchemaDefinition modelSchemaDefinition) {
     modelSchemaDefinition.name = "UserSettings";
     modelSchemaDefinition.pluralName = "UserSettings";
@@ -218,6 +247,20 @@ class UserSettings extends amplify_core.Model {
       key: UserSettings.AREACAPTUREEND,
       isRequired: false,
       ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.dateTime)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: UserSettings.ACTIVITYSUPERVISOR,
+      isRequired: false,
+      isArray: true,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.collection, ofModelName: amplify_core.ModelFieldTypeEnum.string.name)
+    ));
+    
+    modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.field(
+      key: UserSettings.SCHOOLSUPERVISOR,
+      isRequired: false,
+      isArray: true,
+      ofType: amplify_core.ModelFieldType(amplify_core.ModelFieldTypeEnum.collection, ofModelName: amplify_core.ModelFieldTypeEnum.string.name)
     ));
     
     modelSchemaDefinition.addField(amplify_core.ModelFieldDefinition.nonQueryField(

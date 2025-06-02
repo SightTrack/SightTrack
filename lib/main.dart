@@ -22,9 +22,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Log.init();
 
-  // Will not work for iOS 18.4
   await dotenv.load();
-  MapboxOptions.setAccessToken(dotenv.env['MAPBOX_TOKEN']!);
+  MapboxOptions.setAccessToken(
+    dotenv.env['MAPBOX_TOKEN']!,
+  ); // Will not work for iOS 18.4
 
   try {
     // DataStore needs to be added first

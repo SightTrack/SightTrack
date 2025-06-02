@@ -11,11 +11,42 @@ class VolunteerHoursScreen extends StatefulWidget {
 class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
   List<Sighting> _sightings = [];
   bool _isLoading = true;
+  bool _isSubmitting = false;
+  late FToast fToast;
+
+  // Activity supervisor state
+  String? _selectedActivitySupervisor;
+  List<String> _activitySupervisors = [];
+  bool _loadingActivitySupervisors = true;
+  final _activitySupervisorController = TextEditingController();
+  final _activitySupervisorFocusNode = FocusNode();
+  bool _isAddingNewActivitySupervisor = false;
+
+  // School supervisor state
+  String? _selectedSchoolSupervisor;
+  List<String> _schoolSupervisors = [];
+  bool _loadingSchoolSupervisors = true;
+  final _schoolSupervisorController = TextEditingController();
+  final _schoolSupervisorFocusNode = FocusNode();
+  bool _isAddingNewSchoolSupervisor = false;
 
   @override
   void initState() {
     super.initState();
     _loadSightings();
+    _loadSupervisors();
+
+    fToast = FToast();
+    fToast.init(context);
+  }
+
+  @override
+  void dispose() {
+    _activitySupervisorController.dispose();
+    _activitySupervisorFocusNode.dispose();
+    _schoolSupervisorController.dispose();
+    _schoolSupervisorFocusNode.dispose();
+    super.dispose();
   }
 
   Future<void> _loadSightings() async {
@@ -49,6 +80,61 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
         });
       }
     }
+  }
+
+  Future<void> _loadSupervisors() async {
+    try {
+      final activitySupervisors = await Volunteer.getActivitySupervisors();
+      final schoolSupervisors = await Volunteer.getSchoolSupervisors();
+      if (mounted) {
+        setState(() {
+          _activitySupervisors = activitySupervisors;
+          _schoolSupervisors = schoolSupervisors;
+          _loadingActivitySupervisors = false;
+          _loadingSchoolSupervisors = false;
+        });
+      }
+    } catch (e) {
+      Log.e('Error loading supervisors: $e');
+      if (mounted) {
+        setState(() {
+          _loadingActivitySupervisors = false;
+          _loadingSchoolSupervisors = false;
+        });
+      }
+    }
+  }
+
+  void _handleActivitySupervisorSelection(String supervisor) {
+    setState(() {
+      _selectedActivitySupervisor = supervisor;
+      _activitySupervisorController.text = supervisor;
+      _isAddingNewActivitySupervisor = false;
+    });
+  }
+
+  void _handleSchoolSupervisorSelection(String supervisor) {
+    setState(() {
+      _selectedSchoolSupervisor = supervisor;
+      _schoolSupervisorController.text = supervisor;
+      _isAddingNewSchoolSupervisor = false;
+    });
+  }
+
+  void _handleAddNewActivitySupervisor(String newSupervisor) {
+    setState(() {
+      _selectedActivitySupervisor = newSupervisor;
+      _activitySupervisorController.text = newSupervisor;
+      _isAddingNewActivitySupervisor = false;
+    });
+  }
+
+  void _handleAddNewSchoolSupervisor(String newSupervisor) {
+    setState(() {
+      _selectedSchoolSupervisor = newSupervisor;
+      _schoolSupervisorController.text = newSupervisor;
+      _isAddingNewSchoolSupervisor = false;
+    });
   }
 
   Widget _buildSightingsList() {
@@ -235,10 +321,477 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
                 ),
               ),
             ),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _SliverHeaderDelegate(title: 'Claim Hours', height: 50),
+            ),
+            SliverToBoxAdapter(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Select Activity Supervisor',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (_loadingActivitySupervisors)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            SizedBox(width: 12),
+                            Text('Loading supervisors...'),
+                          ],
+                        ),
+                      )
+                    else
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          // Unfocus when tapping outside of the input field
+                          _activitySupervisorFocusNode.unfocus();
+                        },
+                        child: Stack(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                TextFormField(
+                                  controller: _activitySupervisorController,
+                                  focusNode: _activitySupervisorFocusNode,
+                                  decoration: InputDecoration(
+                                    hintText: 'Search or enter supervisor name',
+                                    prefixIcon: const Icon(
+                                      Icons.person_outline,
+                                    ),
+                                    suffixIcon:
+                                        _activitySupervisorController
+                                                .text
+                                                .isNotEmpty
+                                            ? IconButton(
+                                              icon: const Icon(Icons.clear),
+                                              onPressed: () {
+                                                setState(() {
+                                                  _activitySupervisorController
+                                                      .clear();
+                                                  _selectedActivitySupervisor =
+                                                      null;
+                                                  _isAddingNewActivitySupervisor =
+                                                      false;
+                                                });
+                                              },
+                                            )
+                                            : null,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  onTap: () {
+                                    // Ensure the suggestions show up when tapping the field
+                                    setState(() {});
+                                  },
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _isAddingNewActivitySupervisor =
+                                          value.isNotEmpty &&
+                                          !_activitySupervisors.any(
+                                            (s) =>
+                                                s.toLowerCase() ==
+                                                value.toLowerCase(),
+                                          );
+                                    });
+                                  },
+                                ),
+                                if (_activitySupervisorFocusNode.hasFocus &&
+                                    _activitySupervisorController
+                                        .text
+                                        .isNotEmpty)
+                                  Container(
+                                    margin: const EdgeInsets.only(top: 4),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).cardColor,
+                                      borderRadius: BorderRadius.circular(8),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.1,
+                                          ),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        ...(_activitySupervisors
+                                            .where(
+                                              (s) => s.toLowerCase().contains(
+                                                _activitySupervisorController
+                                                    .text
+                                                    .toLowerCase(),
+                                              ),
+                                            )
+                                            .map(
+                                              (s) => ListTile(
+                                                leading: const Icon(
+                                                  Icons.person,
+                                                ),
+                                                title: Text(s),
+                                                onTap: () {
+                                                  _handleActivitySupervisorSelection(
+                                                    s,
+                                                  );
+                                                  _activitySupervisorFocusNode
+                                                      .unfocus();
+                                                },
+                                              ),
+                                            )),
+                                        if (_isAddingNewActivitySupervisor)
+                                          ListTile(
+                                            leading: const Icon(
+                                              Icons.add_circle_outline,
+                                            ),
+                                            title: Text(
+                                              'Add "${_activitySupervisorController.text}" as new supervisor',
+                                              style: const TextStyle(
+                                                color: Colors.blue,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                            onTap: () {
+                                              _handleAddNewActivitySupervisor(
+                                                _activitySupervisorController
+                                                    .text,
+                                              );
+                                              _activitySupervisorFocusNode
+                                                  .unfocus();
+                                            },
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Select School Supervisor',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (_loadingSchoolSupervisors)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            SizedBox(width: 12),
+                            Text('Loading supervisors...'),
+                          ],
+                        ),
+                      )
+                    else
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          // Unfocus when tapping outside of the input field
+                          _schoolSupervisorFocusNode.unfocus();
+                        },
+                        child: Stack(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                TextFormField(
+                                  controller: _schoolSupervisorController,
+                                  focusNode: _schoolSupervisorFocusNode,
+                                  decoration: InputDecoration(
+                                    hintText: 'Search or enter supervisor name',
+                                    prefixIcon: const Icon(
+                                      Icons.person_outline,
+                                    ),
+                                    suffixIcon:
+                                        _schoolSupervisorController
+                                                .text
+                                                .isNotEmpty
+                                            ? IconButton(
+                                              icon: const Icon(Icons.clear),
+                                              onPressed: () {
+                                                setState(() {
+                                                  _schoolSupervisorController
+                                                      .clear();
+                                                  _selectedSchoolSupervisor =
+                                                      null;
+                                                  _isAddingNewSchoolSupervisor =
+                                                      false;
+                                                });
+                                              },
+                                            )
+                                            : null,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  onTap: () {
+                                    // Ensure the suggestions show up when tapping the field
+                                    setState(() {});
+                                  },
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _isAddingNewSchoolSupervisor =
+                                          value.isNotEmpty &&
+                                          !_schoolSupervisors.any(
+                                            (s) =>
+                                                s.toLowerCase() ==
+                                                value.toLowerCase(),
+                                          );
+                                    });
+                                  },
+                                ),
+                                if (_schoolSupervisorFocusNode.hasFocus &&
+                                    _schoolSupervisorController.text.isNotEmpty)
+                                  Container(
+                                    margin: const EdgeInsets.only(top: 4),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).cardColor,
+                                      borderRadius: BorderRadius.circular(8),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.1,
+                                          ),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        ...(_schoolSupervisors
+                                            .where(
+                                              (s) => s.toLowerCase().contains(
+                                                _schoolSupervisorController.text
+                                                    .toLowerCase(),
+                                              ),
+                                            )
+                                            .map(
+                                              (s) => ListTile(
+                                                leading: const Icon(
+                                                  Icons.person,
+                                                ),
+                                                title: Text(s),
+                                                onTap: () {
+                                                  _handleSchoolSupervisorSelection(
+                                                    s,
+                                                  );
+                                                  _schoolSupervisorFocusNode
+                                                      .unfocus();
+                                                },
+                                              ),
+                                            )),
+                                        if (_isAddingNewSchoolSupervisor)
+                                          ListTile(
+                                            leading: const Icon(
+                                              Icons.add_circle_outline,
+                                            ),
+                                            title: Text(
+                                              'Add "${_schoolSupervisorController.text}" as new supervisor',
+                                              style: const TextStyle(
+                                                color: Colors.blue,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                            onTap: () {
+                                              _handleAddNewSchoolSupervisor(
+                                                _schoolSupervisorController
+                                                    .text,
+                                              );
+                                              _schoolSupervisorFocusNode
+                                                  .unfocus();
+                                            },
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    const SizedBox(height: 24),
+                    if (_activitySupervisorController.text.isNotEmpty &&
+                        _schoolSupervisorController.text.isNotEmpty)
+                      Center(
+                        child:
+                            _isSubmitting
+                                ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                  ),
+                                )
+                                : ModernDarkButton(
+                                  onPressed: () async {
+                                    if (_activitySupervisorController
+                                            .text
+                                            .isEmpty ||
+                                        _schoolSupervisorController
+                                            .text
+                                            .isEmpty) {
+                                      fToast.showToast(
+                                        child: Util.redToast(
+                                          'Please fill out both fields',
+                                        ),
+                                      );
+                                      return;
+                                    }
+
+                                    setState(() {
+                                      _isSubmitting = true;
+                                    });
+                                    await _updateSupervisors();
+                                  },
+                                  text: 'Submit Hours',
+                                ),
+                      ),
+                    const SizedBox(height: 100),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _updateSupervisors() async {
+    try {
+      // Get current user
+      final user = await Util.getUserModel();
+
+      // Get current settings
+      final existingSettings = await Amplify.DataStore.query(
+        UserSettings.classType,
+        where: UserSettings.USERID.eq(user.id),
+      );
+
+      if (existingSettings.isEmpty) {
+        throw Exception('User settings not found');
+      }
+
+      final settings = existingSettings.first;
+
+      // Get current supervisor lists and make them modifiable
+      var currentActivitySupervisors = List<String>.from(
+        settings.activitySupervisor ?? [],
+      );
+      var currentSchoolSupervisors = List<String>.from(
+        settings.schoolSupervisor ?? [],
+      );
+
+      // Add new supervisors if they don't exist
+      if (!currentActivitySupervisors.contains(_selectedActivitySupervisor)) {
+        currentActivitySupervisors.add(_selectedActivitySupervisor!);
+      }
+      if (!currentSchoolSupervisors.contains(_selectedSchoolSupervisor)) {
+        currentSchoolSupervisors.add(_selectedSchoolSupervisor!);
+      }
+
+      // Create updated settings
+      final updatedSettings = settings.copyWith(
+        activitySupervisor: currentActivitySupervisors,
+        schoolSupervisor: currentSchoolSupervisors,
+      );
+
+      // Save to DataStore
+      await Amplify.DataStore.save(updatedSettings);
+
+      if (mounted) {
+        await Volunteer.initiateVolunteerHoursRequest(
+          _selectedActivitySupervisor!,
+          _selectedSchoolSupervisor!,
+        );
+
+        setState(() {
+          _isSubmitting = false;
+        });
+
+        // Show success message
+        fToast.showToast(
+          child: Util.greenToast('Sent volunteer hours request'),
+          toastDuration: Duration(seconds: 4),
+        );
+
+        // Clear the form
+        _activitySupervisorController.clear();
+        _schoolSupervisorController.clear();
+        _selectedActivitySupervisor = null;
+        _selectedSchoolSupervisor = null;
+
+        //Go back to profile screen
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      }
+    } catch (e) {
+      Log.e('Error updating supervisors: $e');
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        fToast.showToast(child: Util.redToast('Error updating supervisors'));
+      }
+    }
   }
 }
 
