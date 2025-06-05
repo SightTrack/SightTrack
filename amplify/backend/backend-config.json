@@ -86,6 +86,11 @@
     }
   },
   "function": {
+    "sendVolunteerHoursRequest": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
     "sightingComputerVision": {
       "build": true,
       "providerPlugin": "awscloudformation",

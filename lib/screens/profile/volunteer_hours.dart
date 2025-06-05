@@ -8,11 +8,29 @@ class VolunteerHoursScreen extends StatefulWidget {
   State<VolunteerHoursScreen> createState() => _VolunteerHoursScreenState();
 }
 
-class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
-  List<Sighting> _sightings = [];
+class _VolunteerHoursScreenState extends State<VolunteerHoursScreen>
+    with SingleTickerProviderStateMixin {
+  List<Sighting> _unclaimedSightings = [];
+  List<Sighting> _claimedSightings = [];
+  List<Sighting> _allUnclaimedSightings =
+      []; // Store all unclaimed sightings for calculation
   bool _isLoading = true;
   bool _isSubmitting = false;
   late FToast fToast;
+  late TabController _tabController;
+
+  // Pagination
+  static const int _pageSize = 15;
+  int _unclaimedPage = 0;
+  int _claimedPage = 0;
+  bool _hasMoreUnclaimed = true;
+  bool _hasMoreClaimed = true;
+  bool _loadingMoreUnclaimed = false;
+  bool _loadingMoreClaimed = false;
+
+  // Total counts for tab badges
+  int _totalUnclaimedCount = 0;
+  int _totalClaimedCount = 0;
 
   // Activity supervisor state
   String? _selectedActivitySupervisor;
@@ -33,6 +51,7 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _loadSightings();
     _loadSupervisors();
 
@@ -46,6 +65,7 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
     _activitySupervisorFocusNode.dispose();
     _schoolSupervisorController.dispose();
     _schoolSupervisorFocusNode.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -61,16 +81,29 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
         where: Sighting.USER.eq(user.id),
       );
 
-      Log.i('Found ${sightings.length} sightings');
+      // Sort sightings by timestamp (newest first)
+      sightings.sort(
+        (a, b) => b.timestamp.getDateTimeInUtc().compareTo(
+          a.timestamp.getDateTimeInUtc(),
+        ),
+      );
+
+      // Separate claimed and unclaimed sightings
+      final unclaimed =
+          sightings.where((s) => s.isTimeClaimed != true).toList();
+      final claimed = sightings.where((s) => s.isTimeClaimed == true).toList();
 
       setState(() {
-        _sightings =
-            sightings..sort(
-              (a, b) => b.timestamp.getDateTimeInUtc().compareTo(
-                a.timestamp.getDateTimeInUtc(),
-              ),
-            );
+        _unclaimedSightings = unclaimed.take(_pageSize).toList();
+        _claimedSightings = claimed.take(_pageSize).toList();
+        _hasMoreUnclaimed = unclaimed.length > _pageSize;
+        _hasMoreClaimed = claimed.length > _pageSize;
+        _unclaimedPage = 0;
+        _claimedPage = 0;
         _isLoading = false;
+        _totalUnclaimedCount = unclaimed.length;
+        _totalClaimedCount = claimed.length;
+        _allUnclaimedSightings = unclaimed;
       });
     } catch (e) {
       Log.e('Error loading sightings: $e');
@@ -79,6 +112,97 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<void> _loadMoreSightings(bool isUnclaimed) async {
+    if (isUnclaimed && (_loadingMoreUnclaimed || !_hasMoreUnclaimed)) return;
+    if (!isUnclaimed && (_loadingMoreClaimed || !_hasMoreClaimed)) return;
+
+    setState(() {
+      if (isUnclaimed) {
+        _loadingMoreUnclaimed = true;
+      } else {
+        _loadingMoreClaimed = true;
+      }
+    });
+
+    try {
+      final user = await Util.getUserModel();
+      final allSightings = await Amplify.DataStore.query(
+        Sighting.classType,
+        where: Sighting.USER.eq(user.id),
+      );
+
+      allSightings.sort(
+        (a, b) => b.timestamp.getDateTimeInUtc().compareTo(
+          a.timestamp.getDateTimeInUtc(),
+        ),
+      );
+
+      if (isUnclaimed) {
+        final unclaimed =
+            allSightings.where((s) => s.isTimeClaimed != true).toList();
+        final nextPage = _unclaimedPage + 1;
+        final startIndex = nextPage * _pageSize;
+        final endIndex = (nextPage + 1) * _pageSize;
+
+        if (startIndex < unclaimed.length) {
+          final newSightings = unclaimed.sublist(
+            startIndex,
+            endIndex > unclaimed.length ? unclaimed.length : endIndex,
+          );
+
+          setState(() {
+            _unclaimedSightings.addAll(newSightings);
+            _unclaimedPage = nextPage;
+            _hasMoreUnclaimed = endIndex < unclaimed.length;
+            _loadingMoreUnclaimed = false;
+            _totalUnclaimedCount = unclaimed.length;
+            _allUnclaimedSightings = unclaimed;
+          });
+        } else {
+          setState(() {
+            _hasMoreUnclaimed = false;
+            _loadingMoreUnclaimed = false;
+          });
+        }
+      } else {
+        final claimed =
+            allSightings.where((s) => s.isTimeClaimed == true).toList();
+        final nextPage = _claimedPage + 1;
+        final startIndex = nextPage * _pageSize;
+        final endIndex = (nextPage + 1) * _pageSize;
+
+        if (startIndex < claimed.length) {
+          final newSightings = claimed.sublist(
+            startIndex,
+            endIndex > claimed.length ? claimed.length : endIndex,
+          );
+
+          setState(() {
+            _claimedSightings.addAll(newSightings);
+            _claimedPage = nextPage;
+            _hasMoreClaimed = endIndex < claimed.length;
+            _loadingMoreClaimed = false;
+            _totalClaimedCount = claimed.length;
+          });
+        } else {
+          setState(() {
+            _hasMoreClaimed = false;
+            _loadingMoreClaimed = false;
+          });
+        }
+      }
+    } catch (e) {
+      Log.e('Error loading more sightings: $e');
+      setState(() {
+        if (isUnclaimed) {
+          _loadingMoreUnclaimed = false;
+        } else {
+          _loadingMoreClaimed = false;
+        }
+      });
     }
   }
 
@@ -144,37 +268,135 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
       );
     }
 
-    if (_sightings.isEmpty) {
-      return SliverFillRemaining(
-        hasScrollBody: false,
-        child: Container(
-          alignment: Alignment.center,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.nature_outlined,
-                size: 64,
-                color: Colors.grey.withValues(alpha: 0.5),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'No sightings yet',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.grey.withValues(alpha: 0.7),
+    return SliverToBoxAdapter(
+      child: SizedBox(
+        height: 400, // Fixed height for the tabbed content
+        child: Column(
+          children: [
+            TabBar(
+              controller: _tabController,
+              tabs: [
+                Tab(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Unclaimed'),
+                      SizedBox(width: 4),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '$_totalUnclaimedCount',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                Tab(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Claimed'),
+                      SizedBox(width: 4),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '$_totalClaimedCount',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildSightingTab(true), // Unclaimed
+                  _buildSightingTab(false), // Claimed
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSightingTab(bool isUnclaimed) {
+    final sightings = isUnclaimed ? _unclaimedSightings : _claimedSightings;
+    final hasMore = isUnclaimed ? _hasMoreUnclaimed : _hasMoreClaimed;
+    final loadingMore =
+        isUnclaimed ? _loadingMoreUnclaimed : _loadingMoreClaimed;
+
+    if (sightings.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.nature_outlined,
+              size: 64,
+              color: Colors.grey.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              isUnclaimed ? 'No unclaimed sightings' : 'No claimed sightings',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
         ),
       );
     }
 
-    return SliverList(
-      delegate: SliverChildBuilderDelegate((context, index) {
-        final sighting = _sightings[index];
+    return ListView.builder(
+      itemCount: sightings.length + (hasMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index >= sightings.length) {
+          // Load more indicator
+          if (loadingMore) {
+            return const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          } else if (hasMore) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 80.0,
+                vertical: 10,
+              ),
+              child: SizedBox(
+                child: ModernDarkButton(
+                  onPressed: () => _loadMoreSightings(isUnclaimed),
+                  text: 'Load More',
+                ),
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        }
+
+        final sighting = sightings[index];
         return InkWell(
           onTap: () {
             Navigator.push(
@@ -197,12 +419,19 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        sighting.species,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              sighting.species,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 2),
                       Text(
@@ -212,6 +441,22 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
                     ],
                   ),
                 ),
+                if (sighting.isTimeClaimed == true)
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'CLAIMED',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green[700],
+                      ),
+                    ),
+                  ),
                 const SizedBox(width: 16),
                 Text(
                   DateFormat(
@@ -227,7 +472,7 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
             ),
           ),
         );
-      }, childCount: _sightings.length),
+      },
     );
   }
 
@@ -264,31 +509,156 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Total Volunteer Hours: ${Volunteer.calculateTotalServiceHours(_sightings).round()}',
+                      'Total Volunteer Hours: ${Volunteer.calculateTotalServiceHours(_allUnclaimedSightings).round()} (${Volunteer.calculateTotalServiceHours(_allUnclaimedSightings).toStringAsFixed(2)})',
                       style: TextStyle(fontSize: 20),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'How are volunteer hours calculated?',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      '• Base time: 15 minutes per sighting\n'
-                      '• Description bonus: +5 minutes per 50 characters of detailed observations\n'
-                      '• Travel time: Calculated based on distance between consecutive sightings\n'
-                      '  - Uses actual GPS coordinates\n'
-                      '  - Assumes average travel speed of 30 km/h\n'
-                      '  - Only counts if sightings are within 2 hours of each other\n\n'
-                      'Tips to maximize your volunteer hours:\n'
-                      '• Write detailed descriptions of your observations\n'
-                      '• Record consecutive sightings when possible\n'
-                      '• Include habitat information and behavior notes\n'
-                      '• Take clear, well-focused photos',
-                      style: TextStyle(fontSize: 14, height: 1.4),
+                    Column(
+                      children: [
+                        // How Hours Are Calculated Card
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.grey.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.calculate_outlined,
+                                    color: Colors.blue,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'How Hours Are Calculated',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              _buildCalculationItem(
+                                Icons.access_time,
+                                'Base Time',
+                                '15 minutes per sighting',
+                              ),
+                              _buildCalculationItem(
+                                Icons.lock_outline,
+                                'One-Time Claim',
+                                'Sightings can only be claimed once. Claim multiple sightings together.',
+                              ),
+                              _buildCalculationItem(
+                                Icons.description_outlined,
+                                'Description Bonus',
+                                '+5 minutes per 50 characters of detailed observations',
+                              ),
+                              _buildCalculationItem(
+                                Icons.directions_car_outlined,
+                                'Travel Time',
+                                'Based on distance between consecutive sightings',
+                                isLast: true,
+                              ),
+                              Container(
+                                margin: const EdgeInsets.only(left: 32, top: 4),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '• Uses actual GPS coordinates',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                    Text(
+                                      '• Assumes average travel speed of 30 km/h',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                    Text(
+                                      '• Only counts if sightings are within 2 hours',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey[700],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        // Tips to Maximize Hours Card
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.green.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.lightbulb_outline,
+                                    color: Colors.green,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Tips to Maximize Your Hours',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.green[700],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              _buildTipItem(
+                                Icons.edit_outlined,
+                                'Write detailed descriptions of your observations',
+                              ),
+                              _buildTipItem(
+                                Icons.timeline_outlined,
+                                'Record consecutive sightings when possible',
+                              ),
+                              _buildTipItem(
+                                Icons.nature_outlined,
+                                'Include habitat information and behavior notes',
+                              ),
+                              _buildTipItem(
+                                Icons.camera_alt_outlined,
+                                'Take clear, well-focused photos',
+                                isLast: true,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 24),
                     Container(
@@ -698,7 +1068,7 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
                                     setState(() {
                                       _isSubmitting = true;
                                     });
-                                    await _updateSupervisors();
+                                    await _submitHours();
                                   },
                                   text: 'Submit Hours',
                                 ),
@@ -714,7 +1084,7 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
     );
   }
 
-  Future<void> _updateSupervisors() async {
+  Future<void> _submitHours() async {
     try {
       // Get current user
       final user = await Util.getUserModel();
@@ -772,6 +1142,12 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
           toastDuration: Duration(seconds: 4),
         );
 
+        // Update isTimeClaimed to true for all unclaimed sightings
+        for (Sighting sighting in _allUnclaimedSightings) {
+          final updatedSighting = sighting.copyWith(isTimeClaimed: true);
+          await Amplify.DataStore.save(updatedSighting);
+        }
+
         // Clear the form
         _activitySupervisorController.clear();
         _schoolSupervisorController.clear();
@@ -792,6 +1168,71 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen> {
         fToast.showToast(child: Util.redToast('Error updating supervisors'));
       }
     }
+  }
+
+  Widget _buildCalculationItem(
+    IconData icon,
+    String title,
+    String description, {
+    bool isLast = false,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: Colors.blue, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blue,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[700],
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTipItem(IconData icon, String title, {bool isLast = false}) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: Colors.green, size: 18),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[700],
+                height: 1.3,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

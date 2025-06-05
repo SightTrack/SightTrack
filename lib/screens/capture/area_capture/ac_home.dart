@@ -98,6 +98,7 @@ class _AreaCaptureHomeState extends State<AreaCaptureHome>
         city: await Util.getCityName(position.latitude, position.longitude),
         timestamp: TemporalDateTime(now),
         description: 'Captured during area capture session',
+        isTimeClaimed: false,
       );
       setState(() {
         _sessionSightings.add({'sighting': sighting, 'localPath': photo.path});

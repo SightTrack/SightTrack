@@ -43,6 +43,7 @@ class _GlobalViewState extends State<GlobalView> {
                   timestamp: s.timestamp,
                   description: s.description,
                   user: s.user,
+                  isTimeClaimed: s.isTimeClaimed,
                 ),
               )
               .toList();
@@ -58,9 +59,11 @@ class _GlobalViewState extends State<GlobalView> {
         startTime: startTimeTemporal,
       );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error fetching sightings: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error fetching sightings: $e')));
+      }
     }
     setState(() => _isLoading = false);
   }
@@ -82,7 +85,7 @@ class _GlobalViewState extends State<GlobalView> {
           ),
           textField: sighting.species,
           textOffset: [0, -2],
-          textColor: Colors.white.value,
+          textColor: Colors.white.toARGB32(),
           iconImage: 'marker',
           iconSize: 1.0,
         ),

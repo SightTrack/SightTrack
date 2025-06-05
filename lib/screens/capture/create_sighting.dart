@@ -170,6 +170,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
           timestamp: TemporalDateTime(_selectedDateTime),
           description: _descriptionController.text,
           user: currentUser,
+          isTimeClaimed: false,
         );
 
         await Amplify.DataStore.save(sighting);
