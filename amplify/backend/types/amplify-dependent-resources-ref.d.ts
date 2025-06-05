@@ -25,6 +25,13 @@ export type AmplifyDependentResourcesAttributes = {
     }
   },
   "function": {
+    "sendVolunteerHoursRequest": {
+      "Arn": "string",
+      "LambdaExecutionRole": "string",
+      "LambdaExecutionRoleArn": "string",
+      "Name": "string",
+      "Region": "string"
+    },
     "sightingComputerVision": {
       "Arn": "string",
       "LambdaExecutionRole": "string",

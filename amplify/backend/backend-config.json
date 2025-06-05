@@ -98,6 +98,22 @@
     }
   },
   "parameters": {
+    "AMPLIFY_function_sendVolunteerHoursRequest_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "sendVolunteerHoursRequest"
+        }
+      ]
+    },
+    "AMPLIFY_function_sendVolunteerHoursRequest_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "sendVolunteerHoursRequest"
+        }
+      ]
+    },
     "AMPLIFY_function_sightingComputerVision_deploymentBucketName": {
       "usedBy": [
         {

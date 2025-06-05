@@ -29,7 +29,10 @@
           "deploymentBucketName": "amplify-sighttrackv2-dev-220519-deployment",
           "s3Key": "amplify-builds/sightingComputerVision-5347304a4a42337a5764-build.zip"
         },
-        "sendVolunteerHoursRequest": {}
+        "sendVolunteerHoursRequest": {
+          "deploymentBucketName": "amplify-sighttrackv2-dev-220519-deployment",
+          "s3Key": "amplify-builds/sendVolunteerHoursRequest-52587551512f516f4145-build.zip"
+        }
       }
     }
   }
