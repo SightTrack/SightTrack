@@ -697,383 +697,307 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen>
             ),
             SliverToBoxAdapter(
               child: Container(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Select Activity Supervisor',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (_loadingActivitySupervisors)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                            SizedBox(width: 12),
-                            Text('Loading supervisors...'),
-                          ],
-                        ),
-                      )
-                    else
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () {
-                          // Unfocus when tapping outside of the input field
-                          _activitySupervisorFocusNode.unfocus();
-                        },
-                        child: Stack(
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                TextFormField(
-                                  controller: _activitySupervisorController,
-                                  focusNode: _activitySupervisorFocusNode,
-                                  decoration: InputDecoration(
-                                    hintText: 'Search or enter supervisor name',
-                                    prefixIcon: const Icon(
-                                      Icons.person_outline,
-                                    ),
-                                    suffixIcon:
-                                        _activitySupervisorController
-                                                .text
-                                                .isNotEmpty
-                                            ? IconButton(
-                                              icon: const Icon(Icons.clear),
-                                              onPressed: () {
-                                                setState(() {
-                                                  _activitySupervisorController
-                                                      .clear();
-                                                  _selectedActivitySupervisor =
-                                                      null;
-                                                  _isAddingNewActivitySupervisor =
-                                                      false;
-                                                });
-                                              },
-                                            )
-                                            : null,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                      borderSide: BorderSide(
-                                        color: Colors.grey.withValues(
-                                          alpha: 0.3,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  onTap: () {
-                                    // Ensure the suggestions show up when tapping the field
-                                    setState(() {});
-                                  },
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _isAddingNewActivitySupervisor =
-                                          value.isNotEmpty &&
-                                          !_activitySupervisors.any(
-                                            (s) =>
-                                                s.toLowerCase() ==
-                                                value.toLowerCase(),
-                                          );
-                                    });
-                                  },
-                                ),
-                                if (_activitySupervisorFocusNode.hasFocus &&
-                                    _activitySupervisorController
-                                        .text
-                                        .isNotEmpty)
-                                  Container(
-                                    margin: const EdgeInsets.only(top: 4),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context).cardColor,
-                                      borderRadius: BorderRadius.circular(8),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.1,
-                                          ),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        ...(_activitySupervisors
-                                            .where(
-                                              (s) => s.toLowerCase().contains(
-                                                _activitySupervisorController
-                                                    .text
-                                                    .toLowerCase(),
-                                              ),
-                                            )
-                                            .map(
-                                              (s) => ListTile(
-                                                leading: const Icon(
-                                                  Icons.person,
-                                                ),
-                                                title: Text(s),
-                                                onTap: () {
-                                                  _handleActivitySupervisorSelection(
-                                                    s,
-                                                  );
-                                                  _activitySupervisorFocusNode
-                                                      .unfocus();
-                                                },
-                                              ),
-                                            )),
-                                        if (_isAddingNewActivitySupervisor)
-                                          ListTile(
-                                            leading: const Icon(
-                                              Icons.add_circle_outline,
-                                            ),
-                                            title: Text(
-                                              'Add "${_activitySupervisorController.text}" as new supervisor',
-                                              style: const TextStyle(
-                                                color: Colors.blue,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                            onTap: () {
-                                              _handleAddNewActivitySupervisor(
-                                                _activitySupervisorController
-                                                    .text,
-                                              );
-                                              _activitySupervisorFocusNode
-                                                  .unfocus();
-                                            },
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
+                margin: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.amber.withValues(alpha: 0.3),
+                    width: 2,
+                  ),
                 ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Stack(
                   children: [
-                    const Text(
-                      'Select School Supervisor',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (_loadingSchoolSupervisors)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                            SizedBox(width: 12),
-                            Text('Loading supervisors...'),
+                    // Background with caution tape pattern
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.amber.withValues(alpha: 0.05),
+                            Colors.orange.withValues(alpha: 0.05),
                           ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                      )
-                    else
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () {
-                          // Unfocus when tapping outside of the input field
-                          _schoolSupervisorFocusNode.unfocus();
-                        },
-                        child: Stack(
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          // Caution stripe pattern
+                          image: DecorationImage(
+                            image: const AssetImage(
+                              'assets/caution_pattern.png',
+                            ),
+                            repeat: ImageRepeat.repeat,
+                            opacity: 0.03,
+                            onError: (exception, stackTrace) {
+                              // Fallback if pattern image doesn't exist
+                            },
+                          ),
+                        ),
+                        child: Column(
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                TextFormField(
-                                  controller: _schoolSupervisorController,
-                                  focusNode: _schoolSupervisorFocusNode,
-                                  decoration: InputDecoration(
-                                    hintText: 'Search or enter supervisor name',
-                                    prefixIcon: const Icon(
-                                      Icons.person_outline,
+                            // Under Construction Header
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.amber.withValues(alpha: 0.1),
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(10),
+                                  topRight: Radius.circular(10),
+                                ),
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Colors.amber.withValues(alpha: 0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.construction,
+                                    color: Colors.amber[700],
+                                    size: 24,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    'UNDER CONSTRUCTION',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.amber[800],
+                                      letterSpacing: 1.2,
                                     ),
-                                    suffixIcon:
-                                        _schoolSupervisorController
-                                                .text
-                                                .isNotEmpty
-                                            ? IconButton(
-                                              icon: const Icon(Icons.clear),
-                                              onPressed: () {
-                                                setState(() {
-                                                  _schoolSupervisorController
-                                                      .clear();
-                                                  _selectedSchoolSupervisor =
-                                                      null;
-                                                  _isAddingNewSchoolSupervisor =
-                                                      false;
-                                                });
-                                              },
-                                            )
-                                            : null,
-                                    border: OutlineInputBorder(
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Icon(
+                                    Icons.construction,
+                                    color: Colors.amber[700],
+                                    size: 24,
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Disabled form content
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Info message
+                                  Container(
+                                    padding: const EdgeInsets.all(16),
+                                    margin: const EdgeInsets.only(bottom: 24),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.withValues(
+                                        alpha: 0.05,
+                                      ),
                                       borderRadius: BorderRadius.circular(8),
-                                      borderSide: BorderSide(
-                                        color: Colors.grey.withValues(
-                                          alpha: 0.3,
+                                      border: Border.all(
+                                        color: Colors.blue.withValues(
+                                          alpha: 0.2,
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  onTap: () {
-                                    // Ensure the suggestions show up when tapping the field
-                                    setState(() {});
-                                  },
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _isAddingNewSchoolSupervisor =
-                                          value.isNotEmpty &&
-                                          !_schoolSupervisors.any(
-                                            (s) =>
-                                                s.toLowerCase() ==
-                                                value.toLowerCase(),
-                                          );
-                                    });
-                                  },
-                                ),
-                                if (_schoolSupervisorFocusNode.hasFocus &&
-                                    _schoolSupervisorController.text.isNotEmpty)
-                                  Container(
-                                    margin: const EdgeInsets.only(top: 4),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context).cardColor,
-                                      borderRadius: BorderRadius.circular(8),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.1,
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.info_outline,
+                                          color: Colors.blue[600],
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            'Hour claiming functionality is currently being developed. Your volunteer hours are safely calculated and stored above.',
+                                            style: TextStyle(
+                                              color: Colors.blue[700],
+                                              fontSize: 14,
+                                              height: 1.4,
+                                            ),
                                           ),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 2),
                                         ),
                                       ],
                                     ),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        ...(_schoolSupervisors
-                                            .where(
-                                              (s) => s.toLowerCase().contains(
-                                                _schoolSupervisorController.text
-                                                    .toLowerCase(),
-                                              ),
-                                            )
-                                            .map(
-                                              (s) => ListTile(
-                                                leading: const Icon(
-                                                  Icons.person,
-                                                ),
-                                                title: Text(s),
-                                                onTap: () {
-                                                  _handleSchoolSupervisorSelection(
-                                                    s,
-                                                  );
-                                                  _schoolSupervisorFocusNode
-                                                      .unfocus();
-                                                },
-                                              ),
-                                            )),
-                                        if (_isAddingNewSchoolSupervisor)
-                                          ListTile(
-                                            leading: const Icon(
-                                              Icons.add_circle_outline,
-                                            ),
-                                            title: Text(
-                                              'Add "${_schoolSupervisorController.text}" as new supervisor',
-                                              style: const TextStyle(
-                                                color: Colors.blue,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                            onTap: () {
-                                              _handleAddNewSchoolSupervisor(
-                                                _schoolSupervisorController
-                                                    .text,
-                                              );
-                                              _schoolSupervisorFocusNode
-                                                  .unfocus();
-                                            },
-                                          ),
-                                      ],
+                                  ),
+
+                                  // Disabled Activity Supervisor field
+                                  Text(
+                                    'Select Activity Supervisor',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.grey.withValues(alpha: 0.6),
                                     ),
                                   ),
-                              ],
+                                  const SizedBox(height: 8),
+                                  TextFormField(
+                                    enabled: false,
+                                    decoration: InputDecoration(
+                                      hintText:
+                                          'Search or enter supervisor name',
+                                      hintStyle: TextStyle(
+                                        color: Colors.grey.withValues(
+                                          alpha: 0.4,
+                                        ),
+                                      ),
+                                      prefixIcon: Icon(
+                                        Icons.person_outline,
+                                        color: Colors.grey.withValues(
+                                          alpha: 0.4,
+                                        ),
+                                      ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: BorderSide(
+                                          color: Colors.grey.withValues(
+                                            alpha: 0.2,
+                                          ),
+                                        ),
+                                      ),
+                                      disabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: BorderSide(
+                                          color: Colors.grey.withValues(
+                                            alpha: 0.2,
+                                          ),
+                                        ),
+                                      ),
+                                      filled: true,
+                                      fillColor: Colors.grey.withValues(
+                                        alpha: 0.05,
+                                      ),
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 20),
+
+                                  // Disabled School Supervisor field
+                                  Text(
+                                    'Select School Supervisor',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.grey.withValues(alpha: 0.6),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  TextFormField(
+                                    enabled: false,
+                                    decoration: InputDecoration(
+                                      hintText:
+                                          'Search or enter supervisor name',
+                                      hintStyle: TextStyle(
+                                        color: Colors.grey.withValues(
+                                          alpha: 0.4,
+                                        ),
+                                      ),
+                                      prefixIcon: Icon(
+                                        Icons.person_outline,
+                                        color: Colors.grey.withValues(
+                                          alpha: 0.4,
+                                        ),
+                                      ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: BorderSide(
+                                          color: Colors.grey.withValues(
+                                            alpha: 0.2,
+                                          ),
+                                        ),
+                                      ),
+                                      disabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: BorderSide(
+                                          color: Colors.grey.withValues(
+                                            alpha: 0.2,
+                                          ),
+                                        ),
+                                      ),
+                                      filled: true,
+                                      fillColor: Colors.grey.withValues(
+                                        alpha: 0.05,
+                                      ),
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 24),
+
+                                  // Disabled Submit button
+                                  Center(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 32,
+                                        vertical: 12,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.withValues(
+                                          alpha: 0.2,
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: Colors.grey.withValues(
+                                            alpha: 0.3,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.lock_outline,
+                                            color: Colors.grey.withValues(
+                                              alpha: 0.6,
+                                            ),
+                                            size: 18,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Submit Hours',
+                                            style: TextStyle(
+                                              color: Colors.grey.withValues(
+                                                alpha: 0.6,
+                                              ),
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 100),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    const SizedBox(height: 24),
-                    if (_activitySupervisorController.text.isNotEmpty &&
-                        _schoolSupervisorController.text.isNotEmpty)
-                      Center(
-                        child:
-                            _isSubmitting
-                                ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                  ),
-                                )
-                                : ModernDarkButton(
-                                  onPressed: () async {
-                                    if (_activitySupervisorController
-                                            .text
-                                            .isEmpty ||
-                                        _schoolSupervisorController
-                                            .text
-                                            .isEmpty) {
-                                      fToast.showToast(
-                                        child: Util.redToast(
-                                          'Please fill out both fields',
-                                        ),
-                                      );
-                                      return;
-                                    }
+                    ),
 
-                                    setState(() {
-                                      _isSubmitting = true;
-                                    });
-                                    await _submitHours();
-                                  },
-                                  text: 'Submit Hours',
-                                ),
+                    // Subtle overlay pattern for additional visual effect
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.transparent,
+                              Colors.amber.withValues(alpha: 0.02),
+                              Colors.transparent,
+                            ],
+                            stops: const [0.0, 0.5, 1.0],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
                       ),
-                    const SizedBox(height: 100),
+                    ),
                   ],
                 ),
               ),
