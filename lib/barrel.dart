@@ -46,12 +46,12 @@ export 'package:sighttrack/screens/data/data.dart';
 export 'package:sighttrack/screens/data/global/global_page.dart';
 export 'package:sighttrack/screens/data/local/local_page.dart';
 export 'package:sighttrack/screens/community/community.dart';
-export 'package:sighttrack/screens/other/user_details.dart';
 export 'package:sighttrack/screens/data/global/view_statistics.dart';
 export 'package:sighttrack/screens/profile/volunteer_hours.dart';
 export 'package:sighttrack/screens/auth/signin.dart';
 export 'package:sighttrack/screens/auth/signup.dart';
 export 'package:sighttrack/screens/data/global/about_biodiversity.dart';
+export 'package:sighttrack/screens/community/view_user.dart';
 
 // Other imports
 export 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';

@@ -465,6 +465,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       Icons.volunteer_activism,
                                       size: 22,
                                     ),
+                                    trailing: const Icon(
+                                      Icons.arrow_forward,
+                                      size: 22,
+                                    ),
                                     title: Text(
                                       'Volunteer Hours',
                                       style:

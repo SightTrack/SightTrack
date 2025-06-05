@@ -1086,6 +1086,17 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen>
 
   Future<void> _submitHours() async {
     try {
+      // Check if there are any unclaimed sightings
+      if (_allUnclaimedSightings.isEmpty) {
+        fToast.showToast(
+          child: Util.redToast('You can\'t claim any more hours'),
+        );
+        setState(() {
+          _isSubmitting = false;
+        });
+        return;
+      }
+
       // Get current user
       final user = await Util.getUserModel();
 

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sighttrack/barrel.dart';
-import 'package:sighttrack/screens/community/user_detail_screen.dart';
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({super.key});
@@ -13,11 +12,17 @@ class _CommunityScreenState extends State<CommunityScreen>
     with SingleTickerProviderStateMixin {
   List<User> _globalUsers = [];
   List<User> _schoolUsers = [];
+  List<User> _filteredGlobalUsers = [];
+  List<User> _filteredSchoolUsers = [];
   bool _isLoading = true;
   String? _errorMessage;
   late TabController _tabController;
   StreamSubscription? _userSubscription;
   OverlayEntry? _overlayEntry; // For the enlarged user preview
+
+  // Search controllers
+  final TextEditingController _globalSearchController = TextEditingController();
+  final TextEditingController _schoolSearchController = TextEditingController();
 
   @override
   void initState() {
@@ -25,6 +30,17 @@ class _CommunityScreenState extends State<CommunityScreen>
     _tabController = TabController(length: 2, vsync: this);
     _fetchData();
     _setupRealTimeUpdates();
+
+    // Listen to search changes
+    _globalSearchController.addListener(_filterGlobalUsers);
+    _schoolSearchController.addListener(_filterSchoolUsers);
+
+    // Listen to tab changes to rebuild search bar
+    _tabController.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   @override
@@ -32,6 +48,8 @@ class _CommunityScreenState extends State<CommunityScreen>
     _removeEnlargedPreview(); // Ensure overlay is removed when screen is disposed
     _userSubscription?.cancel();
     _tabController.dispose();
+    _globalSearchController.dispose();
+    _schoolSearchController.dispose();
     super.dispose();
   }
 
@@ -47,20 +65,14 @@ class _CommunityScreenState extends State<CommunityScreen>
   ) {
     showDialog(
       context: context,
-      barrierColor: Colors.transparent, // No background
       builder: (context) {
         return Center(
           child: Material(
-            type: MaterialType.transparency,
             child: Container(
               width: 260,
               padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
               decoration: BoxDecoration(
-                color: Colors.grey[900]?.withValues(alpha: 0.98),
                 borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(blurRadius: 24, offset: const Offset(0, 8)),
-                ],
               ),
               child: Stack(
                 children: [
@@ -69,11 +81,7 @@ class _CommunityScreenState extends State<CommunityScreen>
                     right: 0,
                     top: 0,
                     child: IconButton(
-                      icon: const Icon(
-                        Icons.close,
-                        color: Colors.white70,
-                        size: 24,
-                      ),
+                      icon: const Icon(Icons.close, size: 24),
                       splashRadius: 20,
                       onPressed: () => Navigator.of(context).pop(),
                     ),
@@ -131,6 +139,36 @@ class _CommunityScreenState extends State<CommunityScreen>
         );
   }
 
+  void _filterGlobalUsers() {
+    final query = _globalSearchController.text.toLowerCase();
+    setState(() {
+      if (query.isEmpty) {
+        _filteredGlobalUsers = List.from(_globalUsers);
+      } else {
+        _filteredGlobalUsers =
+            _globalUsers.where((user) {
+              return user.display_username.toLowerCase().contains(query) ||
+                  user.email.toLowerCase().contains(query);
+            }).toList();
+      }
+    });
+  }
+
+  void _filterSchoolUsers() {
+    final query = _schoolSearchController.text.toLowerCase();
+    setState(() {
+      if (query.isEmpty) {
+        _filteredSchoolUsers = List.from(_schoolUsers);
+      } else {
+        _filteredSchoolUsers =
+            _schoolUsers.where((user) {
+              return user.display_username.toLowerCase().contains(query) ||
+                  user.email.toLowerCase().contains(query);
+            }).toList();
+      }
+    });
+  }
+
   Future<void> _fetchData() async {
     setState(() {
       _isLoading = true;
@@ -164,6 +202,11 @@ class _CommunityScreenState extends State<CommunityScreen>
                       user.id != currentUser.id,
                 )
                 .toList();
+
+        // Initialize filtered lists
+        _filteredGlobalUsers = List.from(_globalUsers);
+        _filteredSchoolUsers = List.from(_schoolUsers);
+
         _isLoading = false;
       });
     } catch (e) {
@@ -215,110 +258,265 @@ class _CommunityScreenState extends State<CommunityScreen>
               : TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildUserList(_globalUsers, isGlobal: true),
-                  _buildUserList(_schoolUsers, isGlobal: false),
+                  _buildUserListWithSliver(
+                    _filteredGlobalUsers,
+                    isGlobal: true,
+                  ),
+                  _buildUserListWithSliver(
+                    _filteredSchoolUsers,
+                    isGlobal: false,
+                  ),
                 ],
               ),
     );
   }
 
-  Widget _buildUserList(List<User> users, {required bool isGlobal}) {
+  Widget _buildUserListWithSliver(List<User> users, {required bool isGlobal}) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        await _fetchData();
+        _globalSearchController.clear();
+        _schoolSearchController.clear();
+      },
+      child: CustomScrollView(
+        slivers: [
+          // Search bar as floating sliver
+          SliverAppBar(
+            automaticallyImplyLeading: false,
+            floating: true,
+            snap: true,
+            elevation: 0,
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            toolbarHeight: 80,
+            flexibleSpace: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                border: Border(
+                  bottom: BorderSide(
+                    color: Theme.of(
+                      context,
+                    ).dividerColor.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: Center(
+                child:
+                    isGlobal
+                        ? ListenableBuilder(
+                          listenable: _globalSearchController,
+                          builder: (context, child) {
+                            return TextField(
+                              controller: _globalSearchController,
+                              decoration: InputDecoration(
+                                hintText: 'Search by name or email',
+                                prefixIcon: const Icon(Icons.search),
+                                suffixIcon:
+                                    _globalSearchController.text.isNotEmpty
+                                        ? IconButton(
+                                          icon: const Icon(Icons.clear),
+                                          onPressed: () {
+                                            _globalSearchController.clear();
+                                          },
+                                        )
+                                        : null,
+                                filled: true,
+                                fillColor: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.1),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                        : ListenableBuilder(
+                          listenable: _schoolSearchController,
+                          builder: (context, child) {
+                            return TextField(
+                              controller: _schoolSearchController,
+                              decoration: InputDecoration(
+                                hintText: 'Search by name or email...',
+                                prefixIcon: const Icon(Icons.search),
+                                suffixIcon:
+                                    _schoolSearchController.text.isNotEmpty
+                                        ? IconButton(
+                                          icon: const Icon(Icons.clear),
+                                          onPressed: () {
+                                            _schoolSearchController.clear();
+                                          },
+                                        )
+                                        : null,
+                                filled: true,
+                                fillColor: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.1),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+              ),
+            ),
+          ),
+          // User list content
+          _buildUserListSliver(users, isGlobal: isGlobal),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserListSliver(List<User> users, {required bool isGlobal}) {
     if (users.isEmpty) {
-      return Center(
-        child: Text(
+      // Check if it's due to search or no users
+      final hasSearch =
           isGlobal
-              ? 'No global users found'
-              : 'No users found from your school',
+              ? _globalSearchController.text.isNotEmpty
+              : _schoolSearchController.text.isNotEmpty;
+
+      return SliverFillRemaining(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                hasSearch ? Icons.search_off : Icons.people_outline,
+                size: 64,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                hasSearch
+                    ? 'No users found matching your search'
+                    : isGlobal
+                    ? 'No global users found'
+                    : 'No users found from your school',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              if (hasSearch) ...[
+                const SizedBox(height: 8),
+                Text(
+                  'Try adjusting your search terms',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ],
+          ),
         ),
       );
     }
 
-    return ListView.builder(
+    return SliverPadding(
       padding: const EdgeInsets.all(16),
-      itemCount: users.length,
-      itemBuilder: (context, index) {
-        final user = users[index];
-        return FadeTransition(
-          opacity: CurvedAnimation(
-            parent:
-                ModalRoute.of(context)?.animation ?? AlwaysStoppedAnimation(1),
-            curve: Curves.easeIn,
-          ),
-          child: GestureDetector(
-            onLongPressStart: (details) {
-              _showEnlargedPreview(context, user, details.globalPosition);
-            },
-            onTap: () {
-              // Keep the original onTap for navigation
-              Navigator.push(
-                context,
-                PageRouteBuilder(
-                  pageBuilder:
-                      (context, animation, secondaryAnimation) =>
-                          UserDetailScreen(user: user),
-                  transitionDuration: const Duration(milliseconds: 300),
-                  transitionsBuilder: (
-                    context,
-                    animation,
-                    secondaryAnimation,
-                    child,
-                  ) {
-                    var begin = const Offset(1.0, 0.0);
-                    var end = Offset.zero;
-                    var curve = Curves.ease;
-                    var tween = Tween(
-                      begin: begin,
-                      end: end,
-                    ).chain(CurveTween(curve: curve));
-                    var slideInAnimation = animation.drive(tween);
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final user = users[index];
+          return FadeTransition(
+            opacity: CurvedAnimation(
+              parent:
+                  ModalRoute.of(context)?.animation ??
+                  AlwaysStoppedAnimation(1),
+              curve: Curves.easeIn,
+            ),
+            child: GestureDetector(
+              onLongPressStart: (details) {
+                _showEnlargedPreview(context, user, details.globalPosition);
+              },
+              onTap: () {
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder:
+                        (context, animation, secondaryAnimation) =>
+                            UserDetailScreen(user: user),
+                    transitionDuration: const Duration(milliseconds: 300),
+                    transitionsBuilder: (
+                      context,
+                      animation,
+                      secondaryAnimation,
+                      child,
+                    ) {
+                      var begin = const Offset(1.0, 0.0);
+                      var end = Offset.zero;
+                      var curve = Curves.ease;
+                      var tween = Tween(
+                        begin: begin,
+                        end: end,
+                      ).chain(CurveTween(curve: curve));
+                      var slideInAnimation = animation.drive(tween);
 
-                    var slideOutTween = Tween(
-                      begin: Offset.zero,
-                      end: const Offset(-0.3, 0.0),
-                    ).chain(CurveTween(curve: curve));
-                    var slideOutAnimation = secondaryAnimation.drive(
-                      slideOutTween,
-                    );
+                      var slideOutTween = Tween(
+                        begin: Offset.zero,
+                        end: const Offset(-0.3, 0.0),
+                      ).chain(CurveTween(curve: curve));
+                      var slideOutAnimation = secondaryAnimation.drive(
+                        slideOutTween,
+                      );
 
-                    return SlideTransition(
-                      position: slideOutAnimation,
-                      child: SlideTransition(
-                        position: slideInAnimation,
-                        child: child,
+                      return SlideTransition(
+                        position: slideOutAnimation,
+                        child: SlideTransition(
+                          position: slideInAnimation,
+                          child: child,
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 4,
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                child: ListTile(
+                  leading: _buildProfilePicture(user),
+                  title: Text(user.display_username),
+                  subtitle: Text(
+                    isGlobal ? (user.school ?? 'No school') : (user.email),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserDetailScreen(user: user),
                       ),
                     );
                   },
                 ),
-              );
-            },
-            child: Card(
-              // color: Colors.grey[850],
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 4,
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              child: ListTile(
-                leading: _buildProfilePicture(user),
-                title: Text(user.display_username),
-                subtitle: Text(
-                  isGlobal ? (user.school ?? 'No school') : (user.email),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => UserDetailScreen(user: user),
-                    ),
-                  );
-                },
-                // onTap is now part of the GestureDetector above
               ),
             ),
-          ),
-        );
-      },
+          );
+        }, childCount: users.length),
+      ),
     );
   }
 
