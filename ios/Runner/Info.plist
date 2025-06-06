@@ -52,6 +52,8 @@
 	<string>We need access to your camera to take pictures for sightings - one of the core features</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We need access to your location while in use to update the map in real-time. We also need it to create sightings, as each sighting requires location coordinates. For privacy, one may turn on location offset</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>We need access to your location while in use to update the map in real-time. We also need it to create sightings, as each sighting requires location coordinates. For privacy, one may turn on location offset. Additionally, we don't track your location when you are not using the app. Location is only recorded when you create a sighting yourself</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>We need access to your audio, since taking a capture requires this. Audio isn't used in the app, but is just a requirement for taking photos</string>
 
