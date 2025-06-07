@@ -256,6 +256,17 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Row(
+                          children: [
+                            Icon(Icons.info, size: 16),
+                            const SizedBox(width: 15),
+                            Text(
+                              'Location may have been offset due to user\'s \nprivacy settings',
+                              style: Theme.of(context).textTheme.labelMedium,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
                         _buildDetailRow(
                           'Latitude',
                           '${widget.sighting.latitude}',
@@ -356,14 +367,7 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.black,
-            ),
-          ),
+          Text(label, style: Theme.of(context).textTheme.labelLarge),
           Text(value, style: Theme.of(context).textTheme.labelMedium),
         ],
       ),

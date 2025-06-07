@@ -25,8 +25,10 @@ export 'package:sighttrack/util.dart';
 export 'package:sighttrack/logging.dart';
 export 'package:sighttrack/app.dart';
 export 'package:sighttrack/services/geography.dart';
+export 'package:sighttrack/services/statistics.dart';
 export 'package:sighttrack/math/spatial_autocorrection.dart';
 export 'package:sighttrack/services/volunteer.dart';
+export 'package:sighttrack/services/mail.dart';
 export 'package:core_ui/core_ui.dart';
 
 // SightTrack main

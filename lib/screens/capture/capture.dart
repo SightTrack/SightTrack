@@ -20,6 +20,7 @@ class CaptureScreenState extends State<CaptureScreen> {
   bool _isCapturePressed = false;
   late String _currentTime;
   Timer? _timer;
+  FToast? _fToast;
 
   @override
   void initState() {
@@ -27,6 +28,8 @@ class CaptureScreenState extends State<CaptureScreen> {
     _currentTime = DateTime.now().toString().split('.')[0];
     _startTimer();
     _initializeCamera();
+    _fToast = FToast();
+    _fToast!.init(context);
   }
 
   void _startTimer() {
@@ -189,7 +192,7 @@ class CaptureScreenState extends State<CaptureScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      // appBar: AppBar(),
       body: Stack(
         children: [
           // Full-screen camera preview or error message
@@ -205,8 +208,19 @@ class CaptureScreenState extends State<CaptureScreen> {
                     ),
                     const SizedBox(height: 20),
                     ModernDarkButton(
-                      onPressed: () {
-                        _initializeCamera();
+                      onPressed: () async {
+                        setState(() {
+                          _errorMessage = null;
+                          _isCameraInitialized = false;
+                        });
+                        await _initializeCamera();
+
+                        // Show toast if retry still failed
+                        if (_errorMessage != null) {
+                          _fToast!.showToast(
+                            child: Util.redToast('No camera found'),
+                          );
+                        }
                       },
                       text: 'Retry',
                     ),

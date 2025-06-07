@@ -57,6 +57,16 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen>
 
     fToast = FToast();
     fToast.init(context);
+
+    initialize();
+  }
+
+  Future<void> initialize() async {
+    Mail testMail = Mail(
+      'volunteer@mail.sighttrack.org',
+      '0651jamestan@gmail.com',
+    );
+    // await testMail.sendEmail('Test', 'Hello, this is a test email');
   }
 
   @override
