@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sighttrack/barrel.dart';
 
 class Navigation extends StatelessWidget {
@@ -15,23 +16,29 @@ class Navigation extends StatelessWidget {
     ];
   }
 
-  List<PersistentBottomNavBarItem> _navBarsItems() {
+  List<PersistentBottomNavBarItem> _navBarsItems(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final isDarkMode = themeProvider.isDarkMode;
+
+    final activeColor = isDarkMode ? Colors.white : Colors.grey[900];
+    final inactiveColor = isDarkMode ? Colors.grey[400] : Colors.grey[700];
+
     return [
       PersistentBottomNavBarItem(
-        icon: const Icon(CupertinoIcons.map),
+        icon: const Icon(Icons.home_outlined),
         title: 'Home',
-        activeColorPrimary: CupertinoColors.activeGreen,
-        inactiveColorPrimary: CupertinoColors.systemGrey,
+        activeColorPrimary: activeColor!,
+        inactiveColorPrimary: inactiveColor!,
         routeAndNavigatorSettings: RouteAndNavigatorSettings(
           initialRoute: '/',
           routes: {'/all_sightings': (context) => AllSightingsScreen()},
         ),
       ),
       PersistentBottomNavBarItem(
-        icon: const Icon(CupertinoIcons.chart_bar),
+        icon: const Icon(Icons.bar_chart_outlined),
         title: 'Data',
-        activeColorPrimary: CupertinoColors.activeGreen,
-        inactiveColorPrimary: CupertinoColors.systemGrey,
+        activeColorPrimary: activeColor,
+        inactiveColorPrimary: inactiveColor,
         routeAndNavigatorSettings: RouteAndNavigatorSettings(
           initialRoute: '/',
           routes: {},
@@ -39,28 +46,20 @@ class Navigation extends StatelessWidget {
       ),
       PersistentBottomNavBarItem(
         icon: Container(
-          width: 76.0,
-          height: 76.0,
+          width: 56.0, // Standard FAB size
+          height: 56.0,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.teal.shade500,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                spreadRadius: 2,
-                blurRadius: 4,
-                offset: const Offset(0, 3),
-              ),
-            ],
+            color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
           ),
-          child: const Icon(
-            Icons.blur_on_sharp,
-            color: Colors.white,
-            size: 22.0,
+          child: Icon(
+            Icons.camera_alt_outlined,
+            color: isDarkMode ? Colors.grey[200] : Colors.grey[800],
+            size: 28.0,
           ),
         ),
-        activeColorPrimary: Colors.teal.shade400,
-        inactiveColorPrimary: Colors.teal.shade500,
+        activeColorPrimary: Colors.transparent,
+        inactiveColorPrimary: Colors.transparent,
         routeAndNavigatorSettings: RouteAndNavigatorSettings(
           initialRoute: '/',
           routes: {
@@ -70,23 +69,23 @@ class Navigation extends StatelessWidget {
             '/ac_home': (context) => const AreaCaptureHome(),
           },
         ),
-        activeColorSecondary: Colors.white,
-        inactiveColorSecondary: Colors.white,
+        activeColorSecondary: Colors.transparent,
+        inactiveColorSecondary: Colors.transparent,
         contentPadding: 0,
         title: null,
         textStyle: const TextStyle(fontSize: 0),
       ),
       PersistentBottomNavBarItem(
-        icon: const Icon(CupertinoIcons.person_2),
+        icon: const Icon(Icons.people_outline),
         title: 'Community',
-        activeColorPrimary: CupertinoColors.activeGreen,
-        inactiveColorPrimary: CupertinoColors.systemGrey,
+        activeColorPrimary: activeColor,
+        inactiveColorPrimary: inactiveColor,
       ),
       PersistentBottomNavBarItem(
-        icon: const Icon(CupertinoIcons.profile_circled),
+        icon: const Icon(Icons.person_outline),
         title: 'Profile',
-        activeColorPrimary: CupertinoColors.activeGreen,
-        inactiveColorPrimary: CupertinoColors.systemGrey,
+        activeColorPrimary: activeColor,
+        inactiveColorPrimary: inactiveColor,
       ),
     ];
   }
@@ -96,22 +95,24 @@ class Navigation extends StatelessWidget {
     PersistentTabController controller = PersistentTabController(
       initialIndex: 0,
     );
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
 
     return PersistentTabView(
       context,
       controller: controller,
       screens: _buildScreens(),
-      items: _navBarsItems(),
+      items: _navBarsItems(context),
       hideNavigationBarWhenKeyboardAppears: true,
       padding: const EdgeInsets.only(top: 8),
-      backgroundColor: Colors.white,
+      backgroundColor: isDarkMode ? Colors.grey[850]! : Colors.white,
       isVisible: true,
       confineToSafeArea: true,
       navBarHeight: kBottomNavigationBarHeight,
       animationSettings: const NavBarAnimationSettings(
         navBarItemAnimation: ItemAnimationSettings(
-          duration: Duration(milliseconds: 400),
-          curve: Curves.ease,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeOutBack,
         ),
         screenTransitionAnimation: ScreenTransitionAnimationSettings(
           animateTabTransition: true,
