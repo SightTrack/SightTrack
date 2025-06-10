@@ -68,3 +68,4 @@ export 'package:geolocator/geolocator.dart';
 export 'package:geocoding/geocoding.dart';
 export 'providers/theme_provider.dart';
 export 'package:provider/provider.dart';
+export 'package:auto_size_text/auto_size_text.dart';

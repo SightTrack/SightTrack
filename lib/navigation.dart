@@ -45,17 +45,13 @@ class Navigation extends StatelessWidget {
         ),
       ),
       PersistentBottomNavBarItem(
-        icon: Container(
-          width: 56.0, // Standard FAB size
-          height: 56.0,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
-          ),
+        icon: CircleAvatar(
+          radius: 54.0,
+          backgroundColor: isDarkMode ? Colors.grey[800] : Colors.grey[200],
           child: Icon(
             Icons.camera_alt_outlined,
             color: isDarkMode ? Colors.grey[200] : Colors.grey[800],
-            size: 28.0,
+            size: 42.0, // Increased from 28.0 to maintain proportion
           ),
         ),
         activeColorPrimary: Colors.transparent,

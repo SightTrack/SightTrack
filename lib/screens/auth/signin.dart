@@ -53,9 +53,18 @@ class SignInScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  TextButton(
-                    onPressed: () => state.changeStep(AuthenticatorStep.signUp),
-                    child: Text('Don\'t have an account? Create one instead'),
+                  Flexible(
+                    child: TextButton(
+                      onPressed:
+                          () => state.changeStep(AuthenticatorStep.signUp),
+                      child: AutoSizeText(
+                        'Don\'t have an account? Create one instead',
+                        maxLines: 2,
+                        minFontSize: 5,
+                        maxFontSize: 12,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   ),
                 ],
               ),

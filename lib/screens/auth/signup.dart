@@ -56,9 +56,23 @@ class SignUpScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              TextButton(
-                onPressed: () => state.changeStep(AuthenticatorStep.signIn),
-                child: Text('Already have an account? Sign In'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: TextButton(
+                      onPressed:
+                          () => state.changeStep(AuthenticatorStep.signIn),
+                      child: AutoSizeText(
+                        'Already have an account? Sign In',
+                        maxLines: 2,
+                        minFontSize: 5,
+                        maxFontSize: 12,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
