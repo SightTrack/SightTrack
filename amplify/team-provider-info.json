@@ -31,7 +31,7 @@
         },
         "sendVolunteerHoursRequest": {
           "deploymentBucketName": "amplify-sighttrackv2-dev-220519-deployment",
-          "s3Key": "amplify-builds/sendVolunteerHoursRequest-52587551512f516f4145-build.zip"
+          "s3Key": "amplify-builds/sendVolunteerHoursRequest-515857446164584b4a53-build.zip"
         }
       }
     }

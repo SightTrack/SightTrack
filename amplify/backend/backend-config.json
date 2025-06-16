@@ -9,6 +9,14 @@
           ],
           "category": "function",
           "resourceName": "sightingComputerVision"
+        },
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "sendVolunteerHoursRequest"
         }
       ],
       "providerPlugin": "awscloudformation",

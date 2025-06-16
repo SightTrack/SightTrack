@@ -1,7 +1,7 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:sighttrack/barrel.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:sighttrack/tests/capture_button_test.dart';
 
 class CaptureTypeScreen extends StatefulWidget {
   const CaptureTypeScreen({super.key});
@@ -88,6 +88,11 @@ class _CaptureTypeScreenState extends State<CaptureTypeScreen>
                           onPressed: () {
                             HapticFeedback.lightImpact();
                             Navigator.pushNamed(context, '/capture');
+                            // Navigator.of(context).push(
+                            //   MaterialPageRoute(
+                            //     builder: (context) => const CaptureButtonTest(),
+                            //   ),
+                            // );
                           },
                         ),
                       ),

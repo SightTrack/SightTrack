@@ -129,8 +129,19 @@ class Volunteer {
   static Future<void> initiateVolunteerHoursRequest(
     String activitySupervisor,
     String schoolSupervisor,
+    List<Sighting> sightings,
+    User user,
   ) async {
-    // TODO: Implement this
-    await Future.delayed(const Duration(seconds: 3));
+    // Create structured volunteer data
+    final volunteerData = {
+      'sightings': sightings.map((s) => s.toJson()).toList(),
+      'totalHours': calculateTotalServiceHours(sightings),
+      'user': user.toJson(),
+      'submissionDate': DateTime.now().toIso8601String(),
+      'sightingCount': sightings.length,
+    };
+
+    Mail mail = Mail(activitySupervisor, schoolSupervisor);
+    await mail.sendVolunteerHoursRequest(volunteerData);
   }
 }

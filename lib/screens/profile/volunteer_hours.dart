@@ -57,16 +57,6 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen>
 
     fToast = FToast();
     fToast.init(context);
-
-    initialize();
-  }
-
-  Future<void> initialize() async {
-    Mail testMail = Mail(
-      'volunteer@mail.sighttrack.org',
-      '0651jamestan@gmail.com',
-    );
-    // await testMail.sendEmail('Test', 'Hello, this is a test email');
   }
 
   @override
@@ -1151,6 +1141,8 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen>
         await Volunteer.initiateVolunteerHoursRequest(
           _selectedActivitySupervisor!,
           _selectedSchoolSupervisor!,
+          _allUnclaimedSightings,
+          user,
         );
 
         setState(() {
@@ -1160,7 +1152,7 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen>
         // Show success message
         fToast.showToast(
           child: Util.greenToast('Sent volunteer hours request'),
-          toastDuration: Duration(seconds: 4),
+          toastDuration: const Duration(seconds: 3),
         );
 
         // Update isTimeClaimed to true for all unclaimed sightings

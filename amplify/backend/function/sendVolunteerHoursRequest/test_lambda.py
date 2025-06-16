@@ -13,10 +13,10 @@ if __name__ == "__main__":
     # Sample event data that mimics what the Lambda would receive
     test_event = {
         'body': json.dumps({
-            'activitySupervisor': '0651jamestan@gmail.com',  # Replace with a test email
-            'schoolSupervisor': '0651jamestan@gmail.com',      # Replace with a test email
+            'activitySupervisor': 'jamest01230@gmail.com',  # Replace with a test email
+            'schoolSupervisor': '2026127@appleby.on.ca',      # Replace with a test email
             'data': {
-                'studentName': 'John Doe',
+                'studentName': 'Test name',
                 'hours': 25,
                 'activity': 'Community Service',
                 'date': '2024-01-15'

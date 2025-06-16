@@ -13,6 +13,17 @@
           "delete"
         ]
       }
+    },
+    "/sendVolunteerHours": {
+      "name": "/sendVolunteerHours",
+      "lambdaFunction": "sendVolunteerHoursRequest",
+      "permissions": {
+        "setting": "private",
+        "auth": [
+          "create",
+          "read"
+        ]
+      }
     }
   }
 }

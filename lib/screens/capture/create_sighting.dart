@@ -23,20 +23,40 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
   List<String>? identifiedSpecies;
   UserSettings? _userSettings;
   bool _isSaving = false;
+  FToast? _toast;
 
   @override
   void initState() {
     super.initState();
     _getCurrentLocation();
     _initializerWrapper();
+    _toast = FToast();
+    _toast!.init(context);
   }
 
   Future<void> _initializerWrapper() async {
-    List<String>? temp = await Util.doAWSRekognitionCall(widget.imagePath);
-    if (temp.isNotEmpty) {
+    List<String>? rekognitionResponse = await Util.doAWSRekognitionCall(
+      widget.imagePath,
+    );
+    if (rekognitionResponse.isNotEmpty) {
+      // Filter images that are not animals or plants
+      if (!rekognitionResponse.contains('animal') &&
+          !rekognitionResponse.contains('plant')) {
+        _toast!.showToast(
+          child: Util.redToast(
+            'Please make sure the image is\n of an animal or plant',
+          ),
+          gravity: ToastGravity.CENTER,
+          toastDuration: const Duration(seconds: 3),
+        );
+        if (mounted) {
+          Navigator.pop(context);
+        }
+        return;
+      }
       setState(() {
-        identifiedSpecies = temp;
-        _selectedSpecies = temp[0];
+        identifiedSpecies = rekognitionResponse;
+        _selectedSpecies = rekognitionResponse[0];
       });
     }
 
