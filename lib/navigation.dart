@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sighttrack/barrel.dart';
+import 'package:sighttrack/screens/profile/admin_pannel.dart';
 
 class Navigation extends StatelessWidget {
   const Navigation({super.key});
@@ -78,7 +79,39 @@ class Navigation extends StatelessWidget {
         inactiveColorPrimary: inactiveColor,
       ),
       PersistentBottomNavBarItem(
-        icon: const Icon(Icons.person_outline),
+         icon: GestureDetector(
+          onLongPress: () async {
+            // Get the BuildContext for showModalBottomSheet.
+            // This might require passing context to _navBarsItems or finding another way to access it.
+            // For now, assume 'context' is available.
+            bool isAdmin = await Util.isAdmin();
+            if (isAdmin && context.mounted) {
+              showModalBottomSheet(
+                context: context,
+                builder: (BuildContext sheetCtx) { // Renamed to avoid conflict if context is passed to _navBarsItems
+                  return SafeArea(
+                    child: Wrap(
+                      children: <Widget>[
+                        ListTile(
+                          leading: const Icon(Icons.admin_panel_settings),
+                          title: const Text('Admin Panel'),
+                          onTap: () {
+                            Navigator.pop(sheetCtx); // Dismiss bottom sheet
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const AdminPannelScreen()),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            }
+          },
+          child: const Icon(Icons.person_outline),
+        ),
         title: 'Profile',
         activeColorPrimary: activeColor,
         inactiveColorPrimary: inactiveColor,
