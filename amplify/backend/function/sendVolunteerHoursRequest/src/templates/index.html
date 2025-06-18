@@ -1,0 +1,398 @@
+<!DOCTYPE html
+	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>SightTrack Volunteer Hours Request</title>
+	<style type="text/css">
+		body {
+			margin: 0;
+			background-color: #f8f9fa;
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+		}
+
+		table {
+			border-spacing: 0;
+		}
+
+		td {
+			padding: 0;
+		}
+
+		img {
+			border: 0;
+		}
+
+		.wrapper {
+			width: 100%;
+			table-layout: fixed;
+			background-color: #f8f9fa;
+			padding: 20px 0;
+		}
+
+		.main {
+			background-color: #ffffff;
+			margin: 0 auto;
+			width: 100%;
+			max-width: 650px;
+			border-spacing: 0;
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			color: #2c3e50;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+			border-radius: 8px;
+			overflow: hidden;
+		}
+
+		.header-section {
+			background: linear-gradient(135deg, #27ae60, #2ecc71);
+			padding: 30px 20px;
+			text-align: center;
+		}
+
+		.logo-container {
+			margin-bottom: 20px;
+		}
+
+		.greeting {
+			color: #ffffff;
+			font-size: 24px;
+			font-weight: 600;
+			margin: 0 0 15px 0;
+			letter-spacing: 0.5px;
+		}
+
+		.intro-text {
+			color: #ffffff;
+			font-size: 16px;
+			line-height: 24px;
+			margin: 0;
+			opacity: 0.95;
+		}
+
+		.content-section {
+			padding: 40px 30px;
+			background-color: #ffffff;
+		}
+
+		.section-title {
+			font-size: 20px;
+			font-weight: 600;
+			color: #2c3e50;
+			margin: 0 0 20px 0;
+			border-bottom: 2px solid #27ae60;
+			padding-bottom: 8px;
+			display: inline-block;
+		}
+
+		.info-grid {
+			display: table;
+			width: 100%;
+			margin: 25px 0;
+		}
+
+		.info-column {
+			display: table-cell;
+			vertical-align: top;
+			width: 50%;
+			padding: 20px;
+			background-color: #f8f9fa;
+			border-radius: 6px;
+		}
+
+		.info-column:first-child {
+			margin-right: 10px;
+		}
+
+		.info-column:last-child {
+			margin-left: 10px;
+		}
+
+		.info-title {
+			font-size: 16px;
+			font-weight: 600;
+			color: #27ae60;
+			margin: 0 0 12px 0;
+		}
+
+		.info-item {
+			font-size: 14px;
+			line-height: 20px;
+			color: #5a6c7d;
+			margin: 8px 0;
+		}
+
+		.info-label {
+			font-weight: 600;
+			color: #2c3e50;
+		}
+
+		.summary-box {
+			background: linear-gradient(135deg, #3498db, #2980b9);
+			color: #ffffff;
+			padding: 25px;
+			border-radius: 8px;
+			margin: 30px 0;
+			text-align: center;
+		}
+
+		.summary-title {
+			font-size: 18px;
+			font-weight: 600;
+			margin: 0 0 10px 0;
+		}
+
+		.summary-text {
+			font-size: 16px;
+			line-height: 24px;
+			margin: 0;
+			opacity: 0.95;
+		}
+
+		.hours-calculation {
+			background-color: #ecf0f1;
+			padding: 25px;
+			border-radius: 8px;
+			margin: 30px 0;
+			border-left: 4px solid #27ae60;
+		}
+
+		.calculation-title {
+			font-size: 16px;
+			font-weight: 600;
+			color: #2c3e50;
+			margin: 0 0 15px 0;
+		}
+
+		.calculation-item {
+			font-size: 14px;
+			line-height: 22px;
+			color: #5a6c7d;
+			margin: 8px 0;
+			padding-left: 15px;
+			position: relative;
+		}
+
+		.calculation-item:before {
+			content: "•";
+			color: #27ae60;
+			font-weight: bold;
+			position: absolute;
+			left: 0;
+		}
+
+		.next-steps {
+			background-color: #2c3e50;
+			color: #ffffff;
+			padding: 30px;
+			margin: 30px 0 0 0;
+		}
+
+		.next-steps-title {
+			font-size: 18px;
+			font-weight: 600;
+			margin: 0 0 15px 0;
+			color: #ffffff;
+		}
+
+		.next-steps-text {
+			font-size: 15px;
+			line-height: 24px;
+			margin: 0 0 20px 0;
+			opacity: 0.95;
+		}
+
+		.signature {
+			margin-top: 25px;
+			padding-top: 20px;
+			border-top: 1px solid rgba(255, 255, 255, 0.2);
+		}
+
+		.signature-line {
+			margin: 5px 0;
+			font-size: 14px;
+		}
+
+		.footer-border {
+			height: 4px;
+			background: linear-gradient(135deg, #27ae60, #2ecc71);
+		}
+
+		/* Mobile Responsive */
+		@media screen and (max-width: 480px) {
+			.wrapper {
+				padding: 10px 0;
+			}
+
+			.main {
+				max-width: 100%;
+				margin: 0 10px;
+			}
+
+			.content-section {
+				padding: 20px 15px;
+			}
+
+			.info-grid {
+				display: block;
+			}
+
+			.info-column {
+				display: block;
+				width: 100%;
+				margin: 10px 0 !important;
+			}
+
+			.header-section {
+				padding: 20px 15px;
+			}
+
+			.greeting {
+				font-size: 20px;
+			}
+		}
+	</style>
+</head>
+
+<body>
+
+	<center class="wrapper">
+		<table class="main" width="100%">
+
+			<!-- HEADER SECTION -->
+			<tr>
+				<td class="header-section">
+					<div class="logo-container">
+						<img src="https://i.ibb.co/mC9x1RR1/sighttracklogo.png" alt="SightTrack Logo" width="100"
+							title="SightTrack">
+					</div>
+					<h1 class="greeting">Dear Supervisors,</h1>
+					<p class="intro-text">
+						We have received a new volunteer hours request from our SightTrack citizen science platform that
+						requires your review and approval.
+					</p>
+				</td>
+			</tr>
+
+			<!-- MAIN CONTENT -->
+			<tr>
+				<td class="content-section">
+
+					<!-- SUMMARY SECTION -->
+					<div class="summary-box">
+						<h2 class="summary-title">Volunteer Hours Request Summary</h2>
+						<p class="summary-text">
+							<strong>{{ volunteer_name }}</strong> has submitted <strong>{{ total_sightings }}</strong>
+							wildlife sighting(s) for volunteer hour credit.<br>
+							<strong>Total Calculated Hours: {{ total_hours }}</strong>
+						</p>
+					</div>
+
+					<!-- INFORMATION GRID -->
+					<h2 class="section-title">Request Details</h2>
+					<div class="info-grid">
+						<div class="info-column">
+							<h3 class="info-title">👤 Volunteer Information</h3>
+							<div class="info-item"><span class="info-label">Volunteer Name:</span> {{ volunteer_name }}
+							</div>
+							<div class="info-item"><span class="info-label">Email:</span> {{ volunteer_email }}</div>
+							<div class="info-item"><span class="info-label">Student ID:</span> {{ student_id }}</div>
+							<div class="info-item"><span class="info-label">School:</span> {{ school_name }}
+							</div>
+							<div class="info-item"><span class="info-label">Submission Date:</span> {{ submission_date
+								}}
+							</div>
+						</div>
+						<div class="info-column">
+							<h3 class="info-title">🦅 Sightings Information</h3>
+							<div class="info-item"><span class="info-label">Total Sightings:</span> {{ total_sightings
+								}}
+							</div>
+							<div class="info-item"><span class="info-label">Date Range:</span> {{ date_range }}</div>
+							<div class="info-item"><span class="info-label">Locations:</span> {{ locations_summary }}
+							</div>
+							<div class="info-item"><span class="info-label">Species Observed:</span> {{ species_count }}
+								species</div>
+							<div class="info-item"><span class="info-label">Total Hours:</span> {{ total_hours }}</div>
+						</div>
+					</div>
+
+					<!-- DETAILED SIGHTINGS -->
+					<h2 class="section-title">Sighting Details</h2>
+					<div style="background-color: #f8f9fa; padding: 20px; border-radius: 6px; margin: 20px 0;">
+						{% for sighting in sightings %}
+						<div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #dee2e6;">
+							<div class="info-item"><span class="info-label">{{ loop.index }}.</span>
+								<strong>{{ sighting.species }}</strong> - {{ sighting.city }}
+							</div>
+							<div class="info-item" style="margin-left: 15px;"><span class="info-label">Date:</span>
+								{{ sighting.date }}</div>
+							<div class="info-item" style="margin-left: 15px;"><span class="info-label">Time:</span>
+								{{ sighting.time }}</div>
+							<div class="info-item" style="margin-left: 15px;"><span
+									class="info-label">Description:</span>
+								{{ sighting.description }}</div>
+						</div>
+						{% endfor %}
+					</div>
+
+					<!-- HOURS CALCULATION -->
+					<div class="hours-calculation">
+						<h3 class="calculation-title">📊 How Volunteer Hours Are Calculated</h3>
+						<div class="calculation-item">Base time allocation: {{ base_time_per_sighting }} minutes per
+							wildlife sighting</div>
+						<div class="calculation-item">Description bonus: +{{ description_bonus_per_chars }} minutes per
+							{{ description_char_threshold }} characters of detailed observations</div>
+						<div class="calculation-item">Travel time consideration: GPS distance between consecutive
+							sightings ({{ average_travel_speed }} km/h average)</div>
+						<div class="calculation-item">Time window restriction: Travel time only applies if sightings
+							occur within {{ time_window_hours }} hours</div>
+						<div class="calculation-item">Quality assessment: Additional time for exceptional documentation
+							and scientific value</div>
+					</div>
+				</td>
+			</tr>
+
+			<!-- NEXT STEPS SECTION -->
+			<tr>
+				<td class="next-steps">
+					<h2 class="next-steps-title">🎯 Action Required</h2>
+					<p class="next-steps-text">
+						Please review this volunteer hours request and verify the submitted information. This student
+						has contributed valuable data to wildlife conservation and research through citizen science
+						efforts.
+					</p>
+					<p class="next-steps-text">
+						<strong>To approve:</strong> Reply to this email with "APPROVED" and any additional
+						comments.<br>
+						<strong>To request changes:</strong> Reply with specific feedback or questions.<br>
+						<strong>To deny:</strong> Reply with "DENIED" and reason for denial.
+					</p>
+					<p class="next-steps-text">
+						If you have any questions about this request or need additional documentation, please don't
+						hesitate to contact our volunteer coordination team.
+					</p>
+
+					<div class="signature">
+						<div class="signature-line"><strong>SightTrack Volunteer Hours System</strong></div>
+						<div class="signature-line">📧 volunteer@sighttrack.org</div>
+						<div class="signature-line">🌐 www.sighttrack.org</div>
+						<br>
+						<div class="signature-line">This is an automated message from the SightTrack platform.</div>
+					</div>
+				</td>
+			</tr>
+
+			<!-- FOOTER BORDER -->
+			<tr>
+				<td class="footer-border"></td>
+			</tr>
+
+		</table>
+	</center>
+
+</body>
+
+</html>

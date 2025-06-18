@@ -180,9 +180,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _buildDivider(),
           _buildProfileItem(
+            title: 'Name',
+            subtitle: user!.realName ?? 'Not set',
+            onTap: () => _navigateToEditPage('Name', user!.realName),
+          ),
+          _buildDivider(),
+          _buildProfileItem(
             title: 'Email',
             subtitle: user!.email,
             onTap: () => _navigateToEditPage('Email', user!.email),
+          ),
+          _buildDivider(),
+          _buildProfileItem(
+            title: 'Student ID',
+            subtitle: user!.studentId ?? 'Not set',
+            onTap: () => _navigateToEditPage('Student ID', user!.studentId),
           ),
           _buildDivider(),
           _buildProfileItem(
@@ -391,6 +403,12 @@ class _EditFieldPageState extends State<EditFieldPage> {
           case 'School':
             updatedUser = widget.user.copyWith(school: newValue);
             break;
+          case 'Student ID':
+            updatedUser = widget.user.copyWith(studentId: newValue);
+            break;
+          case 'Name':
+            updatedUser = widget.user.copyWith(realName: newValue);
+            break;
           default:
             updatedUser = widget.user;
         }
@@ -477,6 +495,14 @@ class _EditFieldPageState extends State<EditFieldPage> {
                   if (widget.field == 'School' &&
                       (value != null && value.trim().isEmpty)) {
                     return 'Enter a valid school';
+                  }
+                  if (widget.field == 'Student ID' &&
+                      (value != null && value.trim().isEmpty)) {
+                    return 'Enter a valid student ID';
+                  }
+                  if (widget.field == 'Name' &&
+                      (value != null && value.trim().isEmpty)) {
+                    return 'Enter a valid name';
                   }
                   return null;
                 },

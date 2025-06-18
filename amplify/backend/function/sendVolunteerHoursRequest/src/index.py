@@ -1,22 +1,70 @@
 import json
 import boto3
-from botocore.exceptions import ClientError
 from datetime import datetime
+import os
+from jinja2 import Environment, FileSystemLoader
 
 def handler(event, context):
     # Initialize SES client
     ses_client = boto3.client('ses')
     
     try:
-        # Parse the event body if it's a string
-        if isinstance(event.get('body'), str):
-            body = json.loads(event['body'])
-        else:
-            body = event.get('body', {})
+        # Debug: Print the entire event to understand the structure
+        print(f'Raw event: {json.dumps(event, default=str)}')
         
-        # Extract email addresses from the event
-        activity_supervisor_email = body.get('activitySupervisor')
-        school_supervisor_email = body.get('schoolSupervisor')
+        # Parse the event body more carefully
+        body = None
+        if 'body' in event:
+            if isinstance(event['body'], str):
+                try:
+                    body = json.loads(event['body'])
+                    print(f'Parsed body from string: {type(body)}')
+                except json.JSONDecodeError as e:
+                    print(f'JSON decode error: {e}')
+                    return {
+                        'statusCode': 400,
+                        'headers': {
+                            'Access-Control-Allow-Headers': '*',
+                            'Access-Control-Allow-Origin': '*',
+                            'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+                        },
+                        'body': json.dumps({
+                            'error': 'Invalid JSON in request body'
+                        })
+                    }
+            elif isinstance(event['body'], dict):
+                body = event['body']
+                print(f'Body is already a dict: {type(body)}')
+            else:
+                print(f'Unexpected body type: {type(event["body"])}')
+                body = {}
+        else:
+            # No body in event, try to use the event itself
+            body = event
+            print(f'No body field, using event: {type(body)}')
+        
+        # Ensure body is a dictionary
+        if not isinstance(body, dict):
+            print(f'Body is not a dict after parsing: {type(body)}')
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Access-Control-Allow-Headers': '*',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+                },
+                'body': json.dumps({
+                    'error': 'Request body must be a JSON object'
+                })
+            }
+        
+        print(f'Final body keys: {list(body.keys())}')
+        
+        # Extract email addresses from the body
+        activity_supervisor_email = body.get('activity_supervisor')
+        school_supervisor_email = body.get('school_supervisor')
+        
+        print(f'Supervisor emails - Activity: {activity_supervisor_email}, School: {school_supervisor_email}')
         
         # Validate that both email addresses are provided
         if not activity_supervisor_email or not school_supervisor_email:
@@ -28,32 +76,19 @@ def handler(event, context):
                     'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
                 },
                 'body': json.dumps({
-                    'error': 'Both activitySupervisor and schoolSupervisor email addresses are required'
+                    'error': 'Both activity_supervisor and school_supervisor email addresses are required',
+                    'received_keys': list(body.keys())
                 })
             }
         
-        # Handle different request types based on structure
-        if 'volunteerData' in body:
-            # New structured volunteer hours request
-            return handle_volunteer_hours_request(ses_client, body)
-        elif 'emailBody' in body:
-            # Legacy email request
-            return handle_legacy_email_request(ses_client, body)
-        else:
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Access-Control-Allow-Headers': '*',
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
-                },
-                'body': json.dumps({
-                    'error': 'Invalid request structure'
-                })
-            }
+        # Handle the new volunteer hours request with Jinja2 template
+        return handle_volunteer_hours_request_with_template(ses_client, body)
         
     except Exception as e:
-        print(f'Error: {str(e)}')
+        print(f'Error in handler: {str(e)}')
+        print(f'Error type: {type(e)}')
+        import traceback
+        print(f'Traceback: {traceback.format_exc()}')
         return {
             'statusCode': 500,
             'headers': {
@@ -67,127 +102,65 @@ def handler(event, context):
             })
         }
 
-def handle_volunteer_hours_request(ses_client, body):
-    """Handle structured volunteer hours requests"""
+def handle_volunteer_hours_request_with_template(ses_client, body):
+    """Handle volunteer hours requests using Jinja2 HTML template"""
     try:
-        # Extract structured data
-        activity_supervisor_email = body.get('activitySupervisor')
-        school_supervisor_email = body.get('schoolSupervisor')
-        subject = body.get('subject', 'Volunteer Hours Request')
-        volunteer_data = body.get('volunteerData', {})
+        # Extract supervisor emails
+        activity_supervisor_email = body.get('activity_supervisor')
+        school_supervisor_email = body.get('school_supervisor')
         
-        print('Processing volunteer hours request:', {
+        print('Processing volunteer hours request with template:', {
             'activity_supervisor': activity_supervisor_email,
             'school_supervisor': school_supervisor_email,
-            'volunteer_data_keys': list(volunteer_data.keys())
+            'data_keys': list(body.keys())
         })
         
-        # Extract volunteer information
-        sightings = volunteer_data.get('sightings', [])
-        total_hours = volunteer_data.get('totalHours', 0)
-        user_data = volunteer_data.get('user', {})
-        submission_date = volunteer_data.get('submissionDate', '')
-        sighting_count = volunteer_data.get('sightingCount', len(sightings))
+        # Set up Jinja2 environment - template is now in src/templates/
+        template_dir = os.path.join(os.path.dirname(__file__), 'templates')
+        env = Environment(loader=FileSystemLoader(template_dir))
+        template = env.get_template('index.html')
         
-        # Extract user information
-        user_name = user_data.get('name', 'Unknown User')
-        user_email = user_data.get('email', 'Unknown Email')
-        
-        # Parse submission date
-        submission_date_str = 'Unknown Date'
-        if submission_date:
-            try:
-                dt = datetime.fromisoformat(submission_date.replace('Z', '+00:00'))
-                submission_date_str = dt.strftime('%B %d, %Y at %I:%M %p')
-            except:
-                submission_date_str = str(submission_date)
-        
-        # Build sightings summary
-        sightings_summary = []
-        for i, sighting in enumerate(sightings[:10], 1):  # Limit to first 10 sightings for email brevity
-            species = sighting.get('species', 'Unknown Species')
-            city = sighting.get('city', 'Unknown Location')
-            timestamp = sighting.get('timestamp', '')
-            description = sighting.get('description', '')
+        # Prepare template context with all the data from the Flutter app
+        template_context = {
+            # Volunteer information
+            'volunteer_name': body.get('volunteer_name', 'Unknown Volunteer'),
+            'volunteer_email': body.get('volunteer_email', 'Unknown Email'),
+            'student_id': body.get('student_id', 'Not specified'),
+            'school_name': body.get('school_name', 'Not specified'),
+            'submission_date': body.get('submission_date', datetime.now().strftime('%B %d, %Y')),
             
-            # Parse timestamp if available
-            date_str = 'Unknown Date'
-            if timestamp:
-                try:
-                    # Handle different timestamp formats
-                    if isinstance(timestamp, dict):
-                        # Amplify DateTime format
-                        timestamp_str = timestamp.get('iso8601String', '')
-                    else:
-                        timestamp_str = str(timestamp)
-                    
-                    dt = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
-                    date_str = dt.strftime('%B %d, %Y at %I:%M %p')
-                except:
-                    date_str = str(timestamp)
+            # Sightings summary
+            'total_sightings': body.get('total_sightings', 0),
+            'total_hours': body.get('total_hours', '0.00'),
+            'date_range': body.get('date_range', 'Unknown'),
+            'locations_summary': body.get('locations_summary', 'Various locations'),
+            'species_count': body.get('species_count', 0),
+            'sightings': body.get('sightings', []),
             
-            sighting_entry = f"   {i}. {species} - {city}\n      Date: {date_str}"
-            if description and len(description.strip()) > 0:
-                # Truncate long descriptions
-                desc_preview = description[:100] + "..." if len(description) > 100 else description
-                sighting_entry += f"\n      Notes: {desc_preview}"
-            
-            sightings_summary.append(sighting_entry)
+            # Calculation constants
+            'base_time_per_sighting': body.get('base_time_per_sighting', 15),
+            'description_bonus_per_chars': body.get('description_bonus_per_chars', 5),
+            'description_char_threshold': body.get('description_char_threshold', 50),
+            'average_travel_speed': body.get('average_travel_speed', 30),
+            'time_window_hours': body.get('time_window_hours', 2),
+        }
         
-        # Add note if there are more sightings
-        more_sightings_note = ""
-        if len(sightings) > 10:
-            more_sightings_note = f"\n   ... and {len(sightings) - 10} additional sightings"
+        print(f'Template context prepared: {list(template_context.keys())}')
         
-        # Create the email body
-        email_body = f"""
-Dear Supervisors,
-
-This is a volunteer hours request from the SightTrack citizen science platform.
-
-VOLUNTEER INFORMATION:
-• Name: {user_name}
-• Email: {user_email}
-• Total Hours Requested: {total_hours:.2f} hours
-• Submission Date: {submission_date_str}
-
-SUMMARY:
-{user_name} has submitted {sighting_count} wildlife sightings for volunteer hour credit. The total calculated volunteer hours based on our standardized system is {total_hours:.2f} hours.
-
-SIGHTINGS INCLUDED ({sighting_count} total):
-{chr(10).join(sightings_summary)}{more_sightings_note}
-
-HOW HOURS ARE CALCULATED:
-• Base time: 15 minutes per sighting
-• Description bonus: +5 minutes per 50 characters of detailed observations  
-• Travel time: Based on GPS distance between consecutive sightings (assuming 30 km/h average speed)
-• Time window: Travel time only counted if sightings are within 2 hours of each other
-
-NEXT STEPS:
-Please review this volunteer hours request and verify the information. The volunteer has completed valuable citizen science work contributing to wildlife conservation and research efforts.
-
-If you approve these hours, please respond to this email with your approval. If you have any questions or need additional information, please contact the SightTrack team.
-
-Thank you for supporting our volunteers and citizen science initiatives.
-
-Best regards,
-SightTrack Volunteer Hours System
-volunteer@sighttrack.org
-
----
-This is an automated message from the SightTrack platform.
-Generated on: {datetime.now().strftime('%B %d, %Y at %I:%M %p UTC')}
-        """
+        # Render the HTML template
+        html_content = template.render(template_context)
         
         # Email configuration
         sender_email = 'volunteer@sighttrack.org'
+        subject = f"SightTrack Volunteer Hours Request - {template_context['volunteer_name']}"
         
-        # Send email to school supervisor with activity supervisor CC'd
+        print(f'Sending email to: {[activity_supervisor_email, school_supervisor_email]}')
+        
+        # Send email to both supervisors
         response = ses_client.send_email(
             Source=sender_email,
             Destination={
-                'ToAddresses': [school_supervisor_email],
-                'CcAddresses': [activity_supervisor_email]
+                'ToAddresses': [activity_supervisor_email, school_supervisor_email]
             },
             Message={
                 'Subject': {
@@ -195,8 +168,8 @@ Generated on: {datetime.now().strftime('%B %d, %Y at %I:%M %p UTC')}
                     'Charset': 'UTF-8'
                 },
                 'Body': {
-                    'Text': {
-                        'Data': email_body.strip(),
+                    'Html': {
+                        'Data': html_content,
                         'Charset': 'UTF-8'
                     }
                 }
@@ -216,62 +189,15 @@ Generated on: {datetime.now().strftime('%B %d, %Y at %I:%M %p UTC')}
                 'message': 'Volunteer hours request sent successfully',
                 'messageId': response['MessageId'],
                 'summary': {
-                    'volunteer': user_name,
-                    'hours': total_hours,
-                    'sightings': sighting_count
+                    'volunteer': template_context['volunteer_name'],
+                    'hours': template_context['total_hours'],
+                    'sightings': template_context['total_sightings']
                 }
             })
         }
         
-    except ClientError as e:
-        print(f'Error sending volunteer hours request: {e}')
-        raise e
-
-def handle_legacy_email_request(ses_client, body):
-    """Handle legacy email requests for backward compatibility"""
-    try:
-        activity_supervisor_email = body.get('activitySupervisor')
-        school_supervisor_email = body.get('schoolSupervisor')
-        subject = body.get('subject', 'Email from SightTrack')
-        email_body = body.get('emailBody', '')
-        
-        sender_email = 'volunteer@sighttrack.org'
-        
-        response = ses_client.send_email(
-            Source=sender_email,
-            Destination={
-                'ToAddresses': [school_supervisor_email],
-                'CcAddresses': [activity_supervisor_email]
-            },
-            Message={
-                'Subject': {
-                    'Data': subject,
-                    'Charset': 'UTF-8'
-                },
-                'Body': {
-                    'Text': {
-                        'Data': email_body,
-                        'Charset': 'UTF-8'
-                    }
-                }
-            }
-        )
-        
-        print(f'Legacy email sent successfully: {response["MessageId"]}')
-        
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Access-Control-Allow-Headers': '*',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
-            },
-            'body': json.dumps({
-                'message': 'Email sent successfully',
-                'messageId': response['MessageId']
-            })
-        }
-        
-    except ClientError as e:
-        print(f'Error sending legacy email: {e}')
+    except Exception as e:
+        print(f'Error sending volunteer hours request with template: {e}')
+        import traceback
+        print(f'Traceback: {traceback.format_exc()}')
         raise e

@@ -1,5 +1,6 @@
 import 'package:sighttrack/barrel.dart';
 import 'dart:math';
+import 'dart:convert';
 
 class Volunteer {
   Volunteer._();
@@ -132,16 +133,113 @@ class Volunteer {
     List<Sighting> sightings,
     User user,
   ) async {
-    // Create structured volunteer data
-    final volunteerData = {
-      'sightings': sightings.map((s) => s.toJson()).toList(),
-      'totalHours': calculateTotalServiceHours(sightings),
-      'user': user.toJson(),
-      'submissionDate': DateTime.now().toIso8601String(),
-      'sightingCount': sightings.length,
-    };
+    try {
+      // Calculate total hours
+      final totalHours = calculateTotalServiceHours(sightings);
 
-    Mail mail = Mail(activitySupervisor, schoolSupervisor);
-    await mail.sendVolunteerHoursRequest(volunteerData);
+      // Sort sightings by timestamp for date range calculation
+      final sortedSightings = List<Sighting>.from(sightings)..sort(
+        (a, b) => a.timestamp.getDateTimeInUtc().compareTo(
+          b.timestamp.getDateTimeInUtc(),
+        ),
+      );
+
+      // Calculate date range
+      String dateRange = '';
+      if (sortedSightings.isNotEmpty) {
+        final startDate = sortedSightings.first.timestamp.getDateTimeInUtc();
+        final endDate = sortedSightings.last.timestamp.getDateTimeInUtc();
+        final formatter = DateFormat('MMM d, yyyy');
+
+        if (startDate.day == endDate.day &&
+            startDate.month == endDate.month &&
+            startDate.year == endDate.year) {
+          dateRange = formatter.format(startDate);
+        } else {
+          dateRange =
+              '${formatter.format(startDate)} - ${formatter.format(endDate)}';
+        }
+      }
+
+      // Get unique locations
+      final locations =
+          sightings
+              .where((s) => s.city != null && s.city!.isNotEmpty)
+              .map((s) => s.city!)
+              .toSet()
+              .toList();
+      final locationsSummary = locations.join(', ');
+
+      // Get unique species count
+      final uniqueSpecies = sightings.map((s) => s.species).toSet();
+      final speciesCount = uniqueSpecies.length;
+
+      // Format sightings for template
+      final formattedSightings =
+          sightings.map((sighting) {
+            final dateTime = sighting.timestamp.getDateTimeInUtc().toLocal();
+            return {
+              'species': sighting.species,
+              'city': sighting.city ?? 'Unknown location',
+              'date': DateFormat('MMM d, yyyy').format(dateTime),
+              'time': DateFormat('HH:mm').format(dateTime),
+              'description': sighting.description ?? 'No description provided',
+            };
+          }).toList();
+
+      // Create the data blob for the email template
+      final Map<String, dynamic> dataBlob = {
+        // Volunteer information
+        'volunteer_name': user.realName,
+        'volunteer_email': user.email,
+        'student_id': user.studentId,
+        'school_name': user.school,
+        'submission_date': DateFormat('MMM d, yyyy').format(DateTime.now()),
+
+        // Sightings summary
+        'total_sightings': sightings.length,
+        'total_hours': totalHours.toStringAsFixed(2),
+        'date_range': dateRange,
+        'locations_summary':
+            locationsSummary.isNotEmpty
+                ? locationsSummary
+                : 'Various locations',
+        'species_count': speciesCount,
+        'sightings': formattedSightings,
+
+        // Calculation constants (matching the values used in calculateTotalServiceHours)
+        'base_time_per_sighting': 15, // 15 minutes
+        'description_bonus_per_chars': 5, // 5 minutes bonus
+        'description_char_threshold': 50, // per 50 characters
+        'average_travel_speed': 30, // 30 km/h
+        'time_window_hours': 2, // 2 hours
+        // Supervisor information
+        'activity_supervisor': activitySupervisor,
+        'school_supervisor': schoolSupervisor,
+      };
+
+      // Call the Lambda function via API Gateway
+      final response =
+          await Amplify.API
+              .post(
+                '/sendVolunteerHours',
+                body: HttpPayload.json(dataBlob),
+                headers: {'Content-Type': 'application/json'},
+              )
+              .response;
+
+      // Check if the response was successful
+      if (response.statusCode == 200) {
+        Log.i('Volunteer hours request sent successfully');
+      } else {
+        Log.e(
+          'Failed to send volunteer hours request. Status: ${response.statusCode}',
+        );
+        throw Exception('Failed to send volunteer hours request');
+      }
+    } catch (e) {
+      Log.e('Error in initiateVolunteerHoursRequest: $e');
+      rethrow;
+    }
   }
 }

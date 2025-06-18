@@ -9,6 +9,8 @@ type User @model @auth(rules: [{allow: private}]) {
   settings: UserSettings @hasOne
   age: Int
   school: String
+  realName: String
+  studentId: String
 }
 
 type UserSettings @model @auth(rules: [{ allow: private }]) {

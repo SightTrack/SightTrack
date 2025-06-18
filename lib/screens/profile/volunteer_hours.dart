@@ -48,12 +48,17 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen>
   final _schoolSupervisorFocusNode = FocusNode();
   bool _isAddingNewSchoolSupervisor = false;
 
+  // User profile completeness check
+  bool _isUserProfileComplete = false;
+  bool _checkingUserProfile = true;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _loadSightings();
     _loadSupervisors();
+    _checkUserProfileCompleteness();
 
     fToast = FToast();
     fToast.init(context);
@@ -509,7 +514,7 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Total Volunteer Hours: ${Volunteer.calculateTotalServiceHours(_allUnclaimedSightings).round()} (${Volunteer.calculateTotalServiceHours(_allUnclaimedSightings).toStringAsFixed(2)})',
+                      'Total Volunteer Hours: ${Volunteer.calculateTotalServiceHours(_allUnclaimedSightings).toStringAsFixed(2)}',
                       style: TextStyle(fontSize: 20),
                     ),
                     const SizedBox(height: 16),
@@ -691,393 +696,535 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen>
                 ),
               ),
             ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: _SliverHeaderDelegate(title: 'Claim Hours', height: 50),
-            ),
-            SliverToBoxAdapter(
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Select Activity Supervisor',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (_loadingActivitySupervisors)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
+            // Conditionally show Claim Hours section
+            if (_checkingUserProfile)
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  child: Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
+                        SizedBox(width: 12),
+                        Text('Checking profile...'),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            else if (!_isUserProfileComplete)
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Complete Your Profile',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.orange.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Column(
                           children: [
-                            SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                            Icon(
+                              Icons.person_off_outlined,
+                              size: 48,
+                              color: Colors.orange,
                             ),
-                            SizedBox(width: 12),
-                            Text('Loading supervisors...'),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Profile Incomplete',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.orange[700],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'To claim volunteer hours, please complete your profile by setting:',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[700],
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 12),
+                            Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.school_outlined,
+                                      size: 16,
+                                      color: Colors.orange,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text('School'),
+                                  ],
+                                ),
+                                SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.person_outlined,
+                                      size: 16,
+                                      color: Colors.orange,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text('Name'),
+                                  ],
+                                ),
+                                SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.badge_outlined,
+                                      size: 16,
+                                      color: Colors.orange,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text('Student ID'),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            ModernDarkButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SettingsScreen(),
+                                  ),
+                                );
+                              },
+                              text: 'Go to Settings',
+                            ),
                           ],
                         ),
-                      )
-                    else
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () {
-                          // Unfocus when tapping outside of the input field
-                          _activitySupervisorFocusNode.unfocus();
-                        },
-                        child: Stack(
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                TextFormField(
-                                  controller: _activitySupervisorController,
-                                  focusNode: _activitySupervisorFocusNode,
-                                  decoration: InputDecoration(
-                                    hintText: 'Search or enter supervisor name',
-                                    prefixIcon: const Icon(
-                                      Icons.person_outline,
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else ...[
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _SliverHeaderDelegate(
+                  title: 'Claim Hours',
+                  height: 50,
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Select Activity Supervisor',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (_loadingActivitySupervisors)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Text('Loading supervisors...'),
+                            ],
+                          ),
+                        )
+                      else
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            // Unfocus when tapping outside of the input field
+                            _activitySupervisorFocusNode.unfocus();
+                          },
+                          child: Stack(
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  TextFormField(
+                                    controller: _activitySupervisorController,
+                                    focusNode: _activitySupervisorFocusNode,
+                                    decoration: InputDecoration(
+                                      hintText:
+                                          'Search or enter supervisor name',
+                                      prefixIcon: const Icon(
+                                        Icons.person_outline,
+                                      ),
+                                      suffixIcon:
+                                          _activitySupervisorController
+                                                  .text
+                                                  .isNotEmpty
+                                              ? IconButton(
+                                                icon: const Icon(Icons.clear),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    _activitySupervisorController
+                                                        .clear();
+                                                    _selectedActivitySupervisor =
+                                                        null;
+                                                    _isAddingNewActivitySupervisor =
+                                                        false;
+                                                  });
+                                                },
+                                              )
+                                              : null,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: BorderSide(
+                                          color: Colors.grey.withValues(
+                                            alpha: 0.3,
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                    suffixIcon:
-                                        _activitySupervisorController
-                                                .text
-                                                .isNotEmpty
-                                            ? IconButton(
-                                              icon: const Icon(Icons.clear),
-                                              onPressed: () {
-                                                setState(() {
+                                    onTap: () {
+                                      // Ensure the suggestions show up when tapping the field
+                                      setState(() {});
+                                    },
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _isAddingNewActivitySupervisor =
+                                            value.isNotEmpty &&
+                                            !_activitySupervisors.any(
+                                              (s) =>
+                                                  s.toLowerCase() ==
+                                                  value.toLowerCase(),
+                                            );
+                                      });
+                                    },
+                                  ),
+                                  if (_activitySupervisorFocusNode.hasFocus &&
+                                      _activitySupervisorController
+                                          .text
+                                          .isNotEmpty)
+                                    Container(
+                                      margin: const EdgeInsets.only(top: 4),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).cardColor,
+                                        borderRadius: BorderRadius.circular(8),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.1,
+                                            ),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          ...(_activitySupervisors
+                                              .where(
+                                                (s) => s.toLowerCase().contains(
                                                   _activitySupervisorController
-                                                      .clear();
-                                                  _selectedActivitySupervisor =
-                                                      null;
-                                                  _isAddingNewActivitySupervisor =
-                                                      false;
-                                                });
+                                                      .text
+                                                      .toLowerCase(),
+                                                ),
+                                              )
+                                              .map(
+                                                (s) => ListTile(
+                                                  leading: const Icon(
+                                                    Icons.person,
+                                                  ),
+                                                  title: Text(s),
+                                                  onTap: () {
+                                                    _handleActivitySupervisorSelection(
+                                                      s,
+                                                    );
+                                                    _activitySupervisorFocusNode
+                                                        .unfocus();
+                                                  },
+                                                ),
+                                              )),
+                                          if (_isAddingNewActivitySupervisor)
+                                            ListTile(
+                                              leading: const Icon(
+                                                Icons.add_circle_outline,
+                                              ),
+                                              title: Text(
+                                                'Add "${_activitySupervisorController.text}" as new supervisor',
+                                                style: const TextStyle(
+                                                  color: Colors.blue,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              onTap: () {
+                                                _handleAddNewActivitySupervisor(
+                                                  _activitySupervisorController
+                                                      .text,
+                                                );
+                                                _activitySupervisorFocusNode
+                                                    .unfocus();
                                               },
-                                            )
-                                            : null,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                      borderSide: BorderSide(
-                                        color: Colors.grey.withValues(
-                                          alpha: 0.3,
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Select School Supervisor',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (_loadingSchoolSupervisors)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Text('Loading supervisors...'),
+                            ],
+                          ),
+                        )
+                      else
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            // Unfocus when tapping outside of the input field
+                            _schoolSupervisorFocusNode.unfocus();
+                          },
+                          child: Stack(
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  TextFormField(
+                                    controller: _schoolSupervisorController,
+                                    focusNode: _schoolSupervisorFocusNode,
+                                    decoration: InputDecoration(
+                                      hintText:
+                                          'Search or enter supervisor name',
+                                      prefixIcon: const Icon(
+                                        Icons.person_outline,
+                                      ),
+                                      suffixIcon:
+                                          _schoolSupervisorController
+                                                  .text
+                                                  .isNotEmpty
+                                              ? IconButton(
+                                                icon: const Icon(Icons.clear),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    _schoolSupervisorController
+                                                        .clear();
+                                                    _selectedSchoolSupervisor =
+                                                        null;
+                                                    _isAddingNewSchoolSupervisor =
+                                                        false;
+                                                  });
+                                                },
+                                              )
+                                              : null,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: BorderSide(
+                                          color: Colors.grey.withValues(
+                                            alpha: 0.3,
+                                          ),
                                         ),
                                       ),
                                     ),
+                                    onTap: () {
+                                      // Ensure the suggestions show up when tapping the field
+                                      setState(() {});
+                                    },
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _isAddingNewSchoolSupervisor =
+                                            value.isNotEmpty &&
+                                            !_schoolSupervisors.any(
+                                              (s) =>
+                                                  s.toLowerCase() ==
+                                                  value.toLowerCase(),
+                                            );
+                                      });
+                                    },
                                   ),
-                                  onTap: () {
-                                    // Ensure the suggestions show up when tapping the field
-                                    setState(() {});
-                                  },
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _isAddingNewActivitySupervisor =
-                                          value.isNotEmpty &&
-                                          !_activitySupervisors.any(
-                                            (s) =>
-                                                s.toLowerCase() ==
-                                                value.toLowerCase(),
-                                          );
-                                    });
-                                  },
-                                ),
-                                if (_activitySupervisorFocusNode.hasFocus &&
-                                    _activitySupervisorController
-                                        .text
-                                        .isNotEmpty)
-                                  Container(
-                                    margin: const EdgeInsets.only(top: 4),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context).cardColor,
-                                      borderRadius: BorderRadius.circular(8),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.1,
-                                          ),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        ...(_activitySupervisors
-                                            .where(
-                                              (s) => s.toLowerCase().contains(
-                                                _activitySupervisorController
-                                                    .text
-                                                    .toLowerCase(),
-                                              ),
-                                            )
-                                            .map(
-                                              (s) => ListTile(
-                                                leading: const Icon(
-                                                  Icons.person,
-                                                ),
-                                                title: Text(s),
-                                                onTap: () {
-                                                  _handleActivitySupervisorSelection(
-                                                    s,
-                                                  );
-                                                  _activitySupervisorFocusNode
-                                                      .unfocus();
-                                                },
-                                              ),
-                                            )),
-                                        if (_isAddingNewActivitySupervisor)
-                                          ListTile(
-                                            leading: const Icon(
-                                              Icons.add_circle_outline,
+                                  if (_schoolSupervisorFocusNode.hasFocus &&
+                                      _schoolSupervisorController
+                                          .text
+                                          .isNotEmpty)
+                                    Container(
+                                      margin: const EdgeInsets.only(top: 4),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).cardColor,
+                                        borderRadius: BorderRadius.circular(8),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.1,
                                             ),
-                                            title: Text(
-                                              'Add "${_activitySupervisorController.text}" as new supervisor',
-                                              style: const TextStyle(
-                                                color: Colors.blue,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                            onTap: () {
-                                              _handleAddNewActivitySupervisor(
-                                                _activitySupervisorController
-                                                    .text,
-                                              );
-                                              _activitySupervisorFocusNode
-                                                  .unfocus();
-                                            },
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
                                           ),
-                                      ],
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Select School Supervisor',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (_loadingSchoolSupervisors)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                            SizedBox(width: 12),
-                            Text('Loading supervisors...'),
-                          ],
-                        ),
-                      )
-                    else
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () {
-                          // Unfocus when tapping outside of the input field
-                          _schoolSupervisorFocusNode.unfocus();
-                        },
-                        child: Stack(
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                TextFormField(
-                                  controller: _schoolSupervisorController,
-                                  focusNode: _schoolSupervisorFocusNode,
-                                  decoration: InputDecoration(
-                                    hintText: 'Search or enter supervisor name',
-                                    prefixIcon: const Icon(
-                                      Icons.person_outline,
-                                    ),
-                                    suffixIcon:
-                                        _schoolSupervisorController
-                                                .text
-                                                .isNotEmpty
-                                            ? IconButton(
-                                              icon: const Icon(Icons.clear),
-                                              onPressed: () {
-                                                setState(() {
+                                        ],
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          ...(_schoolSupervisors
+                                              .where(
+                                                (s) => s.toLowerCase().contains(
                                                   _schoolSupervisorController
-                                                      .clear();
-                                                  _selectedSchoolSupervisor =
-                                                      null;
-                                                  _isAddingNewSchoolSupervisor =
-                                                      false;
-                                                });
+                                                      .text
+                                                      .toLowerCase(),
+                                                ),
+                                              )
+                                              .map(
+                                                (s) => ListTile(
+                                                  leading: const Icon(
+                                                    Icons.person,
+                                                  ),
+                                                  title: Text(s),
+                                                  onTap: () {
+                                                    _handleSchoolSupervisorSelection(
+                                                      s,
+                                                    );
+                                                    _schoolSupervisorFocusNode
+                                                        .unfocus();
+                                                  },
+                                                ),
+                                              )),
+                                          if (_isAddingNewSchoolSupervisor)
+                                            ListTile(
+                                              leading: const Icon(
+                                                Icons.add_circle_outline,
+                                              ),
+                                              title: Text(
+                                                'Add "${_schoolSupervisorController.text}" as new supervisor',
+                                                style: const TextStyle(
+                                                  color: Colors.blue,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              onTap: () {
+                                                _handleAddNewSchoolSupervisor(
+                                                  _schoolSupervisorController
+                                                      .text,
+                                                );
+                                                _schoolSupervisorFocusNode
+                                                    .unfocus();
                                               },
-                                            )
-                                            : null,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                      borderSide: BorderSide(
-                                        color: Colors.grey.withValues(
-                                          alpha: 0.3,
-                                        ),
+                                            ),
+                                        ],
                                       ),
                                     ),
-                                  ),
-                                  onTap: () {
-                                    // Ensure the suggestions show up when tapping the field
-                                    setState(() {});
-                                  },
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _isAddingNewSchoolSupervisor =
-                                          value.isNotEmpty &&
-                                          !_schoolSupervisors.any(
-                                            (s) =>
-                                                s.toLowerCase() ==
-                                                value.toLowerCase(),
-                                          );
-                                    });
-                                  },
-                                ),
-                                if (_schoolSupervisorFocusNode.hasFocus &&
-                                    _schoolSupervisorController.text.isNotEmpty)
-                                  Container(
-                                    margin: const EdgeInsets.only(top: 4),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context).cardColor,
-                                      borderRadius: BorderRadius.circular(8),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.1,
-                                          ),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        ...(_schoolSupervisors
-                                            .where(
-                                              (s) => s.toLowerCase().contains(
-                                                _schoolSupervisorController.text
-                                                    .toLowerCase(),
-                                              ),
-                                            )
-                                            .map(
-                                              (s) => ListTile(
-                                                leading: const Icon(
-                                                  Icons.person,
-                                                ),
-                                                title: Text(s),
-                                                onTap: () {
-                                                  _handleSchoolSupervisorSelection(
-                                                    s,
-                                                  );
-                                                  _schoolSupervisorFocusNode
-                                                      .unfocus();
-                                                },
-                                              ),
-                                            )),
-                                        if (_isAddingNewSchoolSupervisor)
-                                          ListTile(
-                                            leading: const Icon(
-                                              Icons.add_circle_outline,
-                                            ),
-                                            title: Text(
-                                              'Add "${_schoolSupervisorController.text}" as new supervisor',
-                                              style: const TextStyle(
-                                                color: Colors.blue,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                            onTap: () {
-                                              _handleAddNewSchoolSupervisor(
-                                                _schoolSupervisorController
-                                                    .text,
-                                              );
-                                              _schoolSupervisorFocusNode
-                                                  .unfocus();
-                                            },
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ],
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    const SizedBox(height: 24),
-                    if (_activitySupervisorController.text.isNotEmpty &&
-                        _schoolSupervisorController.text.isNotEmpty)
-                      Center(
-                        child:
-                            _isSubmitting
-                                ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                  ),
-                                )
-                                : ModernDarkButton(
-                                  onPressed: () async {
-                                    if (_activitySupervisorController
-                                            .text
-                                            .isEmpty ||
-                                        _schoolSupervisorController
-                                            .text
-                                            .isEmpty) {
-                                      fToast.showToast(
-                                        child: Util.redToast(
-                                          'Please fill out both fields',
-                                        ),
-                                      );
-                                      return;
-                                    }
+                      const SizedBox(height: 24),
+                      if (_activitySupervisorController.text.isNotEmpty &&
+                          _schoolSupervisorController.text.isNotEmpty)
+                        Center(
+                          child:
+                              _isSubmitting
+                                  ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                    ),
+                                  )
+                                  : ModernDarkButton(
+                                    onPressed: () async {
+                                      if (_activitySupervisorController
+                                              .text
+                                              .isEmpty ||
+                                          _schoolSupervisorController
+                                              .text
+                                              .isEmpty) {
+                                        fToast.showToast(
+                                          child: Util.redToast(
+                                            'Please fill out both fields',
+                                          ),
+                                        );
+                                        return;
+                                      }
 
-                                    setState(() {
-                                      _isSubmitting = true;
-                                    });
-                                    await _submitHours();
-                                  },
-                                  text: 'Submit Hours',
-                                ),
-                      ),
-                    const SizedBox(height: 100),
-                  ],
+                                      setState(() {
+                                        _isSubmitting = true;
+                                      });
+                                      await _submitHours();
+                                    },
+                                    text: 'Submit Hours',
+                                  ),
+                        ),
+                      const SizedBox(height: 100),
+                    ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ],
         ),
       ),
@@ -1246,6 +1393,36 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen>
         ],
       ),
     );
+  }
+
+  Future<void> _checkUserProfileCompleteness() async {
+    try {
+      setState(() {
+        _checkingUserProfile = true;
+      });
+
+      final user = await Util.getUserModel();
+
+      // Check if all required fields are present and not empty
+      final hasSchool = user.school != null && user.school!.isNotEmpty;
+      final hasRealName = user.realName != null && user.realName!.isNotEmpty;
+      final hasStudentID = user.studentId != null && user.studentId!.isNotEmpty;
+
+      if (mounted) {
+        setState(() {
+          _isUserProfileComplete = hasSchool && hasRealName && hasStudentID;
+          _checkingUserProfile = false;
+        });
+      }
+    } catch (e) {
+      Log.e('Error checking user profile completeness: $e');
+      if (mounted) {
+        setState(() {
+          _isUserProfileComplete = false;
+          _checkingUserProfile = false;
+        });
+      }
+    }
   }
 }
 
