@@ -184,7 +184,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: 2,
-            crossAxisSpacing: 16,
+            crossAxisSpacing: 1,
             mainAxisSpacing: 16,
             childAspectRatio: 1,
             children: [

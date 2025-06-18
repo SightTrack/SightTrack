@@ -459,82 +459,78 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          const Text(
-            'Admin Settings',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
+    return Column(
+      children: [
+        // Data Management
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Data Management',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
 
-          // Data Management
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Data Management',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ListTile(
+                  leading: const Icon(Icons.download),
+                  title: const Text('Export All Data'),
+                  subtitle: Text(
+                    'Download complete data backup',
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
-                  const SizedBox(height: 16),
+                  trailing: ElevatedButton(
+                    onPressed: _exportData,
+                    child: const Text('Export'),
+                  ),
+                ),
 
-                  ListTile(
-                    leading: const Icon(Icons.download),
-                    title: const Text('Export All Data'),
-                    subtitle: const Text('Download complete data backup'),
-                    trailing: ElevatedButton(
-                      onPressed: _exportData,
-                      child: const Text('Export'),
+                ListTile(
+                  leading: const Icon(Icons.sync),
+                  title: const Text('Sync Data'),
+                  subtitle: Text(
+                    'Force synchronization with cloud',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  trailing: ElevatedButton(
+                    onPressed: _syncData,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
                     ),
+                    child: const Text('Sync'),
                   ),
-
-                  ListTile(
-                    leading: const Icon(Icons.sync),
-                    title: const Text('Sync Data'),
-                    subtitle: const Text('Force synchronization with cloud'),
-                    trailing: ElevatedButton(
-                      onPressed: _syncData,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                      ),
-                      child: const Text('Sync'),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
+        ),
 
-          const SizedBox(height: 24),
+        const SizedBox(height: 24),
 
-          // System Information
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'System Information',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
+        // System Information
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'System Information',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
 
-                  _buildInfoRow('App Version', _appVersion),
-                  _buildInfoRow('Database Version', '1.5.2'),
-                  _buildInfoRow('Last Backup', 'Today, 3:00 AM'),
-                  _buildInfoRow('Total Storage', '1.2 GB'),
-                ],
-              ),
+                _buildInfoRow('App Version', _appVersion),
+                _buildInfoRow('Database Version', '1.5.2'),
+                _buildInfoRow('Last Backup', 'Today, 3:00 AM'),
+                _buildInfoRow('Total Storage', '1.2 GB'),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

@@ -462,10 +462,11 @@ class _VolunteerHoursManagementScreenState
               const SizedBox(height: 16),
 
               // Summary Cards
-              Row(
-                children: [
-                  Expanded(
-                    child: Card(
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    Card(
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -486,10 +487,8 @@ class _VolunteerHoursManagementScreenState
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Card(
+                    const SizedBox(width: 8),
+                    Card(
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -510,10 +509,8 @@ class _VolunteerHoursManagementScreenState
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Card(
+                    const SizedBox(width: 8),
+                    Card(
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -534,8 +531,8 @@ class _VolunteerHoursManagementScreenState
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),

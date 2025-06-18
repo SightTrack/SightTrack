@@ -423,126 +423,87 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             const SizedBox(height: 18),
                             // Badges & Stats
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                FutureBuilder<bool>(
-                                  future: Util.isAdmin(),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState ==
-                                        ConnectionState.waiting) {
-                                      return const SizedBox(
-                                        height: 24,
-                                        width: 24,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                Colors.white,
-                                              ),
-                                        ),
-                                      );
-                                    }
-                                    if (snapshot.hasData &&
-                                        snapshot.data == true) {
-                                      return Padding(
-                                        padding: const EdgeInsets.only(
-                                          right: 8,
-                                        ),
-                                        child: InkWell(
-                                          borderRadius: BorderRadius.circular(
-                                            10,
-                                          ),
-                                          onTap: _showAdminPanelDialog,
-                                          child: Chip(
-                                            label: Row(
-                                              children: const [
-                                                Icon(
-                                                  Icons.verified_user,
-                                                  color: Colors.orange,
-                                                  size: 18,
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  FutureBuilder<bool>(
+                                    future: Util.isAdmin(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return const SizedBox(
+                                          height: 24,
+                                          width: 24,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                  Colors.white,
                                                 ),
-                                                SizedBox(width: 4),
-                                                Text(
-                                                  'Admin User',
-                                                  style: TextStyle(
+                                          ),
+                                        );
+                                      }
+                                      if (snapshot.hasData &&
+                                          snapshot.data == true) {
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                            right: 8,
+                                          ),
+                                          child: InkWell(
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                            onTap: _showAdminPanelDialog,
+                                            child: Chip(
+                                              label: Row(
+                                                children: const [
+                                                  Icon(
+                                                    Icons.verified_user,
                                                     color: Colors.orange,
-                                                    fontWeight: FontWeight.w600,
+                                                    size: 18,
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                    return const SizedBox.shrink();
-                                  },
-                                ),
-                                if (_isAreaCaptureActive)
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 8),
-                                    child: Chip(
-                                      backgroundColor: Colors.grey[800]!
-                                          .withValues(alpha: 0.99),
-                                      label: Row(
-                                        children: const [
-                                          Icon(
-                                            Icons.location_on,
-                                            color: Colors.green,
-                                            size: 18,
-                                          ),
-                                          SizedBox(width: 4),
-                                          Text(
-                                            'Area Capture Active',
-                                            style: TextStyle(
-                                              color: Colors.green,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                  ),
-                                FutureBuilder<int>(
-                                  future: getTotalSightingNumber(),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState ==
-                                        ConnectionState.waiting) {
-                                      return const SizedBox(
-                                        height: 24,
-                                        width: 24,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                Colors.white,
+                                                  SizedBox(width: 4),
+                                                  Text(
+                                                    'Admin User',
+                                                    style: TextStyle(
+                                                      color: Colors.orange,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                        ),
-                                      );
-                                    }
-                                    if (snapshot.hasData) {
-                                      return Chip(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                      return const SizedBox.shrink();
+                                    },
+                                  ),
+                                  if (_isAreaCaptureActive)
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 8),
+                                      child: Chip(
                                         label: Row(
-                                          children: [
-                                            const Icon(
-                                              Icons.visibility,
+                                          children: const [
+                                            Icon(
+                                              Icons.location_on,
+                                              color: Colors.green,
                                               size: 18,
                                             ),
-                                            const SizedBox(width: 4),
+                                            SizedBox(width: 4),
                                             Text(
-                                              'Sightings: ${snapshot.data}',
-                                              style:
-                                                  Theme.of(
-                                                    context,
-                                                  ).textTheme.bodyMedium,
+                                              'Area Capture Active',
+                                              style: TextStyle(
+                                                color: Colors.green,
+                                                fontWeight: FontWeight.w600,
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -551,12 +512,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             10,
                                           ),
                                         ),
-                                      );
-                                    }
-                                    return const SizedBox.shrink();
-                                  },
-                                ),
-                              ],
+                                      ),
+                                    ),
+                                  FutureBuilder<int>(
+                                    future: getTotalSightingNumber(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return const SizedBox(
+                                          height: 24,
+                                          width: 24,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                  Colors.white,
+                                                ),
+                                          ),
+                                        );
+                                      }
+                                      if (snapshot.hasData) {
+                                        return Chip(
+                                          label: Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.visibility,
+                                                size: 18,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                'Sightings: ${snapshot.data}',
+                                                style:
+                                                    Theme.of(
+                                                      context,
+                                                    ).textTheme.bodyMedium,
+                                              ),
+                                            ],
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                      return const SizedBox.shrink();
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
                             const SizedBox(height: 18),
                             // Info Rows

@@ -81,33 +81,36 @@ class _AdminDashboardState extends State<AdminDashboard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Stats Grid
-          Row(
-            children: [
-              _buildStatCard(
-                'Total Users',
-                '${_stats['users'] ?? 0}',
-                Icons.people,
-                Colors.blue,
-              ),
-              _buildStatCard(
-                'Total Sightings',
-                '${_stats['sightings'] ?? 0}',
-                Icons.camera_alt,
-                Colors.green,
-              ),
-              _buildStatCard(
-                'Species Recorded',
-                '${_stats['species'] ?? 0}',
-                Icons.pets,
-                Colors.orange,
-              ),
-              _buildStatCard(
-                'Volunteer Hours',
-                '${_stats['hours'] ?? 0}h',
-                Icons.volunteer_activism,
-                Colors.purple,
-              ),
-            ],
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildStatCard(
+                  'Total Users',
+                  '${_stats['users'] ?? 0}',
+                  Icons.people,
+                  Colors.blue,
+                ),
+                _buildStatCard(
+                  'Total Sightings',
+                  '${_stats['sightings'] ?? 0}',
+                  Icons.camera_alt,
+                  Colors.green,
+                ),
+                _buildStatCard(
+                  'Species Recorded',
+                  '${_stats['species'] ?? 0}',
+                  Icons.pets,
+                  Colors.orange,
+                ),
+                _buildStatCard(
+                  'Volunteer Hours',
+                  '${_stats['hours'] ?? 0}h',
+                  Icons.volunteer_activism,
+                  Colors.purple,
+                ),
+              ],
+            ),
           ),
 
           const SizedBox(height: 32),
