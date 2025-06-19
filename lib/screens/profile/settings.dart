@@ -483,27 +483,28 @@ class _EditFieldPageState extends State<EditFieldPage> {
                       !RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value.trim())) {
                     return 'Enter a valid email';
                   }
-                  if (widget.field == 'Age') {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Age cannot be empty';
-                    }
-                    final age = int.tryParse(value);
-                    if (age == null || age < 1 || age > 120) {
-                      return 'Enter a valid age (1-120)';
-                    }
-                  }
-                  if (widget.field == 'School' &&
-                      (value != null && value.trim().isEmpty)) {
-                    return 'Enter a valid school';
-                  }
-                  if (widget.field == 'Student ID' &&
-                      (value != null && value.trim().isEmpty)) {
-                    return 'Enter a valid student ID';
-                  }
-                  if (widget.field == 'Name' &&
-                      (value != null && value.trim().isEmpty)) {
-                    return 'Enter a valid name';
-                  }
+                  // These are all optional, so they can be empty
+                  // if (widget.field == 'Age') {
+                  //   if (value == null || value.trim().isEmpty) {
+                  //     return 'Age cannot be empty';
+                  //   }
+                  //   final age = int.tryParse(value);
+                  //   if (age == null || age < 1 || age > 120) {
+                  //     return 'Enter a valid age (1-120)';
+                  //   }
+                  // }
+                  // if (widget.field == 'School' &&
+                  //     (value != null && value.trim().isEmpty)) {
+                  //   return 'Enter a valid school';
+                  // }
+                  // if (widget.field == 'Student ID' &&
+                  //     (value != null && value.trim().isEmpty)) {
+                  //   return 'Enter a valid student ID';
+                  // }
+                  // if (widget.field == 'Name' &&
+                  //     (value != null && value.trim().isEmpty)) {
+                  //   return 'Enter a valid name';
+                  // }
                   return null;
                 },
               ),

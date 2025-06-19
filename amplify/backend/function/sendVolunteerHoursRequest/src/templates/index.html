@@ -11,7 +11,6 @@
 		body {
 			margin: 0;
 			background-color: #f8f9fa;
-			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 		}
 
 		table {
@@ -39,7 +38,7 @@
 			width: 100%;
 			max-width: 650px;
 			border-spacing: 0;
-			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			font-family: "Times New Roman", Times, serif;
 			color: #2c3e50;
 			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 			border-radius: 8px;
@@ -47,8 +46,7 @@
 		}
 
 		.header-section {
-			background: linear-gradient(135deg, #27ae60, #2ecc71);
-			padding: 30px 20px;
+			padding: 30px 20px 15px 20px;
 			text-align: center;
 		}
 
@@ -57,7 +55,6 @@
 		}
 
 		.greeting {
-			color: #ffffff;
 			font-size: 24px;
 			font-weight: 600;
 			margin: 0 0 15px 0;
@@ -65,7 +62,6 @@
 		}
 
 		.intro-text {
-			color: #ffffff;
 			font-size: 16px;
 			line-height: 24px;
 			margin: 0;
@@ -73,7 +69,7 @@
 		}
 
 		.content-section {
-			padding: 40px 30px;
+			padding: 20px 30px 40px 30px;
 			background-color: #ffffff;
 		}
 
@@ -134,7 +130,7 @@
 			color: #ffffff;
 			padding: 25px;
 			border-radius: 8px;
-			margin: 30px 0;
+			margin: 0 0 30px 0;
 			text-align: center;
 		}
 
@@ -265,7 +261,7 @@
 			<tr>
 				<td class="header-section">
 					<div class="logo-container">
-						<img src="https://i.ibb.co/mC9x1RR1/sighttracklogo.png" alt="SightTrack Logo" width="100"
+						<img src="https://i.ibb.co/1Yh7GBxQ/logo-transparent.png" alt="SightTrack Logo" width="100"
 							title="SightTrack">
 					</div>
 					<h1 class="greeting">Dear Supervisors,</h1>
@@ -273,6 +269,23 @@
 						We have received a new volunteer hours request from our SightTrack citizen science platform that
 						requires your review and approval.
 					</p>
+
+					<!-- WHAT IS SIGHTTRACK SECTION -->
+					<div
+						style="background-color: #f8f9fa; padding: 20px; border-radius: 6px; margin: 25px 0 0 0; text-align: left;">
+						<h3 style="color: #27ae60; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">What is
+							SightTrack?</h3>
+						<p style="font-size: 14px; line-height: 22px; color: #5a6c7d; margin: 0;">
+							SightTrack is a citizen science platform that engages volunteers in wildlife conservation by
+							documenting
+							and tracking wildlife sightings. Participants contribute valuable data for research and
+							conservation efforts
+							while earning volunteer hours for their academic and professional development. Our platform
+							validates and
+							calculates volunteer hours based on the time, effort, and scientific value of each
+							contribution.
+						</p>
+					</div>
 				</td>
 			</tr>
 
@@ -294,19 +307,18 @@
 					<h2 class="section-title">Request Details</h2>
 					<div class="info-grid">
 						<div class="info-column">
-							<h3 class="info-title">👤 Volunteer Information</h3>
-							<div class="info-item"><span class="info-label">Volunteer Name:</span> {{ volunteer_name }}
-							</div>
+							<h3 class="info-title">Volunteer Information</h3>
+							<div class="info-item"><span class="info-label">Name:</span> {{ volunteer_name }}</div>
 							<div class="info-item"><span class="info-label">Email:</span> {{ volunteer_email }}</div>
 							<div class="info-item"><span class="info-label">Student ID:</span> {{ student_id }}</div>
-							<div class="info-item"><span class="info-label">School:</span> {{ school_name }}
+							<div class="info-item"><span class="info-label">Institution:</span> {{ institution_name }}
 							</div>
 							<div class="info-item"><span class="info-label">Submission Date:</span> {{ submission_date
 								}}
 							</div>
 						</div>
 						<div class="info-column">
-							<h3 class="info-title">🦅 Sightings Information</h3>
+							<h3 class="info-title">Sighting Information</h3>
 							<div class="info-item"><span class="info-label">Total Sightings:</span> {{ total_sightings
 								}}
 							</div>
@@ -320,7 +332,7 @@
 					</div>
 
 					<!-- DETAILED SIGHTINGS -->
-					<h2 class="section-title">Sighting Details</h2>
+					<h2 class="section-title">Detailed Sighting Records</h2>
 					<div style="background-color: #f8f9fa; padding: 20px; border-radius: 6px; margin: 20px 0;">
 						{% for sighting in sightings %}
 						<div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #dee2e6;">
@@ -340,7 +352,7 @@
 
 					<!-- HOURS CALCULATION -->
 					<div class="hours-calculation">
-						<h3 class="calculation-title">📊 How Volunteer Hours Are Calculated</h3>
+						<h3 class="calculation-title">Volunteer Hours Calculation Methodology</h3>
 						<div class="calculation-item">Base time allocation: {{ base_time_per_sighting }} minutes per
 							wildlife sighting</div>
 						<div class="calculation-item">Description bonus: +{{ description_bonus_per_chars }} minutes per
@@ -358,27 +370,27 @@
 			<!-- NEXT STEPS SECTION -->
 			<tr>
 				<td class="next-steps">
-					<h2 class="next-steps-title">🎯 Action Required</h2>
+					<h2 class="next-steps-title">Required Action</h2>
 					<p class="next-steps-text">
 						Please review this volunteer hours request and verify the submitted information. This student
 						has contributed valuable data to wildlife conservation and research through citizen science
 						efforts.
 					</p>
 					<p class="next-steps-text">
-						<strong>To approve:</strong> Reply to this email with "APPROVED" and any additional
+						<strong>To approve this request:</strong> Reply to this email with "APPROVED" and any additional
 						comments.<br>
-						<strong>To request changes:</strong> Reply with specific feedback or questions.<br>
-						<strong>To deny:</strong> Reply with "DENIED" and reason for denial.
+						<strong>To request modifications:</strong> Reply with specific feedback or questions.<br>
+						<strong>To deny this request:</strong> Reply with "DENIED" and provide reason for denial.
 					</p>
 					<p class="next-steps-text">
-						If you have any questions about this request or need additional documentation, please don't
-						hesitate to contact our volunteer coordination team.
+						If you require additional documentation or have questions regarding this request, please contact
+						our volunteer coordination team for assistance.
 					</p>
 
 					<div class="signature">
 						<div class="signature-line"><strong>SightTrack Volunteer Hours System</strong></div>
-						<div class="signature-line">📧 volunteer@sighttrack.org</div>
-						<div class="signature-line">🌐 www.sighttrack.org</div>
+						<div class="signature-line">Email: volunteer@sighttrack.org</div>
+						<div class="signature-line">Website: www.sighttrack.org</div>
 						<br>
 						<div class="signature-line">This is an automated message from the SightTrack platform.</div>
 					</div>

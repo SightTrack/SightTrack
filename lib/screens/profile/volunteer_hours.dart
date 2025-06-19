@@ -807,13 +807,15 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen>
                             ),
                             const SizedBox(height: 16),
                             ModernDarkButton(
-                              onPressed: () {
-                                Navigator.push(
+                              onPressed: () async {
+                                await Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => SettingsScreen(),
                                   ),
                                 );
+                                // Re-check profile completeness when returning from settings
+                                _checkUserProfileCompleteness();
                               },
                               text: 'Go to Settings',
                             ),
@@ -1292,21 +1294,24 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen>
           user,
         );
 
-        setState(() {
-          _isSubmitting = false;
-        });
-
-        // Show success message
-        fToast.showToast(
-          child: Util.greenToast('Sent volunteer hours request'),
-          toastDuration: const Duration(seconds: 3),
-        );
-
         // Update isTimeClaimed to true for all unclaimed sightings
         for (Sighting sighting in _allUnclaimedSightings) {
           final updatedSighting = sighting.copyWith(isTimeClaimed: true);
           await Amplify.DataStore.save(updatedSighting);
         }
+
+        // Show success message first
+        fToast.showToast(
+          child: Util.greenToast('Sent volunteer hours request'),
+          toastDuration: const Duration(seconds: 3),
+        );
+
+        // Wait a bit for toast to show
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        setState(() {
+          _isSubmitting = false;
+        });
 
         // Clear the form
         _activitySupervisorController.clear();
