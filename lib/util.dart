@@ -2,6 +2,8 @@ import 'package:sighttrack/barrel.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 
 class Util {
   Util._(); // Prevent instantiation
@@ -190,6 +192,33 @@ class Util {
     } catch (e) {
       Log.e('getCityName() failed: $e');
       return 'Unknown City';
+    }
+  }
+
+  /// Copy an asset to a temporary file and return the file path
+  /// This is used in debug mode to make assets available as regular files
+  static Future<String> copyAssetToTempFile(String assetPath) async {
+    try {
+      // Load the asset
+      final ByteData assetData = await rootBundle.load(assetPath);
+      final Uint8List bytes = assetData.buffer.asUint8List();
+
+      // Get the temporary directory
+      final Directory tempDir = await getTemporaryDirectory();
+
+      // Create a unique temporary file name
+      final String fileName = assetPath.split('/').last;
+      final String tempPath = '${tempDir.path}/$fileName';
+
+      // Write the asset data to the temporary file
+      final File tempFile = File(tempPath);
+      await tempFile.writeAsBytes(bytes);
+
+      Log.i('Asset copied to temporary file: $tempPath');
+      return tempPath;
+    } catch (e) {
+      Log.e('Failed to copy asset to temp file: $e');
+      rethrow;
     }
   }
 

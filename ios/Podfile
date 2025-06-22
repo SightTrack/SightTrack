@@ -39,16 +39,5 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
-    if target.name == 'MapboxMobileEvents'
-      `xcrun -sdk iphoneos bitcode_strip -r Pods/MapboxMobileEvents/MapboxMobileEvents.xcframework/ios-arm64_armv7/MapboxMobileEvents.framework/MapboxMobileEvents -o Pods/MapboxMobileEvents/MapboxMobileEvents.xcframework/ios-arm64_armv7/MapboxMobileEvents.framework/MapboxMobileEvents`
-    end
-
-    if target.name == 'MapboxCommon'
-      `xcrun -sdk iphoneos bitcode_strip -r Pods/MapboxCommon/MapboxCommon.xcframework/ios-arm64/MapboxCommon.framework/MapboxCommon -o Pods/MapboxCommon/MapboxCommon.xcframework/ios-arm64/MapboxCommon.framework/MapboxCommon`
-    end
-
-    if target.name == 'MapboxCoreMaps'
-      `xcrun -sdk iphoneos bitcode_strip -r Pods/MapboxCoreMaps/MapboxCoreMaps.xcframework/ios-arm64/MapboxCoreMaps.framework/MapboxCoreMaps -o Pods/MapboxCoreMaps/MapboxCoreMaps.xcframework/ios-arm64/MapboxCoreMaps.framework/MapboxCoreMaps`
-    end
   end
 end

@@ -7,20 +7,16 @@ PODS:
     - amplify_datastore/AWSDataStorePlugin (= 0.0.1)
     - amplify_datastore/AWSPluginsCore (= 0.0.1)
     - Flutter
-    - Starscream (= 4.0.4)
   - amplify_datastore/Amplify (0.0.1):
     - Flutter
-    - Starscream (= 4.0.4)
   - amplify_datastore/AWSDataStorePlugin (0.0.1):
     - amplify_datastore/Amplify
     - amplify_datastore/AWSPluginsCore
     - Flutter
     - SQLite.swift (= 0.13.2)
-    - Starscream (= 4.0.4)
   - amplify_datastore/AWSPluginsCore (0.0.1):
     - amplify_datastore/Amplify
     - Flutter
-    - Starscream (= 4.0.4)
   - amplify_secure_storage (0.0.1):
     - Flutter
   - camera_avfoundation (0.0.1):
@@ -37,19 +33,22 @@ PODS:
   - geolocator_apple (1.2.0):
     - Flutter
     - FlutterMacOS
+  - image_cropper (0.0.4):
+    - Flutter
+    - TOCropViewController (~> 2.7.4)
   - image_picker_ios (0.0.1):
     - Flutter
-  - mapbox_maps_flutter (2.8.0-beta.1):
+  - mapbox_maps_flutter (2.9.0):
     - Flutter
-    - MapboxMaps (= 11.12.0-beta.1)
+    - MapboxMaps (= 11.13.0)
     - Turf (= 4.0.0)
-  - MapboxCommon (24.12.0-beta.1):
+  - MapboxCommon (24.13.0):
     - Turf (= 4.0.0)
-  - MapboxCoreMaps (11.12.0-beta.1):
-    - MapboxCommon (= 24.12.0-beta.1)
-  - MapboxMaps (11.12.0-beta.1):
-    - MapboxCommon (= 24.12.0-beta.1)
-    - MapboxCoreMaps (= 11.12.0-beta.1)
+  - MapboxCoreMaps (11.13.0):
+    - MapboxCommon (= 24.13.0)
+  - MapboxMaps (11.13.0):
+    - MapboxCommon (= 24.13.0)
+    - MapboxCoreMaps (= 11.13.0)
     - Turf (= 4.0.0)
   - package_info_plus (0.4.5):
     - Flutter
@@ -61,7 +60,7 @@ PODS:
   - SQLite.swift (0.13.2):
     - SQLite.swift/standard (= 0.13.2)
   - SQLite.swift/standard (0.13.2)
-  - Starscream (4.0.4)
+  - TOCropViewController (2.7.4)
   - Turf (4.0.0)
   - url_launcher_ios (0.0.1):
     - Flutter
@@ -77,6 +76,7 @@ DEPENDENCIES:
   - fluttertoast (from `.symlinks/plugins/fluttertoast/ios`)
   - geocoding_ios (from `.symlinks/plugins/geocoding_ios/ios`)
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/darwin`)
+  - image_cropper (from `.symlinks/plugins/image_cropper/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - mapbox_maps_flutter (from `.symlinks/plugins/mapbox_maps_flutter/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
@@ -90,7 +90,7 @@ SPEC REPOS:
     - MapboxCoreMaps
     - MapboxMaps
     - SQLite.swift
-    - Starscream
+    - TOCropViewController
     - Turf
 
 EXTERNAL SOURCES:
@@ -114,6 +114,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/geocoding_ios/ios"
   geolocator_apple:
     :path: ".symlinks/plugins/geolocator_apple/darwin"
+  image_cropper:
+    :path: ".symlinks/plugins/image_cropper/ios"
   image_picker_ios:
     :path: ".symlinks/plugins/image_picker_ios/ios"
   mapbox_maps_flutter:
@@ -129,28 +131,29 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   amplify_auth_cognito: a5d9cb77abfbe05e3501ad0c45dddc81503e7074
-  amplify_datastore: 76d1c44680ca218f604e846c9bf5dac2901ddf9d
+  amplify_datastore: f22d9ef0aeffd42cbcd3fc455f2269cd86cc66e1
   amplify_secure_storage: 3edc30177ffefbcee786c408a21c02f8ab9f168e
   camera_avfoundation: be3be85408cd4126f250386828e9b1dfa40ab436
   connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
-  device_info_plus: 71ffc6ab7634ade6267c7a93088ed7e4f74e5896
+  device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   fluttertoast: 2c67e14dce98bbdb200df9e1acf610d7a6264ea1
   geocoding_ios: bcbdaa6bddd7d3129c9bcb8acddc5d8778689768
   geolocator_apple: ab36aa0e8b7d7a2d7639b3b4e48308394e8cef5e
+  image_cropper: 5f162dcf988100dc1513f9c6b7eb42cd6fbf9156
   image_picker_ios: 7fe1ff8e34c1790d6fff70a32484959f563a928a
-  mapbox_maps_flutter: dd21725da85f22d57dcb7952c6e5f5d64e535073
-  MapboxCommon: bc97a1f8e57e48db93c6f17e815a8d4d832bd4be
-  MapboxCoreMaps: 717b0506745dc1d3a987493960c6bf68823c363c
-  MapboxMaps: 6ec576d38eb51892bd3e746432a5239eb5f2f862
+  mapbox_maps_flutter: 36bce1e084f6aca22ea3a58a35429fda15be29fc
+  MapboxCommon: 5f918338024f4f33a07013dbc51ab222a1d41a7c
+  MapboxCoreMaps: 8bf3572e446be27508bfba0b4580ad5e9b1a577d
+  MapboxMaps: c553f390b0e0eed0cc68710a6cee7ba5fa3143b3
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   SQLite.swift: 4fc2be46c36392e3b87afe6fe7f1801c1daa07ef
-  Starscream: 5178aed56b316f13fa3bc55694e583d35dd414d9
+  TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
   Turf: c9eb11a65d96af58cac523460fd40fec5061b081
   url_launcher_ios: 694010445543906933d732453a59da0a173ae33d
 
-PODFILE CHECKSUM: 0dd524b8f9ed7b5c8dadb3f0c292ee518cd339f2
+PODFILE CHECKSUM: 1857a7cdb7dfafe45f2b0e9a9af44644190f7506
 
 COCOAPODS: 1.16.2

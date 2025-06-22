@@ -80,12 +80,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Select Location'),
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Select Location')),
       body: Stack(
         children: [
           mapbox.MapWidget(
@@ -107,27 +102,26 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
             child: Icon(Icons.location_pin, color: Colors.red, size: 40),
           ),
           Positioned(
-            bottom: 20,
-            left: 20,
-            right: 20,
-            child: ElevatedButton(
-              onPressed: () {
-                Log.i(
-                  'Custom location set, returning: ${_selectedPosition?.latitude}, ${_selectedPosition?.longitude}',
-                );
-                Navigator.pop(context, _selectedPosition);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.greenAccent,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).padding.bottom + 32,
+                left: 20,
+                right: 20,
               ),
-              child: const Text(
-                'Confirm Location',
-                style: TextStyle(fontSize: 16),
+              child: Center(
+                child: ModernDarkButton(
+                  width: 150,
+                  text: 'Continue',
+                  onPressed: () {
+                    Log.i(
+                      'Custom location set, returning: ${_selectedPosition?.latitude}, ${_selectedPosition?.longitude}',
+                    );
+                    Navigator.pop(context, _selectedPosition);
+                  },
+                ),
               ),
             ),
           ),
