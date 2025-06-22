@@ -154,7 +154,7 @@ class _AreaCaptureHomeState extends State<AreaCaptureHome>
     }
   }
 
-  Future<void> _addImageToSession(String imagePath) async {
+  Future<void> _addSightingToSession(Map<String, dynamic> sightingData) async {
     if (!mounted) return;
 
     setState(() {
@@ -162,37 +162,22 @@ class _AreaCaptureHomeState extends State<AreaCaptureHome>
     });
 
     try {
-      final position = await Util.getCurrentPosition();
-      final now = DateTime.now();
-      final key = 'photos/${UUID.getUUID()}.jpg';
+      // Extract sighting and local path from the data
+      final sighting = sightingData['sighting'] as Sighting;
+      final localPath = sightingData['localPath'] as String;
 
-      // Create the sighting object
-      final sighting = Sighting(
-        species: await Util.doAWSRekognitionCall(
-          imagePath,
-        ).then((value) => value[0]),
-        photo: key,
-        latitude: position.latitude,
-        longitude: position.longitude,
-        displayLatitude: position.latitude,
-        displayLongitude: position.longitude,
-        city: await Util.getCityName(position.latitude, position.longitude),
-        timestamp: TemporalDateTime(now),
-        description: 'Captured during area capture session',
-        isTimeClaimed: false,
-      );
-
+      // Add to session sightings
       if (mounted) {
         setState(() {
-          _sessionSightings.add({'sighting': sighting, 'localPath': imagePath});
+          _sessionSightings.add({'sighting': sighting, 'localPath': localPath});
           _isProcessingImage = false;
         });
       }
 
       // Upload to S3
       Amplify.Storage.uploadFile(
-        localFile: AWSFile.fromPath(imagePath),
-        path: StoragePath.fromString(key),
+        localFile: AWSFile.fromPath(localPath),
+        path: StoragePath.fromString(sighting.photo),
       );
 
       // Show success feedback
@@ -200,7 +185,7 @@ class _AreaCaptureHomeState extends State<AreaCaptureHome>
         try {
           fToast.init(context);
           fToast.showToast(
-            child: Util.greenToast('Photo captured successfully!'),
+            child: Util.greenToast('Sighting added to session!'),
             gravity: ToastGravity.BOTTOM,
             toastDuration: Duration(seconds: 2),
           );
@@ -215,12 +200,12 @@ class _AreaCaptureHomeState extends State<AreaCaptureHome>
           _isProcessingImage = false;
         });
       }
-      Log.e('Error adding image to session: $e');
+      Log.e('Error adding sighting to session: $e');
       if (mounted) {
         try {
           fToast.init(context);
           fToast.showToast(
-            child: Util.redToast('Failed to process photo'),
+            child: Util.redToast('Failed to add sighting to session'),
             gravity: ToastGravity.BOTTOM,
             toastDuration: Duration(seconds: 3),
           );
@@ -689,9 +674,9 @@ class _AreaCaptureHomeState extends State<AreaCaptureHome>
                       ),
                     );
 
-                    // Handle the returned image path
-                    if (result != null && result is String) {
-                      await _addImageToSession(result);
+                    // Handle the returned sighting data
+                    if (result != null && result is Map<String, dynamic>) {
+                      await _addSightingToSession(result);
                     }
                   },
                 ),

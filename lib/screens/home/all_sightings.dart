@@ -11,20 +11,47 @@ class AllSightingsScreen extends StatefulWidget {
 
 class _AllSightingsScreenState extends State<AllSightingsScreen> {
   List<Sighting> sightings = [];
+  List<Sighting> filteredSightings = [];
   bool isLoading = true;
   late StreamSubscription _subscription;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _fetchAllSightings();
     _setupSubscription();
+    _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
     _subscription.cancel();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged() {
+    setState(() {
+      _searchQuery = _searchController.text.toLowerCase();
+      _filterSightings();
+    });
+  }
+
+  void _filterSightings() {
+    if (_searchQuery.isEmpty) {
+      filteredSightings = List.from(sightings);
+    } else {
+      filteredSightings =
+          sightings.where((sighting) {
+            final species = sighting.species.toLowerCase();
+            final username =
+                (sighting.user?.display_username ?? '').toLowerCase();
+            return species.contains(_searchQuery) ||
+                username.contains(_searchQuery);
+          }).toList();
+    }
   }
 
   Future<void> _fetchAllSightings() async {
@@ -37,6 +64,7 @@ class _AllSightingsScreenState extends State<AllSightingsScreen> {
                 a.timestamp.getDateTimeInUtc(),
               ),
             );
+        _filterSightings();
         isLoading = false;
       });
     } catch (e) {
@@ -73,6 +101,7 @@ class _AllSightingsScreenState extends State<AllSightingsScreen> {
             );
           }
         }
+        _filterSightings();
       });
     }, onError: (e) => Log.e('Error in DataStore subscription: $e'));
   }
@@ -85,113 +114,155 @@ class _AllSightingsScreenState extends State<AllSightingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('All Sightings')),
-      body: Container(
-        // color: Colors.grey[100],
-        child:
-            isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : sightings.isEmpty
-                ? const Center(
-                  child: Text(
-                    'No sightings found',
-                    style: TextStyle(fontSize: 16.0, color: Colors.grey),
-                  ),
-                )
-                : RefreshIndicator(
-                  onRefresh: _refreshSightings,
-                  child: ListView.builder(
-                    padding: EdgeInsets.zero,
-                    itemCount: sightings.length,
-                    itemBuilder: (context, index) {
-                      final sighting = sightings[index];
-                      return Material(
-                        // color: Colors.white,
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) =>
-                                        ViewSightingScreen(sighting: sighting),
-                              ),
-                            );
+      body: Column(
+        children: [
+          // Fixed search bar
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search by species or user...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon:
+                    _searchQuery.isNotEmpty
+                        ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
                           },
-                          splashColor: Colors.blueGrey.withValues(alpha: 0.1),
-                          highlightColor: Colors.grey.withValues(alpha: 0.05),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0,
-                              vertical: 12.0,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: Colors.grey.shade200,
-                                  width: 0.1,
+                        )
+                        : null,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 12.0,
+                ),
+              ),
+            ),
+          ),
+          // Sightings list
+          Expanded(
+            child: Container(
+              child:
+                  isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : filteredSightings.isEmpty
+                      ? Center(
+                        child: Text(
+                          _searchQuery.isEmpty
+                              ? 'No sightings found'
+                              : 'No sightings match your search',
+                          style: TextStyle(fontSize: 16.0, color: Colors.grey),
+                        ),
+                      )
+                      : RefreshIndicator(
+                        onRefresh: _refreshSightings,
+                        child: ListView.builder(
+                          padding: EdgeInsets.zero,
+                          itemCount: filteredSightings.length,
+                          itemBuilder: (context, index) {
+                            final sighting = filteredSightings[index];
+                            return Material(
+                              // color: Colors.white,
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => ViewSightingScreen(
+                                            sighting: sighting,
+                                          ),
+                                    ),
+                                  );
+                                },
+                                splashColor: Colors.blueGrey.withValues(
+                                  alpha: 0.1,
                                 ),
-                              ),
-                              boxShadow: [
-                                // if (index == 0)
-                                //   BoxShadow(
-                                //     color: Colors.grey.withValues(alpha: 0.05),
-                                //     offset: const Offset(0, 1),
-                                //     blurRadius: 2.0,
-                                //   ),
-                              ],
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: Text(
-                                    sighting.species,
-                                    style:
-                                        Theme.of(context).textTheme.titleMedium,
-                                    overflow: TextOverflow.ellipsis,
+                                highlightColor: Colors.grey.withValues(
+                                  alpha: 0.05,
+                                ),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0,
+                                    vertical: 12.0,
                                   ),
-                                ),
-                                Expanded(
-                                  flex: 3,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        sighting.user?.display_username ??
-                                            'Unknown',
-                                        style:
-                                            Theme.of(
-                                              context,
-                                            ).textTheme.bodyMedium,
-                                        overflow: TextOverflow.ellipsis,
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        color: Colors.grey.shade200,
+                                        width: 0.1,
                                       ),
-                                      const SizedBox(height: 2.0),
-                                      Text(
-                                        DateFormat('MMM dd, HH:mm').format(
-                                          sighting.timestamp
-                                              .getDateTimeInUtc()
-                                              .toLocal(),
+                                    ),
+                                    boxShadow: [
+                                      // if (index == 0)
+                                      //   BoxShadow(
+                                      //     color: Colors.grey.withValues(alpha: 0.05),
+                                      //     offset: const Offset(0, 1),
+                                      //     blurRadius: 2.0,
+                                      //   ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Expanded(
+                                        flex: 2,
+                                        child: Text(
+                                          sighting.species,
+                                          style:
+                                              Theme.of(
+                                                context,
+                                              ).textTheme.titleMedium,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        style:
-                                            Theme.of(
-                                              context,
-                                            ).textTheme.bodySmall,
-                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Expanded(
+                                        flex: 3,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              sighting.user?.display_username ??
+                                                  'Unknown',
+                                              style:
+                                                  Theme.of(
+                                                    context,
+                                                  ).textTheme.bodyMedium,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 2.0),
+                                            Text(
+                                              DateFormat(
+                                                'MMM dd, HH:mm',
+                                              ).format(
+                                                sighting.timestamp
+                                                    .getDateTimeInUtc()
+                                                    .toLocal(),
+                                              ),
+                                              style:
+                                                  Theme.of(
+                                                    context,
+                                                  ).textTheme.bodySmall,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
-                ),
+                      ),
+            ),
+          ),
+        ],
       ),
     );
   }

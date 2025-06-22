@@ -129,38 +129,38 @@ class Util {
     return await Geolocator.getCurrentPosition();
   }
 
-  static Future<List<String>> doAWSRekognitionCall(String imagePath) async {
-    try {
-      final imageFile = File(imagePath);
-      final imageBytes = await imageFile.readAsBytes();
-      final base64Image = base64Encode(imageBytes);
-      final requestBody = jsonEncode({'image': base64Image});
+  // static Future<List<String>> doAWSRekognitionCall(String imagePath) async {
+  //   try {
+  //     final imageFile = File(imagePath);
+  //     final imageBytes = await imageFile.readAsBytes();
+  //     final base64Image = base64Encode(imageBytes);
+  //     final requestBody = jsonEncode({'image': base64Image});
 
-      final response =
-          await Amplify.API
-              .post(
-                '/analyze',
-                body: HttpPayload.json(requestBody),
-                headers: {'Content-Type': 'application/json'},
-              )
-              .response;
+  //     final response =
+  //         await Amplify.API
+  //             .post(
+  //               '/analyze',
+  //               body: HttpPayload.json(requestBody),
+  //               headers: {'Content-Type': 'application/json'},
+  //             )
+  //             .response;
 
-      final responseBody = jsonDecode(response.decodeBody());
-      final labels =
-          (responseBody['labels'] as List)
-              .map((label) => label['Name'] as String)
-              .toList();
+  //     final responseBody = jsonDecode(response.decodeBody());
+  //     final labels =
+  //         (responseBody['labels'] as List)
+  //             .map((label) => label['Name'] as String)
+  //             .toList();
 
-      Log.i('Lambda response: $labels');
-      return labels;
-    } on ApiException catch (e) {
-      Log.e('API call to /analyze failed (method: POST): $e');
-      return [];
-    } catch (e) {
-      Log.e('Unexpected error in Lambda invocation: $e');
-      return [];
-    }
-  }
+  //     Log.i('Lambda response: $labels');
+  //     return labels;
+  //   } on ApiException catch (e) {
+  //     Log.e('API call to /analyze failed (method: POST): $e');
+  //     return [];
+  //   } catch (e) {
+  //     Log.e('Unexpected error in Lambda invocation: $e');
+  //     return [];
+  //   }
+  // }
 
   static Future<String> fetchFromS3(String path) async {
     final result =

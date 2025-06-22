@@ -1171,11 +1171,30 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
                         ),
                       );
                     } else {
-                      // For area capture, pop back through both screens to AreaCaptureHome
-                      Navigator.of(context).pop(); // Pop PhotoPreviewScreen
-                      Navigator.of(
+                      // For area capture, navigate to CreateSightingScreen
+                      final result = await Navigator.push(
                         context,
-                      ).pop(finalImagePath); // Pop CaptureScreen with result
+                        MaterialPageRoute(
+                          builder:
+                              (context) => CreateSightingScreen(
+                                imagePath: finalImagePath,
+                                isAreaCapture: true,
+                              ),
+                        ),
+                      );
+
+                      // Pop back to CaptureScreen, then to AreaCaptureHome with the result
+                      if (result != null && context.mounted) {
+                        Navigator.of(context).pop(); // Pop PhotoPreviewScreen
+                        Navigator.of(
+                          context,
+                        ).pop(result); // Pop CaptureScreen with sighting data
+                      } else if (context.mounted) {
+                        Navigator.of(context).pop(); // Pop PhotoPreviewScreen
+                        Navigator.of(
+                          context,
+                        ).pop(); // Pop CaptureScreen without result
+                      }
                     }
                   },
                 ),

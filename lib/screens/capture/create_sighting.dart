@@ -8,8 +8,13 @@ import 'package:sighttrack/services/computer_vision.dart';
 
 class CreateSightingScreen extends StatefulWidget {
   final String imagePath;
+  final bool isAreaCapture;
 
-  const CreateSightingScreen({super.key, required this.imagePath});
+  const CreateSightingScreen({
+    super.key,
+    required this.imagePath,
+    this.isAreaCapture = false,
+  });
 
   @override
   State<CreateSightingScreen> createState() => _CreateSightingScreenState();
@@ -170,19 +175,22 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
           Log.i('Found existing user: ${currentUser.id}');
         }
 
-        // Proceed with saving the sighting
+        // Proceed with creating the sighting
         final sightingId = UUID.getUUID();
         final fileExtension = widget.imagePath.split('.').last;
         final s3Key = 'photos/$sightingId.$fileExtension';
 
-        await Amplify.Storage.uploadFile(
-          localFile: AWSFile.fromPath(widget.imagePath),
-          path: StoragePath.fromString(s3Key),
-          onProgress: (progress) {
-            Log.i('Upload progress: ${progress.fractionCompleted}');
-          },
-        ).result;
-        Log.i('Image uploaded to S3 with key: $s3Key');
+        // For area capture, we don't upload to S3 yet or save to datastore
+        if (!widget.isAreaCapture) {
+          await Amplify.Storage.uploadFile(
+            localFile: AWSFile.fromPath(widget.imagePath),
+            path: StoragePath.fromString(s3Key),
+            onProgress: (progress) {
+              Log.i('Upload progress: ${progress.fractionCompleted}');
+            },
+          ).result;
+          Log.i('Image uploaded to S3 with key: $s3Key');
+        }
 
         final settings = await Util.getUserSettings();
         final shouldOffset = settings?.locationOffset ?? false;
@@ -218,11 +226,24 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
           isTimeClaimed: false,
         );
 
-        await Amplify.DataStore.save(sighting);
-        Log.i('Sighting saved. ID: $sightingId');
+        if (widget.isAreaCapture) {
+          // For area capture, return the sighting data and image path
+          final sightingData = {
+            'sighting': sighting,
+            'localPath': widget.imagePath,
+          };
 
-        if (!mounted) return;
-        Navigator.popUntil(context, (route) => route.isFirst);
+          if (mounted) {
+            Navigator.pop(context, sightingData);
+          }
+        } else {
+          // For regular capture, save to datastore and navigate home
+          await Amplify.DataStore.save(sighting);
+          Log.i('Sighting saved. ID: $sightingId');
+
+          if (!mounted) return;
+          Navigator.popUntil(context, (route) => route.isFirst);
+        }
       } catch (e) {
         Log.e('Error saving sighting: $e');
         if (mounted) {
@@ -269,7 +290,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Create Sighting',
+          widget.isAreaCapture ? 'Add to Area Capture' : 'Create Sighting',
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -956,7 +977,12 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
       children: [
         Expanded(
           child: ModernDarkButton(
-            text: _isSaving ? 'Saving...' : 'Save Sighting',
+            text:
+                _isSaving
+                    ? (widget.isAreaCapture ? 'Adding...' : 'Saving...')
+                    : (widget.isAreaCapture
+                        ? 'Add to Session'
+                        : 'Save Sighting'),
             width: double.infinity,
             height: 56,
             onPressed: _isSaving ? () {} : _saveSighting,
