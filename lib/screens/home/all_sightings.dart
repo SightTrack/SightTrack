@@ -105,7 +105,7 @@ class _AllSightingsScreenState extends State<AllSightingsScreen> {
                     itemBuilder: (context, index) {
                       final sighting = sightings[index];
                       return Material(
-                        color: Colors.white,
+                        // color: Colors.white,
                         child: InkWell(
                           onTap: () {
                             Navigator.push(
@@ -128,16 +128,16 @@ class _AllSightingsScreenState extends State<AllSightingsScreen> {
                               border: Border(
                                 bottom: BorderSide(
                                   color: Colors.grey.shade200,
-                                  width: 1.0,
+                                  width: 0.1,
                                 ),
                               ),
                               boxShadow: [
-                                if (index == 0)
-                                  BoxShadow(
-                                    color: Colors.grey.withValues(alpha: 0.05),
-                                    offset: const Offset(0, 1),
-                                    blurRadius: 2.0,
-                                  ),
+                                // if (index == 0)
+                                //   BoxShadow(
+                                //     color: Colors.grey.withValues(alpha: 0.05),
+                                //     offset: const Offset(0, 1),
+                                //     blurRadius: 2.0,
+                                //   ),
                               ],
                             ),
                             child: Row(
@@ -147,11 +147,8 @@ class _AllSightingsScreenState extends State<AllSightingsScreen> {
                                   flex: 2,
                                   child: Text(
                                     sighting.species,
-                                    style: const TextStyle(
-                                      fontSize: 16.0,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black87,
-                                    ),
+                                    style:
+                                        Theme.of(context).textTheme.titleMedium,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -165,11 +162,10 @@ class _AllSightingsScreenState extends State<AllSightingsScreen> {
                                       Text(
                                         sighting.user?.display_username ??
                                             'Unknown',
-                                        style: TextStyle(
-                                          fontSize: 14.0,
-                                          color: Colors.grey[700],
-                                          fontWeight: FontWeight.w400,
-                                        ),
+                                        style:
+                                            Theme.of(
+                                              context,
+                                            ).textTheme.bodyMedium,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 2.0),
@@ -179,10 +175,10 @@ class _AllSightingsScreenState extends State<AllSightingsScreen> {
                                               .getDateTimeInUtc()
                                               .toLocal(),
                                         ),
-                                        style: TextStyle(
-                                          fontSize: 14.0,
-                                          color: Colors.grey[600],
-                                        ),
+                                        style:
+                                            Theme.of(
+                                              context,
+                                            ).textTheme.bodySmall,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ],

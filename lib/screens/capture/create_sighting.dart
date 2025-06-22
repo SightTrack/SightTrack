@@ -1,10 +1,10 @@
 import 'package:sighttrack/barrel.dart';
-import 'package:core_ui/core_ui.dart';
 
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:sighttrack/screens/capture/change_sighting_location.dart';
+import 'package:sighttrack/services/computer_vision.dart';
 
 class CreateSightingScreen extends StatefulWidget {
   final String imagePath;
@@ -25,6 +25,8 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
   UserSettings? _userSettings;
   bool _isSaving = false;
   FToast? _toast;
+  bool _isCloudVisionLoading = true;
+  bool _isGrokLoading = false;
 
   @override
   void initState() {
@@ -36,9 +38,31 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
   }
 
   Future<void> _initializerWrapper() async {
-    List<String>? rekognitionResponse = await Util.doAWSRekognitionCall(
-      widget.imagePath,
+    // List<String>? rekognitionResponse = await Util.doAWSRekognitionCall(
+    //   widget.imagePath,
+    // );
+    String cloudVisionResponse =
+        await ComputerVisionService.googleCloudVisionResponse(
+          imagePath: widget.imagePath,
+        );
+
+    setState(() {
+      _isCloudVisionLoading = false;
+      _isGrokLoading = true;
+    });
+
+    String grokResponse = await ComputerVisionService.predictSpeciesWithGrok(
+      visionApiResult: cloudVisionResponse,
     );
+
+    setState(() {
+      _isGrokLoading = false;
+    });
+
+    List<String> species = ComputerVisionService.parseSpeciesFromLLMResponse(
+      grokResponse,
+    );
+
     // if (rekognitionResponse.isNotEmpty) {
     //   // Filter images that are not animals or plants
     //   if (!rekognitionResponse.contains('animal') &&
@@ -56,8 +80,8 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
     //     return;
     //   }
     setState(() {
-      identifiedSpecies = rekognitionResponse;
-      _selectedSpecies = rekognitionResponse[0];
+      identifiedSpecies = species;
+      _selectedSpecies = species[0];
     });
     // }
 
@@ -259,35 +283,320 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
         ),
       ),
       backgroundColor: theme.colorScheme.surface,
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Image Section with modern card design
-                _buildImageSection(theme),
-                const SizedBox(height: 32),
+      body:
+          _isCloudVisionLoading || _isGrokLoading
+              ? _buildLoadingUI(theme)
+              : GestureDetector(
+                onTap: () => FocusScope.of(context).unfocus(),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0,
+                    vertical: 16.0,
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Image Section with modern card design
+                        _buildImageSection(theme),
+                        const SizedBox(height: 32),
 
-                // Form Fields Section
-                _buildFormSection(theme),
-                const SizedBox(height: 32),
+                        // Form Fields Section
+                        _buildFormSection(theme),
+                        const SizedBox(height: 32),
 
-                // Location Section
-                _buildLocationSection(theme),
-                const SizedBox(height: 32),
+                        // Location Section
+                        _buildLocationSection(theme),
+                        const SizedBox(height: 32),
 
-                // Action Buttons
-                _buildActionButtons(),
-                const SizedBox(height: 32),
-              ],
+                        // Action Buttons
+                        _buildActionButtons(),
+                        const SizedBox(height: 32),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+    );
+  }
+
+  Widget _buildLoadingUI(ThemeData theme) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            theme.colorScheme.primary.withValues(alpha: 0.05),
+            theme.colorScheme.secondary.withValues(alpha: 0.03),
+          ],
+        ),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 60),
+
+          // Image preview section
+          _buildLoadingImagePreview(theme),
+
+          const SizedBox(height: 60),
+
+          // Animated loading states
+          Expanded(child: _buildAnimatedLoadingStates(theme)),
+
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingImagePreview(ThemeData theme) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 40),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.primary.withValues(alpha: 0.1),
+            blurRadius: 30,
+            offset: const Offset(0, 15),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          height: 200,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: theme.colorScheme.primary.withValues(alpha: 0.2),
+              width: 2,
             ),
+          ),
+          child: Image.file(
+            File(widget.imagePath),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+                child: Icon(
+                  Icons.image,
+                  size: 60,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                ),
+              );
+            },
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildAnimatedLoadingStates(ThemeData theme) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 600),
+      transitionBuilder: (child, animation) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(
+            CurvedAnimation(parent: animation, curve: Curves.elasticOut),
+          ),
+          child: FadeTransition(opacity: animation, child: child),
+        );
+      },
+      child:
+          _isCloudVisionLoading
+              ? _buildCloudVisionLoadingState(theme)
+              : _buildGrokLoadingState(theme),
+    );
+  }
+
+  Widget _buildCloudVisionLoadingState(ThemeData theme) {
+    return Container(
+      key: const ValueKey('cloud_vision'),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Animated scanning icon
+          TweenAnimationBuilder<double>(
+            duration: const Duration(seconds: 2),
+            tween: Tween(begin: 0.0, end: 1.0),
+            builder: (context, value, child) {
+              return Transform.rotate(
+                angle: value * 2 * pi,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [
+                        theme.colorScheme.primary,
+                        theme.colorScheme.secondary,
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.camera_enhance,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                ),
+              );
+            },
+          ),
+
+          const SizedBox(height: 40),
+
+          // Main loading text with typewriter effect
+          _buildTypewriterText(
+            'Analyzing image...',
+            theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSurface,
+                ) ??
+                const TextStyle(),
+            theme,
+          ),
+
+          const SizedBox(height: 16),
+
+          // Subtitle
+          Text(
+            'Using advanced computer vision',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGrokLoadingState(ThemeData theme) {
+    return Container(
+      key: const ValueKey('grok'),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Previous state (pushed up)
+          AnimatedOpacity(
+            opacity: 0.4,
+            duration: const Duration(milliseconds: 300),
+            child: Transform.translate(
+              offset: const Offset(0, -20),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.check_circle,
+                    color: theme.colorScheme.primary,
+                    size: 24,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Image analyzed ✓',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 40),
+
+          // Current AI brain animation
+          TweenAnimationBuilder<double>(
+            duration: const Duration(seconds: 1),
+            tween: Tween(begin: 0.8, end: 1.2),
+            builder: (context, value, child) {
+              return Transform.scale(
+                scale: value,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [
+                        theme.colorScheme.tertiary,
+                        theme.colorScheme.primary,
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.colorScheme.tertiary.withValues(
+                          alpha: 0.4,
+                        ),
+                        blurRadius: 25,
+                        spreadRadius: 8,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.psychology,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                ),
+              );
+            },
+          ),
+
+          const SizedBox(height: 40),
+
+          // Main loading text
+          _buildTypewriterText(
+            'Identifying species...',
+            theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSurface,
+                ) ??
+                const TextStyle(),
+            theme,
+          ),
+
+          const SizedBox(height: 16),
+
+          // Subtitle
+          Text(
+            'AI is analyzing the visual features',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTypewriterText(String text, TextStyle style, ThemeData theme) {
+    return TweenAnimationBuilder<int>(
+      duration: Duration(milliseconds: text.length * 50),
+      tween: IntTween(begin: 0, end: text.length),
+      builder: (context, value, child) {
+        return Text(
+          text.substring(0, value),
+          style: style,
+          textAlign: TextAlign.center,
+        );
+      },
     );
   }
 
@@ -433,7 +742,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
               ),
-              style: theme.textTheme.bodyLarge,
+              style: theme.textTheme.labelSmall,
               dropdownColor: theme.colorScheme.surface,
               items:
                   identifiedSpecies?.map((String species) {

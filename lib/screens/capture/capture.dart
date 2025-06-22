@@ -5,7 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'package:image_cropper/image_cropper.dart';
 
 class CaptureScreen extends StatefulWidget {
-  const CaptureScreen({super.key});
+  const CaptureScreen({super.key, this.isAreaCapture = false});
+
+  final bool isAreaCapture;
 
   @override
   CaptureScreenState createState() => CaptureScreenState();
@@ -260,6 +262,7 @@ class CaptureScreenState extends State<CaptureScreen>
                   imagePath: mockImagePath,
                   isPortraitMode: false,
                   portraitBlurIntensity: 0.5,
+                  isAreaCapture: widget.isAreaCapture,
                 ),
           ),
         );
@@ -278,6 +281,7 @@ class CaptureScreenState extends State<CaptureScreen>
                 imagePath: image.path,
                 isPortraitMode: false,
                 portraitBlurIntensity: 0.5,
+                isAreaCapture: widget.isAreaCapture,
               ),
         ),
       );
@@ -300,6 +304,7 @@ class CaptureScreenState extends State<CaptureScreen>
                   imagePath: image.path,
                   isPortraitMode: false,
                   portraitBlurIntensity: 0.5,
+                  isAreaCapture: widget.isAreaCapture,
                 ),
           ),
         );
@@ -814,12 +819,14 @@ class PhotoPreviewScreen extends StatefulWidget {
   final String imagePath;
   final bool isPortraitMode;
   final double portraitBlurIntensity;
+  final bool isAreaCapture;
 
   const PhotoPreviewScreen({
     super.key,
     required this.imagePath,
     required this.isPortraitMode,
     required this.portraitBlurIntensity,
+    required this.isAreaCapture,
   });
 
   @override
@@ -1153,14 +1160,23 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
                     }
 
                     if (!context.mounted) return;
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) =>
-                                CreateSightingScreen(imagePath: finalImagePath),
-                      ),
-                    );
+                    if (!widget.isAreaCapture) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => CreateSightingScreen(
+                                imagePath: finalImagePath,
+                              ),
+                        ),
+                      );
+                    } else {
+                      // For area capture, pop back through both screens to AreaCaptureHome
+                      Navigator.of(context).pop(); // Pop PhotoPreviewScreen
+                      Navigator.of(
+                        context,
+                      ).pop(finalImagePath); // Pop CaptureScreen with result
+                    }
                   },
                 ),
               ),
