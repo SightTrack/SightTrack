@@ -16,6 +16,7 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
   bool _isTechnicalExpanded = false;
   late Future<String> _photoUrlFuture; // Cache the future
   bool? isAdminUser;
+  FToast? toast;
 
   Future<void> _checkAdminStatus() async {
     try {
@@ -53,6 +54,8 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
     super.initState();
     _photoUrlFuture = Util.fetchFromS3(widget.sighting.photo);
     _checkAdminStatus();
+    toast = FToast();
+    toast!.init(context);
   }
 
   @override
@@ -61,6 +64,13 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
       appBar: AppBar(
         title: const Text('Sighting Details'),
         actions: [
+          IconButton(
+            tooltip: 'Report',
+            icon: const Icon(Icons.flag, size: 26, color: Colors.deepOrange),
+            onPressed: () {
+              _showReportDialog(context);
+            },
+          ),
           if (isAdminUser == true) // Show delete button only for admins
             IconButton(
               icon: const Icon(Icons.delete, size: 26, color: Colors.red),
@@ -372,5 +382,218 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
         ],
       ),
     );
+  }
+
+  void _showReportDialog(BuildContext context) {
+    // Define state variables outside the builder to persist across rebuilds
+    bool inappropriateContent = false;
+    bool incorrectSpecies = false;
+    bool spam = false;
+    bool other = false;
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              title: const Text(
+                'Report Sighting',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Please select a reason for reporting this sighting.',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 16),
+                  CheckboxListTile(
+                    title: const Text('Inappropriate content'),
+                    value: inappropriateContent,
+                    onChanged:
+                        isSubmitting
+                            ? null
+                            : (bool? value) {
+                              setState(() {
+                                inappropriateContent = value ?? false;
+                              });
+                            },
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                  CheckboxListTile(
+                    title: const Text('Incorrect species identification'),
+                    value: incorrectSpecies,
+                    onChanged:
+                        isSubmitting
+                            ? null
+                            : (bool? value) {
+                              setState(() {
+                                incorrectSpecies = value ?? false;
+                              });
+                            },
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                  CheckboxListTile(
+                    title: const Text('Spam'),
+                    value: spam,
+                    onChanged:
+                        isSubmitting
+                            ? null
+                            : (bool? value) {
+                              setState(() {
+                                spam = value ?? false;
+                              });
+                            },
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                  CheckboxListTile(
+                    title: const Text('Other'),
+                    value: other,
+                    onChanged:
+                        isSubmitting
+                            ? null
+                            : (bool? value) {
+                              setState(() {
+                                other = value ?? false;
+                              });
+                            },
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed:
+                      isSubmitting ? null : () => Navigator.of(context).pop(),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+                TextButton(
+                  onPressed:
+                      isSubmitting
+                          ? null
+                          : () async {
+                            // Check if at least one reason is selected
+                            if (!inappropriateContent &&
+                                !incorrectSpecies &&
+                                !spam &&
+                                !other) {
+                              toast!.showToast(
+                                child: Util.redToast(
+                                  'Please select at least one reason for \nreporting.',
+                                ),
+                              );
+                              return;
+                            }
+
+                            setState(() {
+                              isSubmitting = true;
+                            });
+
+                            try {
+                              await _submitReport(
+                                inappropriateContent: inappropriateContent,
+                                incorrectSpecies: incorrectSpecies,
+                                spam: spam,
+                                other: other,
+                              );
+
+                              if (context.mounted) {
+                                Navigator.of(context).pop();
+                              }
+
+                              if (context.mounted) {
+                                toast?.showToast(
+                                  child: Util.greenToast(
+                                    'Report submitted successfully. Thank you \nfor helping keep our community safe',
+                                  ),
+                                  toastDuration: const Duration(seconds: 3),
+                                );
+                              }
+                            } catch (e) {
+                              setState(() {
+                                isSubmitting = false;
+                              });
+
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Failed to submit report: ${e.toString()}',
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                  child:
+                      isSubmitting
+                          ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                          : const Text(
+                            'Submit Report',
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _submitReport({
+    required bool inappropriateContent,
+    required bool incorrectSpecies,
+    required bool spam,
+    required bool other,
+  }) async {
+    try {
+      // Collect selected reasons
+      List<String> reasons = [];
+      if (inappropriateContent) reasons.add('Inappropriate content');
+      if (incorrectSpecies) reasons.add('Incorrect species identification');
+      if (spam) reasons.add('Spam');
+      if (other) reasons.add('Other');
+
+      // Get current user
+      User reporter = await Util.getUserModel();
+
+      Log.i('Reporter: ');
+
+      // Create report object with proper foreign key IDs for @hasOne relationships
+      final report = Report(
+        timestamp: TemporalDateTime.now(),
+        reasons: reasons,
+        reasonsString: reasons.join(', '),
+        status: ReportStatus.PENDING,
+        reportReportedSightingId: widget.sighting.id,
+        reportReporterId: reporter.id,
+      );
+
+      Log.i('Report: $report');
+
+      // Save the report to DataStore
+      await Amplify.DataStore.save(report);
+    } catch (e) {
+      Log.e('Error submitting report: $e');
+      rethrow;
+    }
   }
 }

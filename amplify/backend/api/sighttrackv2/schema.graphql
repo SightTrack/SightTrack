@@ -37,3 +37,21 @@ type Sighting @model @auth(rules: [{allow: private}]) {
   user: User @belongsTo
   isTimeClaimed: Boolean!
 }
+
+type Report @model @auth(rules: [{allow: private}]) {
+  id: ID!
+  timestamp: AWSDateTime!
+  reportedSighting: Sighting @hasOne
+  reporter: User @hasOne
+  reasons: [String]!
+  reasonsString: String!
+  status: ReportStatus!
+  adminNotes: String
+}
+
+enum ReportStatus {
+  PENDING
+  UNDER_REVIEW
+  RESOLVED
+  DISMISSED
+}

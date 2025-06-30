@@ -2,7 +2,7 @@ name: sighttrack
 description: "An environment and biodiversity monitoring app"
 publish_to: 'none'
 
-version: 3.0.4+2
+version: 3.0.4+3
 
 environment:
   sdk: ^3.7.0

@@ -6,6 +6,7 @@ import 'package:sighttrack/screens/profile/admin/sighting_moderation.dart';
 import 'package:sighttrack/screens/profile/admin/volunteer_hours_management.dart';
 import 'package:sighttrack/screens/profile/admin/analytics_screen.dart';
 import 'package:sighttrack/screens/profile/admin/admin_settings.dart';
+import 'package:sighttrack/screens/profile/admin/manage_reports.dart';
 
 class AdminPanelScreen extends StatefulWidget {
   const AdminPanelScreen({super.key});
@@ -34,6 +35,11 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       icon: Icons.camera_alt,
       label: 'Sightings',
       screen: const SightingModerationScreen(),
+    ),
+    AdminNavItem(
+      icon: Icons.report_problem,
+      label: 'Reports',
+      screen: const ManageReportsScreen(),
     ),
     AdminNavItem(
       icon: Icons.access_time,
