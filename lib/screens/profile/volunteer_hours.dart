@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:sighttrack/barrel.dart';
 
 class VolunteerHoursScreen extends StatefulWidget {
@@ -840,12 +841,135 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Select Activity Supervisor',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      Row(
+                        children: [
+                          const Text(
+                            'Select Activity Supervisor',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder:
+                                    (context) => AlertDialog(
+                                      title: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.supervisor_account,
+                                            color: Colors.blue,
+                                            size: 24,
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text('Activity Supervisor'),
+                                        ],
+                                      ),
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'An activity supervisor is part of the SightTrack team that oversees the activities of volunteers. They are responsible for ensuring that volunteers are safe and that the activities are conducted in a safe and efficient manner.',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              height: 1.4,
+                                            ),
+                                          ),
+                                          SizedBox(height: 16),
+                                          Text(
+                                            'Default supervisor email:',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.grey[700],
+                                            ),
+                                          ),
+                                          SizedBox(height: 8),
+                                          Container(
+                                            padding: EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.withValues(
+                                                alpha: 0.1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              border: Border.all(
+                                                color: Colors.grey.withValues(
+                                                  alpha: 0.3,
+                                                ),
+                                              ),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    'volunteer@sighttrack.org',
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      fontFamily: 'monospace',
+                                                      color: Colors.blue[700],
+                                                    ),
+                                                  ),
+                                                ),
+                                                IconButton(
+                                                  onPressed: () {
+                                                    Clipboard.setData(
+                                                      ClipboardData(
+                                                        text:
+                                                            'volunteer@sighttrack.org',
+                                                      ),
+                                                    );
+                                                    fToast.showToast(
+                                                      child: Util.greenToast(
+                                                        'Copied to clipboard',
+                                                      ),
+                                                    );
+                                                    // ScaffoldMessenger.of(
+                                                    //   context,
+                                                    // ).showSnackBar(
+                                                    //   SnackBar(
+                                                    //     content: Text(
+                                                    //       'Email copied to clipboard',
+                                                    //     ),
+                                                    //     duration: Duration(
+                                                    //       seconds: 2,
+                                                    //     ),
+                                                    //     behavior:
+                                                    //         SnackBarBehavior
+                                                    //             .floating,
+                                                    //   ),
+                                                    // );
+                                                  },
+                                                  icon: Icon(
+                                                    Icons.copy,
+                                                    size: 18,
+                                                    color: Colors.blue[700],
+                                                  ),
+                                                  tooltip: 'Copy email',
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed:
+                                              () => Navigator.of(context).pop(),
+                                          child: Text('Got it'),
+                                        ),
+                                      ],
+                                    ),
+                              );
+                            },
+                            icon: const Icon(Icons.info_outline),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       if (_loadingActivitySupervisors)
@@ -1017,12 +1141,49 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Select School Supervisor',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      Row(
+                        children: [
+                          const Text(
+                            'Select School Supervisor',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder:
+                                    (context) => AlertDialog(
+                                      title: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.school,
+                                            color: Colors.blue,
+                                            size: 24,
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text('School Supervisor'),
+                                        ],
+                                      ),
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'A school supervisor is a teacher at the school that volunteers are working at. They are responsible for verifying that the volunteer is at the school and that the volunteer is doing the correct activities.',
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                              );
+                            },
+                            icon: const Icon(Icons.info_outline),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       if (_loadingSchoolSupervisors)
@@ -1221,12 +1382,28 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen>
                                     text: 'Submit Hours',
                                   ),
                         ),
-                      const SizedBox(height: 100),
+
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),
               ),
             ],
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _SliverHeaderDelegate(
+                title: 'Tracking Through Third-Party Apps',
+                height: 50,
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                child: const Text(
+                  'If your school manages service hours via an external provider (x2vol, Volgistics, Mobilize), you can use the official email volunteer@sighttrack.org as a supervisor and we will verify your hours for you when we receive your request. You may have to provide us with your SightTrack user information to validate claims - typically done in the activity description.',
+                ),
+              ),
+            ),
           ],
         ),
       ),
