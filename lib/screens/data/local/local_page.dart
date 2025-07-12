@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:sighttrack/barrel.dart';
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
+import 'package:flutter/services.dart' show rootBundle;
 
 class LocalView extends StatefulWidget {
   const LocalView({super.key});
@@ -20,61 +22,51 @@ class _LocalViewState extends State<LocalView> {
   void initState() {
     super.initState();
     _startTimeFilter = DateTime.now().subtract(const Duration(days: 30));
-    _fetchSightings();
   }
 
-  Future<void> _fetchSightings() async {
-    setState(() => _isLoading = true);
-    try {
-      final sightings = await Amplify.DataStore.query(Sighting.classType);
-      _sightings =
-          sightings
-              .map(
-                (s) => Sighting(
-                  id: s.id,
-                  species: s.species,
-                  photo: s.photo,
-                  latitude: s.latitude,
-                  longitude: s.longitude,
-                  city: s.city,
-                  displayLatitude: s.displayLatitude,
-                  displayLongitude: s.displayLongitude,
-                  timestamp: s.timestamp,
-                  description: s.description,
-                  user: s.user,
-                  isTimeClaimed: s.isTimeClaimed,
-                ),
-              )
-              .toList();
-
-      final startTimeTemporal =
-          _startTimeFilter != null ? TemporalDateTime(_startTimeFilter!) : null;
-
-      _moransIResults = SpatialAutocorrelation.analyzeBiodiversityHotspots(
-        sightings: _sightings,
-        maxDistanceKm: 10.0,
-        startTime: startTimeTemporal,
-      );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error fetching sightings: $e')));
-      }
-    }
-    setState(() => _isLoading = false);
-  }
-
-  void _addMarkersToMap() async {
+  Future<void> _drawCityBoundaryFromGeoJson() async {
     if (_mapboxMap == null) return;
 
-    final annotationManager =
-        await _mapboxMap?.annotations.createPointAnnotationManager();
+    try {
+      final geoJsonStr = await rootBundle.loadString('assets/city_border.geojson');
+      final geo = json.decode(geoJsonStr);
 
-    await annotationManager?.deleteAll();
+      // Extract coordinates for the first polygon feature
+      final coordinates = geo['features'][0]['geometry']['coordinates'][0] as List;
+
+      // Map GeoJSON points (lon, lat) to mapbox.Position
+      final positions = coordinates.map<mapbox.Position>((point) {
+        final lon = point[0] as double;
+        final lat = point[1] as double;
+        return mapbox.Position(lon, lat);
+      }).toList();
+
+      final polygonManager = await _mapboxMap!.annotations.createPolygonAnnotationManager();
+
+      await polygonManager.deleteAll();
+
+      await polygonManager.create(
+        mapbox.PolygonAnnotationOptions(
+          geometry: mapbox.Polygon(coordinates: [positions]),
+          fillColor: const Color.fromARGB(51, 0, 0, 255).value, // 20% opacity blue
+          fillOutlineColor: const Color(0xFF0000FF).value, // solid blue outline
+          // Removed fillOpacity, baked into ARGB
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error drawing city boundary: $e');
+    }
+  }
+
+  Future<void> _addMarkersToMap() async {
+    if (_mapboxMap == null) return;
+
+    final annotationManager = await _mapboxMap!.annotations.createPointAnnotationManager();
+
+    await annotationManager.deleteAll();
 
     for (var sighting in _sightings) {
-      await annotationManager?.create(
+      await annotationManager.create(
         mapbox.PointAnnotationOptions(
           geometry: mapbox.Point(
             coordinates: mapbox.Position(sighting.longitude, sighting.latitude),
@@ -89,32 +81,31 @@ class _LocalViewState extends State<LocalView> {
     }
   }
 
-latitudelongitude _calculateUserCityCenter() {
-  final validSightings = _sightings.where((s) {
-    return s.latitude.isFinite &&
-        s.longitude.isFinite &&
-        s.latitude >= -90.0 &&
-        s.latitude <= 90.0 &&
-        s.longitude >= -180.0 &&
-        s.longitude <= 180.0 &&
-        s.city != null &&
-        s.city!.isNotEmpty;
-  }).toList();
+  latitudelongitude _calculateUserCityCenter() {
+    final validSightings = _sightings.where((s) {
+      return s.latitude.isFinite &&
+          s.longitude.isFinite &&
+          s.latitude >= -90.0 &&
+          s.latitude <= 90.0 &&
+          s.longitude >= -180.0 &&
+          s.longitude <= 180.0 &&
+          s.city != null &&
+          s.city!.isNotEmpty;
+    }).toList();
 
-  if (validSightings.isNotEmpty) {
-    final citySighting = validSightings.first;
-    return latitudelongitude(citySighting.latitude, citySighting.longitude);
+    if (validSightings.isNotEmpty) {
+      final citySighting = validSightings.first;
+      return latitudelongitude(citySighting.latitude, citySighting.longitude);
+    }
+
+    // Default to San Francisco coords if no valid city found
+    return const latitudelongitude(37.7749, -122.4194);
   }
-
-  // Default to London coords if no valid city found
-const defaultLat = 37.7749;
-const defaultLon = -122.4194;
-  return const latitudelongitude(defaultLat, defaultLon);
-}
-
 
   @override
   Widget build(BuildContext context) {
+    final center = _calculateUserCityCenter();
+
     return Scaffold(
       body: SafeArea(
         child: Stack(
@@ -125,215 +116,25 @@ const defaultLon = -122.4194;
                 try {
                   Util.setupMapbox(controller);
                   _mapboxMap = controller;
-                  _addMarkersToMap();
+
+                  await _addMarkersToMap();            // <-- await this
+                  await _drawCityBoundaryFromGeoJson(); // <-- await this
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error initializing map: $e')),
+                    SnackBar(content: Text('Map error: $e')),
                   );
                 }
               },
               cameraOptions: mapbox.CameraOptions(
                 center: mapbox.Point(
                   coordinates: mapbox.Position(
-                    _calculateUserCityCenter().longitude,
-                    _calculateUserCityCenter().latitude,
+                    center.longitude, // longitude first
+                    center.latitude,  // latitude second
                   ),
                 ),
-                zoom: 12.0, // Zoom in to city level
+                zoom: 10.0,
               ),
               styleUri: Util.mapStyle,
-            ),
-            Positioned(
-              top: 20,
-              left: 10,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 45, 45, 45),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(10),
-                    child: ModernDarkButton(
-                      text: 'View Statistics',
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const ViewStatisticsPage(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              top: 20,
-              right: 10,
-              child: FloatingActionButton(
-                mini: true,
-                backgroundColor: Colors.grey[850],
-                onPressed: () async {
-                  final picked = await showDateRangePicker(
-                    context: context,
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime.now(),
-                    initialDateRange: DateTimeRange(
-                      start: DateTime.now().subtract(const Duration(days: 30)),
-                      end: DateTime.now(),
-                    ),
-                    builder: (context, child) {
-                      final theme = Theme.of(context);
-                      return Theme(
-                        data: theme.copyWith(
-                          colorScheme: theme.colorScheme.copyWith(
-                            surface: theme.colorScheme.surface,
-                            onSurface: theme.colorScheme.onSurface,
-                          ),
-                          textButtonTheme: TextButtonThemeData(
-                            style: TextButton.styleFrom(
-                              foregroundColor: theme.colorScheme.primary,
-                            ),
-                          ),
-                          datePickerTheme: DatePickerThemeData(
-                            rangeSelectionBackgroundColor:
-                                theme.colorScheme.primary.withAlpha(128),
-                            backgroundColor: theme.colorScheme.surface,
-                            headerBackgroundColor: theme.colorScheme.primary,
-                            headerForegroundColor: theme.colorScheme.onSurface,
-                            surfaceTintColor: Colors.transparent,
-                          ),
-                          dialogTheme: DialogThemeData(
-                            backgroundColor: theme.colorScheme.surface,
-                          ),
-                        ),
-                        child: child!,
-                      );
-                    },
-                  );
-                  if (picked != null) {
-                    setState(() {
-                      _startTimeFilter = picked.start;
-                      _fetchSightings();
-                    });
-                  }
-                },
-                child: const Icon(Icons.timelapse, color: Colors.white),
-              ),
-            ),
-            DraggableScrollableSheet(
-              initialChildSize: 0.15,
-              minChildSize: 0.15,
-              maxChildSize: 0.8,
-              builder: (context, scrollController) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20),
-                    ),
-                  ),
-                  child: _isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : _moransIResults.isEmpty
-                          ? const Center(
-                              child: Text(
-                                'No sightings found for the selected period.',
-                              ),
-                            )
-                          : CustomScrollView(
-                              controller: scrollController,
-                              slivers: [
-                                SliverToBoxAdapter(
-                                  child: Container(
-                                    padding:
-                                        const EdgeInsets.symmetric(vertical: 22),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Container(
-                                          width: 40,
-                                          height: 4,
-                                          decoration: BoxDecoration(
-                                            color:
-                                                Colors.grey[600]!.withAlpha(51),
-                                            borderRadius:
-                                                BorderRadius.circular(2),
-                                          ),
-                                        ),
-                                        const SizedBox.shrink(),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                SliverToBoxAdapter(
-                                  child: Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 15.0),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            const Text(
-                                              'Biodiversity Scores',
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            IconButton(
-                                              icon: const Icon(Icons.help),
-                                              onPressed: () {
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        const AboutBiodiversityScreen(),
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SliverList(
-                                  delegate: SliverChildBuilderDelegate(
-                                    (context, index) {
-                                      final species =
-                                          _moransIResults.keys.elementAt(index);
-                                      final moransI =
-                                          _moransIResults[species] ?? 0.0;
-                                      String distribution;
-                                      if (moransI > 0.3) {
-                                        distribution = 'Clustered';
-                                      } else if (moransI < -0.3) {
-                                        distribution = 'Dispersed';
-                                      } else {
-                                        distribution = 'Random';
-                                      }
-                                      return ListTile(
-                                        title: Text(species),
-                                        subtitle: Text(
-                                          'Score: ${moransI.toStringAsFixed(2)} ($distribution)',
-                                        ),
-                                      );
-                                    },
-                                    childCount: _moransIResults.length,
-                                  ),
-                                ),
-                              ],
-                            ),
-                );
-              },
             ),
           ],
         ),
