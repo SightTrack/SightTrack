@@ -52,6 +52,8 @@ export 'package:sighttrack/screens/data/global/view_statistics.dart';
 export 'package:sighttrack/screens/profile/volunteer_hours.dart';
 export 'package:sighttrack/screens/auth/signin.dart';
 export 'package:sighttrack/screens/auth/signup.dart';
+export 'package:sighttrack/screens/auth/loading_screen.dart';
+export 'package:sighttrack/screens/auth/auth_wrapper.dart';
 export 'package:sighttrack/screens/data/global/about_biodiversity.dart';
 export 'package:sighttrack/screens/community/view_user.dart';
 

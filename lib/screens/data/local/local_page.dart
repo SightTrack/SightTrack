@@ -10,6 +10,8 @@ class LocalView extends StatefulWidget {
 
 class _LocalViewState extends State<LocalView> {
   bool _isLoading = true;
+  late List<Sighting>? _uniqueSightings;
+  late List<Sighting>? _allSightings;
 
   @override
   void initState() {
@@ -19,8 +21,26 @@ class _LocalViewState extends State<LocalView> {
     });
   }
 
+  Future<List<String>>? _fetchUniqueSpecies() async {
+    List<Sighting> sightings = await Amplify.DataStore.query(
+      Sighting.classType,
+    );
+
+    List<String> uniqueSpecies =
+        sightings
+            .map((sighting) => sighting.species)
+            .where((species) => species.isNotEmpty)
+            .toSet()
+            .toList();
+
+    print(uniqueSpecies);
+
+    return [];
+  }
+
   @override
   Widget build(BuildContext context) {
+    // _fetchUniqueSpecies();
     return Scaffold(
       body:
           _isLoading
