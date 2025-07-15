@@ -48,12 +48,10 @@ class _ViewStatisticsPageState extends State<ViewStatisticsPage> {
                       'User Statistics',
                       _statistics['userStatistics'],
                     ),
-                    const SizedBox(height: 20),
                     _buildSection(
                       'Sighting Statistics',
                       _statistics['sightingStatistics'],
                     ),
-                    const SizedBox(height: 20),
                     _buildSection(
                       'Combined Statistics',
                       _statistics['combinedStatistics'],
@@ -67,18 +65,26 @@ class _ViewStatisticsPageState extends State<ViewStatisticsPage> {
   Widget _buildSection(String title, Map<String, dynamic>? data) {
     if (data == null) return const SizedBox();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 10),
-        ...data.entries.map(
-          (entry) => _buildStatItem(entry.key, entry.value, 0),
-        ),
-      ],
+    return Card(
+      child: ExpansionTile(
+        dense: true,
+        shape: const Border(),
+        collapsedShape: const Border(),
+        title: Text(title, style: Theme.of(context).textTheme.titleSmall),
+        initiallyExpanded: false,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children:
+                  data.entries
+                      .map((entry) => _buildStatItem(entry.key, entry.value, 0))
+                      .toList(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

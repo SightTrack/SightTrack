@@ -14,7 +14,6 @@ class _AllSightingsScreenState extends State<AllSightingsScreen> {
   List<Sighting> filteredSightings = [];
   bool isLoading = true;
   late StreamSubscription _subscription;
-  final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
   @override
@@ -22,19 +21,17 @@ class _AllSightingsScreenState extends State<AllSightingsScreen> {
     super.initState();
     _fetchAllSightings();
     _setupSubscription();
-    _searchController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
     _subscription.cancel();
-    _searchController.dispose();
     super.dispose();
   }
 
-  void _onSearchChanged() {
+  void _onSearchChanged(String query) {
     setState(() {
-      _searchQuery = _searchController.text.toLowerCase();
+      _searchQuery = query.toLowerCase();
       _filterSightings();
     });
   }
@@ -117,28 +114,9 @@ class _AllSightingsScreenState extends State<AllSightingsScreen> {
       body: Column(
         children: [
           // Fixed search bar
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search by species or user...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon:
-                    _searchQuery.isNotEmpty
-                        ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            _searchController.clear();
-                          },
-                        )
-                        : null,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 12.0,
-                ),
-              ),
-            ),
+          STSearchBar(
+            hintText: 'Search by species or user...',
+            onSearchChanged: _onSearchChanged,
           ),
           // Sightings list
           Expanded(

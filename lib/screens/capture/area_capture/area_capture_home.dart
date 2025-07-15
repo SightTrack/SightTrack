@@ -663,7 +663,7 @@ class _AreaCaptureHomeState extends State<AreaCaptureHome>
                 const SizedBox(height: 32),
 
                 // Take Photo Button
-                ModernDarkButton(
+                DarkButton(
                   text: 'Take Photo',
                   onPressed: () async {
                     final result = await Navigator.push(

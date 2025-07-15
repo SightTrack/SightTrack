@@ -151,15 +151,52 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final geo.Position pos = await Util.getCurrentPosition();
+
+      // First set camera to show the planet (very low zoom)
       await _mapboxMap!.setCamera(
         mapbox.CameraOptions(
           center: mapbox.Point(
             coordinates: mapbox.Position(pos.longitude, pos.latitude),
           ),
-          zoom: 1.0,
+          zoom: 0.5, // Very low zoom to see the planet
           bearing: pos.heading,
         ),
       );
+
+      // Then automatically zoom in after a short delay
+      debugPrint('Initial camera set, starting zoom animation...');
+
+      // Use a longer delay and ensure the animation happens
+      Timer(const Duration(milliseconds: 100), () async {
+        if (_mapboxMap != null) {
+          debugPrint('Executing flyTo animation...');
+          try {
+            await _mapboxMap!.flyTo(
+              mapbox.CameraOptions(
+                center: mapbox.Point(
+                  coordinates: mapbox.Position(pos.longitude, pos.latitude),
+                ),
+                zoom: 10.0, // Zoomed in level
+                bearing: pos.heading,
+              ),
+              mapbox.MapAnimationOptions(duration: 1000), // 2 second animation
+            );
+            debugPrint('FlyTo animation completed');
+          } catch (e) {
+            debugPrint('Error in flyTo animation: $e');
+            // Fallback to setCamera if flyTo fails
+            await _mapboxMap!.setCamera(
+              mapbox.CameraOptions(
+                center: mapbox.Point(
+                  coordinates: mapbox.Position(pos.longitude, pos.latitude),
+                ),
+                zoom: 10.0,
+                bearing: pos.heading,
+              ),
+            );
+          }
+        }
+      });
     } catch (e) {
       debugPrint('Error getting user location: $e');
     }
@@ -298,73 +335,25 @@ class _HomeScreenState extends State<HomeScreen> {
           Positioned(
             top: 60.0,
             left: 20.0,
-            child: FloatingActionButton(
+            child: SquareFloatingActionButton(
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => AllSightingsScreen()),
                 );
               },
-              backgroundColor: Colors.grey[850]!.withValues(alpha: 0.9),
-              foregroundColor: Colors.white,
-              elevation: 4.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.0),
-                side: BorderSide(
-                  color: Colors.grey[700]!.withValues(alpha: 0.5),
-                  width: 1.5,
-                ),
-              ),
-              splashColor: Colors.blueAccent.withValues(alpha: 0.2),
-              heroTag: 'topLeftFAB',
-              child: Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      blurRadius: 6,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.list, size: 24, color: Colors.white),
-              ),
+              icon: Icons.list,
+              heroTag: 'allSightingsFAB',
+              tooltip: 'View all sightings',
             ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: SquareFloatingActionButton(
         onPressed: _resetCameraToUserLocation,
-        backgroundColor: Colors.grey[850]!.withValues(alpha: 0.9),
-        foregroundColor: Colors.white,
-        elevation: 4.0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.0),
-          side: BorderSide(
-            color: Colors.grey[700]!.withValues(alpha: 0.5),
-            width: 1.5,
-          ),
-        ),
-        splashColor: Colors.blueAccent.withValues(alpha: 0.2),
+        icon: Icons.my_location,
         heroTag: 'locationFAB',
-        child: Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 6,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: const Icon(Icons.my_location, size: 24, color: Colors.white),
-        ),
+        tooltip: 'Go to my location',
       ),
     );
   }

@@ -447,14 +447,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 ],
               ),
               actions: [
-                ModernDarkButton(
+                DarkButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                     _copyToClipboard(jsonString);
                   },
                   text: 'Copy to Clipboard',
                 ),
-                ModernDarkButton(
+                DarkButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                     _showJsonPreview(jsonString, filename);

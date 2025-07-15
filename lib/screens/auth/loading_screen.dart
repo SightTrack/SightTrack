@@ -158,23 +158,6 @@ class _LoadingScreenState extends State<LoadingScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // App logo or icon
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isDarkMode ? Colors.grey[800] : Colors.grey[100],
-                ),
-                child: Icon(
-                  Icons.visibility_outlined,
-                  size: 60,
-                  color: isDarkMode ? Colors.white : Colors.grey[700],
-                ),
-              ),
-
-              const SizedBox(height: 40),
-
               // Animated loading indicator
               AnimatedBuilder(
                 animation: _animation,

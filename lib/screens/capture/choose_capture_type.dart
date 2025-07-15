@@ -1,7 +1,6 @@
 import 'package:sighttrack/barrel.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-import 'package:sighttrack/tests/capture_button_test.dart';
 
 class CaptureTypeScreen extends StatefulWidget {
   const CaptureTypeScreen({super.key});
@@ -87,12 +86,12 @@ class _CaptureTypeScreenState extends State<CaptureTypeScreen>
                               'Snap a single animal or plant instantly',
                           onPressed: () {
                             HapticFeedback.lightImpact();
-                            Navigator.pushNamed(context, '/capture');
-                            // Navigator.of(context).push(
-                            //   MaterialPageRoute(
-                            //     builder: (context) => const CaptureButtonTest(),
-                            //   ),
-                            // );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const CaptureScreen(),
+                              ),
+                            );
                           },
                         ),
                       ),
@@ -104,7 +103,12 @@ class _CaptureTypeScreenState extends State<CaptureTypeScreen>
                           description: 'Document larger areas for research',
                           onPressed: () {
                             HapticFeedback.lightImpact();
-                            Navigator.pushNamed(context, '/ac_setup');
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const AreaCaptureSetup(),
+                              ),
+                            );
                           },
                         ),
                       ),
@@ -116,6 +120,7 @@ class _CaptureTypeScreenState extends State<CaptureTypeScreen>
             Positioned(
               right: 16,
               child: IconButton(
+                tooltip: 'More info',
                 icon: Icon(
                   Icons.info_outline,
                   color: theme.colorScheme.onSurface,
@@ -266,7 +271,6 @@ class _CaptureTypeInfoScreenState extends State<CaptureTypeInfoScreen>
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late PageController _pageController;
-  int _currentPage = 0;
 
   final List<Map<String, dynamic>> _quickCaptureFeatures = [
     {
@@ -331,6 +335,7 @@ class _CaptureTypeInfoScreenState extends State<CaptureTypeInfoScreen>
     final theme = Theme.of(context);
 
     return Scaffold(
+      appBar: AppBar(title: Text('Capture Guide')),
       backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
         child: Stack(
@@ -359,8 +364,6 @@ class _CaptureTypeInfoScreenState extends State<CaptureTypeInfoScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildHeader(theme),
-                          const SizedBox(height: 32),
                           _buildIntroSection(theme),
                           const SizedBox(height: 32),
                           _buildQuickCaptureSection(theme),
@@ -382,36 +385,6 @@ class _CaptureTypeInfoScreenState extends State<CaptureTypeInfoScreen>
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader(ThemeData theme) {
-    return Row(
-      children: [
-        IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: theme.colorScheme.onSurface,
-            size: 26,
-          ),
-          onPressed: () => Navigator.pop(context),
-          style: IconButton.styleFrom(
-            backgroundColor: theme.colorScheme.surfaceContainerHighest
-                .withValues(alpha: 0.4),
-            padding: const EdgeInsets.all(10),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            'Capture Guide',
-            style: theme.textTheme.headlineMedium?.copyWith(
-              color: theme.colorScheme.onSurface,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-        const SizedBox(width: 46),
-      ],
     );
   }
 
