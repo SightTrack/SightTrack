@@ -57,3 +57,4 @@ flutter:
     - "assets/logo_transparent.png"
     - ".env"
     - "assets/test/canada_goose.jpg"
+    - assets/city_border.geojson
