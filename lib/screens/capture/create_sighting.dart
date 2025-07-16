@@ -976,7 +976,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
     return Row(
       children: [
         Expanded(
-          child: ModernDarkButton(
+          child: DarkButton(
             text:
                 _isSaving
                     ? (widget.isAreaCapture ? 'Adding...' : 'Saving...')
@@ -990,7 +990,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: ModernDarkButton(
+          child: DarkButton(
             text: 'Cancel',
             width: double.infinity,
             height: 56,

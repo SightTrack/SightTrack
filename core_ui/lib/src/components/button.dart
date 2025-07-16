@@ -121,13 +121,13 @@ class _OpacityBlockButtonState extends State<OpacityBlockButton>
 }
 
 /// Modern black button with white text
-class ModernDarkButton extends StatefulWidget {
+class DarkButton extends StatefulWidget {
   final String text;
   final VoidCallback onPressed;
   final double width;
   final double height;
 
-  const ModernDarkButton({
+  const DarkButton({
     super.key,
     required this.text,
     required this.onPressed,
@@ -136,10 +136,10 @@ class ModernDarkButton extends StatefulWidget {
   });
 
   @override
-  ModernDarkButtonState createState() => ModernDarkButtonState();
+  DarkButtonState createState() => DarkButtonState();
 }
 
-class ModernDarkButtonState extends State<ModernDarkButton>
+class DarkButtonState extends State<DarkButton>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
@@ -204,6 +204,70 @@ class ModernDarkButtonState extends State<ModernDarkButton>
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Modern square floating action button with consistent styling
+class SquareFloatingActionButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final IconData icon;
+  final String heroTag;
+  final double size;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  final Color? splashColor;
+  final double elevation;
+  final double borderRadius;
+  final String? tooltip;
+
+  const SquareFloatingActionButton({
+    super.key,
+    required this.onPressed,
+    required this.icon,
+    required this.heroTag,
+    this.size = 56,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.splashColor,
+    this.elevation = 4.0,
+    this.borderRadius = 16.0,
+    this.tooltip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FloatingActionButton(
+      tooltip: tooltip,
+      onPressed: onPressed,
+      backgroundColor:
+          backgroundColor ?? Colors.grey[850]!.withValues(alpha: 0.9),
+      foregroundColor: foregroundColor ?? Colors.white,
+      elevation: elevation,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(borderRadius),
+        side: BorderSide(
+          color: Colors.grey[700]!.withValues(alpha: 0.5),
+          width: 1.5,
+        ),
+      ),
+      splashColor: splashColor ?? Colors.blueAccent.withValues(alpha: 0.2),
+      heroTag: heroTag,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Icon(icon, size: 24, color: foregroundColor ?? Colors.white),
       ),
     );
   }

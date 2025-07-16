@@ -260,7 +260,7 @@ class _ManageReportsScreenState extends State<ManageReportsScreen> {
                           // Actions
                           _buildActionsSection(report),
 
-                          ModernDarkButton(
+                          DarkButton(
                             text: 'Remove Sighting',
                             onPressed: () {
                               showDialog(

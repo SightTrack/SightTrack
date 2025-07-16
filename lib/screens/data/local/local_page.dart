@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:sighttrack/barrel.dart';
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
@@ -148,7 +147,8 @@ Future<String?> _getCurrentCityName() async {
   Future<void> _addMarkersToMap() async {
     if (_mapboxMap == null) return;
 
-    final annotationManager = await _mapboxMap!.annotations.createPointAnnotationManager();
+    final annotationManager =
+        await _mapboxMap!.annotations.createPointAnnotationManager();
 
 
     await annotationManager.deleteAll();
@@ -170,16 +170,17 @@ Future<String?> _getCurrentCityName() async {
   }
 
   latitudelongitude _calculateUserCityCenter() {
-    final validSightings = _sightings.where((s) {
-      return s.latitude.isFinite &&
-          s.longitude.isFinite &&
-          s.latitude >= -90.0 &&
-          s.latitude <= 90.0 &&
-          s.longitude >= -180.0 &&
-          s.longitude <= 180.0 &&
-          s.city != null &&
-          s.city!.isNotEmpty;
-    }).toList();
+    final validSightings =
+        _sightings.where((s) {
+          return s.latitude.isFinite &&
+              s.longitude.isFinite &&
+              s.latitude >= -90.0 &&
+              s.latitude <= 90.0 &&
+              s.longitude >= -180.0 &&
+              s.longitude <= 180.0 &&
+              s.city != null &&
+              s.city!.isNotEmpty;
+        }).toList();
 
     if (validSightings.isNotEmpty) {
       final citySighting = validSightings.first;
@@ -223,7 +224,7 @@ Future<String?> _getCurrentCityName() async {
                 center: mapbox.Point(
                   coordinates: mapbox.Position(
                     center.longitude, // longitude first
-                    center.latitude,  // latitude second
+                    center.latitude, // latitude second
                   ),
                 ),
                 zoom: 3.0,

@@ -392,7 +392,7 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen>
                 vertical: 10,
               ),
               child: SizedBox(
-                child: ModernDarkButton(
+                child: DarkButton(
                   onPressed: () => _loadMoreSightings(isUnclaimed),
                   text: 'Load More',
                 ),
@@ -807,7 +807,7 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen>
                               ],
                             ),
                             const SizedBox(height: 16),
-                            ModernDarkButton(
+                            DarkButton(
                               onPressed: () async {
                                 await Navigator.push(
                                   context,
@@ -1358,7 +1358,7 @@ class _VolunteerHoursScreenState extends State<VolunteerHoursScreen>
                                       strokeWidth: 2.5,
                                     ),
                                   )
-                                  : ModernDarkButton(
+                                  : DarkButton(
                                     onPressed: () async {
                                       if (_activitySupervisorController
                                               .text

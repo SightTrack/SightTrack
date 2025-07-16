@@ -313,7 +313,7 @@ class _AreaCaptureSetupState extends State<AreaCaptureSetup> {
                           ],
                         ),
                         const SizedBox(height: 30),
-                        ModernDarkButton(
+                        DarkButton(
                           text: 'Start Area Capture',
                           onPressed: _startAreaCapture,
                         ),

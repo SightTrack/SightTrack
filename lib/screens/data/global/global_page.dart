@@ -196,37 +196,28 @@ class _GlobalViewState extends State<GlobalView> {
                 Positioned(
                   top: 20,
                   left: 10,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 45, 45, 45),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(10),
-                        child: ModernDarkButton(
-                          text: 'View Statistics',
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => const ViewStatisticsPage(),
-                              ),
-                            );
-                          },
+                  child: SquareFloatingActionButton(
+                    heroTag: 'view_statistics',
+                    icon: Icons.analytics,
+                    size: 40,
+                    tooltip: 'View Statistics',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ViewStatisticsPage(),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ),
                 Positioned(
                   top: 20,
                   right: 10,
-                  child: FloatingActionButton(
-                    mini: true,
-                    backgroundColor: Colors.grey[850],
+                  child: SquareFloatingActionButton(
+                    heroTag: 'date_selector',
+                    icon: Icons.timelapse,
+                    size: 40,
                     onPressed: () async {
                       final picked = await showDateRangePicker(
                         context: context,
@@ -278,7 +269,6 @@ class _GlobalViewState extends State<GlobalView> {
                         });
                       }
                     },
-                    child: const Icon(Icons.timelapse, color: Colors.white),
                   ),
                 ),
               ],

@@ -1,9 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui';
-import 'package:provider/provider.dart';
 import 'package:sighttrack/barrel.dart';
-import 'package:sighttrack/screens/profile/admin_panel.dart';
+import 'package:sighttrack/screens/profile/admin/admin_panel.dart';
 
 class Navigation extends StatelessWidget {
   const Navigation({super.key});

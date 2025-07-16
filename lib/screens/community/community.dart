@@ -31,10 +31,6 @@ class _CommunityScreenState extends State<CommunityScreen>
     _fetchData();
     _setupRealTimeUpdates();
 
-    // Listen to search changes
-    _globalSearchController.addListener(_filterGlobalUsers);
-    _schoolSearchController.addListener(_filterSchoolUsers);
-
     // Listen to tab changes to rebuild search bar
     _tabController.addListener(() {
       if (mounted) {
@@ -139,31 +135,33 @@ class _CommunityScreenState extends State<CommunityScreen>
         );
   }
 
-  void _filterGlobalUsers() {
-    final query = _globalSearchController.text.toLowerCase();
+  void _filterGlobalUsers(String query) {
     setState(() {
       if (query.isEmpty) {
         _filteredGlobalUsers = List.from(_globalUsers);
       } else {
         _filteredGlobalUsers =
             _globalUsers.where((user) {
-              return user.display_username.toLowerCase().contains(query) ||
-                  user.email.toLowerCase().contains(query);
+              return user.display_username.toLowerCase().contains(
+                    query.toLowerCase(),
+                  ) ||
+                  user.email.toLowerCase().contains(query.toLowerCase());
             }).toList();
       }
     });
   }
 
-  void _filterSchoolUsers() {
-    final query = _schoolSearchController.text.toLowerCase();
+  void _filterSchoolUsers(String query) {
     setState(() {
       if (query.isEmpty) {
         _filteredSchoolUsers = List.from(_schoolUsers);
       } else {
         _filteredSchoolUsers =
             _schoolUsers.where((user) {
-              return user.display_username.toLowerCase().contains(query) ||
-                  user.email.toLowerCase().contains(query);
+              return user.display_username.toLowerCase().contains(
+                    query.toLowerCase(),
+                  ) ||
+                  user.email.toLowerCase().contains(query.toLowerCase());
             }).toList();
       }
     });
@@ -286,89 +284,24 @@ class _CommunityScreenState extends State<CommunityScreen>
             floating: true,
             snap: true,
             elevation: 0,
-            backgroundColor: Theme.of(context).colorScheme.surface,
             toolbarHeight: 80,
             flexibleSpace: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                border: Border(
-                  bottom: BorderSide(
-                    color: Theme.of(
-                      context,
-                    ).dividerColor.withValues(alpha: 0.2),
-                    width: 1,
-                  ),
-                ),
-              ),
+              decoration: BoxDecoration(),
               child: Center(
                 child:
                     isGlobal
-                        ? ListenableBuilder(
-                          listenable: _globalSearchController,
-                          builder: (context, child) {
-                            return TextField(
-                              controller: _globalSearchController,
-                              decoration: InputDecoration(
-                                hintText: 'Search by name or email',
-                                prefixIcon: const Icon(Icons.search),
-                                suffixIcon:
-                                    _globalSearchController.text.isNotEmpty
-                                        ? IconButton(
-                                          icon: const Icon(Icons.clear),
-                                          onPressed: () {
-                                            _globalSearchController.clear();
-                                          },
-                                        )
-                                        : null,
-                                filled: true,
-                                fillColor: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withValues(alpha: 0.1),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide.none,
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                              ),
-                            );
-                          },
+                        ? STSearchBar(
+                          hintText: 'Search by name or email',
+                          onSearchChanged: _filterGlobalUsers,
+                          controller: _globalSearchController,
+                          padding: EdgeInsets.zero,
                         )
-                        : ListenableBuilder(
-                          listenable: _schoolSearchController,
-                          builder: (context, child) {
-                            return TextField(
-                              controller: _schoolSearchController,
-                              decoration: InputDecoration(
-                                hintText: 'Search by name or email...',
-                                prefixIcon: const Icon(Icons.search),
-                                suffixIcon:
-                                    _schoolSearchController.text.isNotEmpty
-                                        ? IconButton(
-                                          icon: const Icon(Icons.clear),
-                                          onPressed: () {
-                                            _schoolSearchController.clear();
-                                          },
-                                        )
-                                        : null,
-                                filled: true,
-                                fillColor: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withValues(alpha: 0.1),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide.none,
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                              ),
-                            );
-                          },
+                        : STSearchBar(
+                          hintText: 'Search by name or email',
+                          onSearchChanged: _filterSchoolUsers,
+                          controller: _schoolSearchController,
+                          padding: EdgeInsets.zero,
                         ),
               ),
             ),
@@ -433,7 +366,7 @@ class _CommunityScreenState extends State<CommunityScreen>
     }
 
     return SliverPadding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 0, bottom: 16),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final user = users[index];

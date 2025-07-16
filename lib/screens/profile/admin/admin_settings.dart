@@ -192,14 +192,14 @@ class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
                 ],
               ),
               actions: [
-                ModernDarkButton(
+                DarkButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                     _copyToClipboard(jsonString);
                   },
                   text: 'Copy to Clipboard',
                 ),
-                ModernDarkButton(
+                DarkButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                     _showJsonPreview(jsonString, filename);

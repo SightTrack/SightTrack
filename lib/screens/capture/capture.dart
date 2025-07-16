@@ -1144,7 +1144,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
                 right: 20,
               ),
               child: Center(
-                child: ModernDarkButton(
+                child: DarkButton(
                   width: 150,
                   text: 'Continue',
                   onPressed: () async {
