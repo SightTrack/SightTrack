@@ -1,0 +1,53 @@
+Future<void> _drawCityBoundaryForCity(String cityName) async {
+  if (_mapboxMap == null) return;
+
+  try {
+    final geoJsonStr = await rootBundle.loadString('assets/city_border.geojson');
+    final geo = json.decode(geoJsonStr);
+
+    final features = geo['features'] as List;
+
+
+    // {"type": "FeatureCollection",
+    //"features": [
+    //{ "type": "Feature", 
+    //"properties": { "NAME": "TORSHAVN" }, 
+    //"geometry": { "type": "Polygon", "coordinates": [ [ [ -6.75864, 62.01517 ], [ -6.76184, 62.01528 ], [ -6.77094, 62.00592 ], [ -6.78213, 62.01058 ] ] ] } },
+    //]}
+
+
+    // Find the city feature by name (case-insensitive)
+    final cityFeature = features.firstWhere(
+      (f) {
+        final props = f['properties'] ?? {};
+        final name = (props['name'] ?? props['city'] ?? '');
+        return name == cityName;
+      },
+      orElse: () => null,
+    );
+
+    if (cityFeature == null) {
+      debugPrint('City "$cityName" not found in GeoJSON.');
+      return;
+    }
+
+    final coordinates = cityFeature['geometry']['coordinates'][0] as List;
+
+    final positions = coordinates.map<mapbox.Position>((point) {
+      final lon = point[0] as double;
+      final lat = point[1] as double;
+      return mapbox.Position(lon, lat);
+    }).toList();
+
+    final polygonManager = await _mapboxMap!.annotations.createPolygonAnnotationManager();
+    await polygonManager.create(
+      mapbox.PolygonAnnotationOptions(
+        geometry: mapbox.Polygon(coordinates: [positions]),
+        fillColor: const Color(0x800000FF).value,
+        fillOutlineColor: const Color(0xFF0000FF).value,
+      ),
+    );
+  } catch (e) {
+    debugPrint('Error drawing city boundary: $e');
+  }
+}
