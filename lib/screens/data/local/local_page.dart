@@ -227,7 +227,7 @@ Future<String?> _getCurrentCityName() async {
                     center.latitude, // latitude second
                   ),
                 ),
-                zoom: 3.0,
+                zoom: 10.0,
               ),
               styleUri: Util.mapStyle,
             ),
