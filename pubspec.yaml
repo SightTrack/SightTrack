@@ -58,3 +58,5 @@ flutter:
     - ".env"
     - "assets/test/canada_goose.jpg"
     - assets/city_border.geojson
+    - assets/prompts/image_processing.txt
+    - assets/prompts/image_identifier.txt

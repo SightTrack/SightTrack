@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:sighttrack/screens/capture/change_sighting_location.dart';
-import 'package:sighttrack/services/computer_vision.dart';
+import 'package:sighttrack/services/cv.dart';
 
 class CreateSightingScreen extends StatefulWidget {
   final String imagePath;
@@ -30,8 +30,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
   UserSettings? _userSettings;
   bool _isSaving = false;
   FToast? _toast;
-  bool _isCloudVisionLoading = true;
-  bool _isGrokLoading = false;
+  bool _isIdentifying = true;
 
   @override
   void initState() {
@@ -43,30 +42,16 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
   }
 
   Future<void> _initializerWrapper() async {
-    // List<String>? rekognitionResponse = await Util.doAWSRekognitionCall(
-    //   widget.imagePath,
-    // );
-    String cloudVisionResponse =
-        await ComputerVisionService.googleCloudVisionResponse(
-          imagePath: widget.imagePath,
-        );
+    // Use the new CV service
+    final cvInstance = ComputerVisionInstance();
 
-    setState(() {
-      _isCloudVisionLoading = false;
-      _isGrokLoading = true;
-    });
-
-    String grokResponse = await ComputerVisionService.predictSpeciesWithGrok(
-      visionApiResult: cloudVisionResponse,
+    List<String> species = await cvInstance.startImageIdentification(
+      widget.imagePath,
     );
 
     setState(() {
-      _isGrokLoading = false;
+      _isIdentifying = false;
     });
-
-    List<String> species = ComputerVisionService.parseSpeciesFromLLMResponse(
-      grokResponse,
-    );
 
     // if (rekognitionResponse.isNotEmpty) {
     //   // Filter images that are not animals or plants
@@ -305,7 +290,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
       ),
       backgroundColor: theme.colorScheme.surface,
       body:
-          _isCloudVisionLoading || _isGrokLoading
+          _isIdentifying
               ? _buildLoadingUI(theme)
               : GestureDetector(
                 onTap: () => FocusScope.of(context).unfocus(),
@@ -418,33 +403,16 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
   }
 
   Widget _buildAnimatedLoadingStates(ThemeData theme) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 600),
-      transitionBuilder: (child, animation) {
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 1),
-            end: Offset.zero,
-          ).animate(
-            CurvedAnimation(parent: animation, curve: Curves.elasticOut),
-          ),
-          child: FadeTransition(opacity: animation, child: child),
-        );
-      },
-      child:
-          _isCloudVisionLoading
-              ? _buildCloudVisionLoadingState(theme)
-              : _buildGrokLoadingState(theme),
-    );
+    return _buildIdentifyingLoadingState(theme);
   }
 
-  Widget _buildCloudVisionLoadingState(ThemeData theme) {
+  Widget _buildIdentifyingLoadingState(ThemeData theme) {
     return Container(
-      key: const ValueKey('cloud_vision'),
+      key: const ValueKey('identifying'),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Animated scanning icon
+          // Animated AI brain icon
           TweenAnimationBuilder<double>(
             duration: const Duration(seconds: 2),
             tween: Tween(begin: 0.0, end: 1.0),
@@ -471,7 +439,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
                     ],
                   ),
                   child: const Icon(
-                    Icons.camera_enhance,
+                    Icons.psychology,
                     color: Colors.white,
                     size: 40,
                   ),
@@ -484,106 +452,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
 
           // Main loading text with typewriter effect
           _buildTypewriterText(
-            'Analyzing image...',
-            theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.onSurface,
-                ) ??
-                const TextStyle(),
-            theme,
-          ),
-
-          const SizedBox(height: 16),
-
-          // Subtitle
-          Text(
-            'Using advanced computer vision',
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGrokLoadingState(ThemeData theme) {
-    return Container(
-      key: const ValueKey('grok'),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Previous state (pushed up)
-          AnimatedOpacity(
-            opacity: 0.4,
-            duration: const Duration(milliseconds: 300),
-            child: Transform.translate(
-              offset: const Offset(0, -20),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.check_circle,
-                    color: theme.colorScheme.primary,
-                    size: 24,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Image analyzed ✓',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 40),
-
-          // Current AI brain animation
-          TweenAnimationBuilder<double>(
-            duration: const Duration(seconds: 1),
-            tween: Tween(begin: 0.8, end: 1.2),
-            builder: (context, value, child) {
-              return Transform.scale(
-                scale: value,
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [
-                        theme.colorScheme.tertiary,
-                        theme.colorScheme.primary,
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: theme.colorScheme.tertiary.withValues(
-                          alpha: 0.4,
-                        ),
-                        blurRadius: 25,
-                        spreadRadius: 8,
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.psychology,
-                    color: Colors.white,
-                    size: 40,
-                  ),
-                ),
-              );
-            },
-          ),
-
-          const SizedBox(height: 40),
-
-          // Main loading text
-          _buildTypewriterText(
-            'Identifying species...',
+            'Identifying Image...',
             theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: theme.colorScheme.onSurface,
