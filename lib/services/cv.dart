@@ -3,10 +3,10 @@ import 'package:http/http.dart' as http;
 import 'package:sighttrack/barrel.dart';
 
 class ComputerVisionInstance {
-  String _provider = 'grok';
-  String _apiKey = dotenv.env['GROK'] ?? '';
-  String _apiUrl = 'https://api.x.ai/v1/chat/completions';
-  // String _apiUrl = 'https://api.openai.com/v1/chat/completions';
+  String _provider = 'openai';
+  String _apiKey = dotenv.env['OPENAI'] ?? '';
+  // String _apiUrl = 'https://api.x.ai/v1/chat/completions';
+  String _apiUrl = 'https://api.openai.com/v1/chat/completions';
 
   Future<String> extractImageCharacteristics(String imagepath) async {
     try {
