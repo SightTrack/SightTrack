@@ -87,6 +87,8 @@ class AppTheme {
         backgroundColor: _darkSurfaceColor,
         foregroundColor: _darkOnSurfaceColor,
         shadowColor: _darkPrimaryColor.withValues(alpha: 0.1),
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
       ),
       cardTheme: CardThemeData(
         color: _darkSurfaceColor,
@@ -155,6 +157,8 @@ class AppTheme {
         backgroundColor: _lightSurfaceColor,
         foregroundColor: _lightOnSurfaceColor,
         shadowColor: _lightPrimaryColor.withValues(alpha: 0.1),
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
       ),
       cardTheme: CardThemeData(
         color: Colors.white,

@@ -283,10 +283,6 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
       ),
       backgroundColor: theme.colorScheme.surface,
       body:
@@ -306,19 +302,19 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
                       children: [
                         // Image Section with modern card design
                         _buildImageSection(theme),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 24),
 
                         // Form Fields Section
                         _buildFormSection(theme),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 24),
 
                         // Location Section
                         _buildLocationSection(theme),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 24),
 
                         // Action Buttons
                         _buildActionButtons(),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 24),
                       ],
                     ),
                   ),
@@ -328,19 +324,9 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
   }
 
   Widget _buildLoadingUI(ThemeData theme) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       height: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            theme.colorScheme.primary.withValues(alpha: 0.05),
-            theme.colorScheme.secondary.withValues(alpha: 0.03),
-          ],
-        ),
-      ),
       child: Column(
         children: [
           const SizedBox(height: 60),
@@ -362,18 +348,8 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
   Widget _buildLoadingImagePreview(ThemeData theme) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 40),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.primary.withValues(alpha: 0.1),
-            blurRadius: 30,
-            offset: const Offset(0, 15),
-          ),
-        ],
-      ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         child: Container(
           height: 200,
           width: double.infinity,
@@ -382,6 +358,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
               color: theme.colorScheme.primary.withValues(alpha: 0.2),
               width: 2,
             ),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Image.file(
             File(widget.imagePath),
@@ -491,353 +468,251 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
   }
 
   Widget _buildImageSection(ThemeData theme) {
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.shadow.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Captured Image',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onSurface,
           ),
-        ],
-        border: Border.all(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
-          width: 1,
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.photo_camera,
-                  color: theme.colorScheme.primary,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Captured Image',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-              ],
+        const SizedBox(height: 12),
+        GestureDetector(
+          onTap: () => _showImageDialog(context),
+          child: Container(
+            height: 200,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
+                width: 1,
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-            child: GestureDetector(
-              onTap: () => _showImageDialog(context),
-              child: Container(
-                height: 220,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
-                    width: 1,
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Image.file(
-                    File(widget.imagePath),
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.error_outline,
-                              color: theme.colorScheme.error,
-                              size: 48,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Error loading image',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.error,
-                              ),
-                            ),
-                          ],
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(7),
+              child: Image.file(
+                File(widget.imagePath),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: theme.colorScheme.error,
+                          size: 48,
                         ),
-                      );
-                    },
-                  ),
-                ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Error loading image',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.error,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildFormSection(ThemeData theme) {
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.shadow.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Sighting Details',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onSurface,
           ),
-        ],
-        border: Border.all(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
-          width: 1,
         ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  color: theme.colorScheme.primary,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Sighting Details',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
+        const SizedBox(height: 16),
+
+        // Species Dropdown
+        DropdownButtonFormField<String>(
+          value: _selectedSpecies,
+          decoration: InputDecoration(
+            labelText: 'Species*',
+            prefixIcon: Icon(
+              Icons.pets,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+          ),
+          style: theme.textTheme.bodyLarge,
+          dropdownColor: theme.colorScheme.surface,
+          isExpanded: true,
+          items:
+              identifiedSpecies?.map((String species) {
+                return DropdownMenuItem<String>(
+                  value: species,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      species,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Species Dropdown
-            DropdownButtonFormField<String>(
-              value: _selectedSpecies,
-              decoration: InputDecoration(
-                labelText: 'Species*',
-                prefixIcon: Icon(
-                  Icons.pets,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ),
-              style: theme.textTheme.labelSmall,
-              dropdownColor: theme.colorScheme.surface,
-              items:
-                  identifiedSpecies?.map((String species) {
-                    return DropdownMenuItem<String>(
-                      value: species,
-                      child: Text(species),
-                    );
-                  }).toList() ??
-                  [],
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedSpecies = newValue;
-                });
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please select a species';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 20),
-
-            // Description Field
-            TextFormField(
-              controller: _descriptionController,
-              decoration: InputDecoration(
-                labelText: 'Description',
-                hintText: 'Provide details about the sighting...',
-                prefixIcon: Icon(
-                  Icons.notes,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ),
-              style: theme.textTheme.bodyLarge,
-              maxLines: 3,
-              textInputAction: TextInputAction.done,
-            ),
-            const SizedBox(height: 20),
-
-            // Date & Time Field
-            TextFormField(
-              readOnly: true,
-              decoration: InputDecoration(
-                labelText: 'Date & Time*',
-                prefixIcon: Icon(
-                  Icons.schedule,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-                suffixIcon: Icon(
-                  Icons.arrow_drop_down,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ),
-              style: theme.textTheme.bodyLarge,
-              onTap: () => _selectDateTime(context),
-              controller: TextEditingController(
-                text: DateFormat(
-                  'MMMM d, yyyy, h:mm a',
-                ).format(_selectedDateTime),
-              ),
-            ),
-          ],
+                );
+              }).toList() ??
+              [],
+          onChanged: (String? newValue) {
+            setState(() {
+              _selectedSpecies = newValue;
+            });
+          },
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please select a species';
+            }
+            return null;
+          },
         ),
-      ),
+        const SizedBox(height: 16),
+
+        // Description Field
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
+              width: 1,
+            ),
+          ),
+          child: TextFormField(
+            controller: _descriptionController,
+            decoration: InputDecoration(
+              labelText: 'Description',
+              hintText:
+                  'Describe the behavior, habitat, or any interesting details you observed...',
+              hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
+              // prefixIcon: Padding(
+              //   padding: const EdgeInsets.only(top: 12.0),
+              //   child: Icon(
+              //     Icons.edit_note,
+              //     color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              //   ),
+              // ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+              alignLabelWithHint: true,
+            ),
+            style: theme.textTheme.bodyLarge?.copyWith(height: 1.4),
+            maxLines: 4,
+            minLines: 3,
+            textInputAction: TextInputAction.done,
+            textCapitalization: TextCapitalization.sentences,
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Date & Time Field
+        TextFormField(
+          readOnly: true,
+          decoration: InputDecoration(
+            labelText: 'Date & Time*',
+            prefixIcon: Icon(
+              Icons.schedule,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+            suffixIcon: Icon(
+              Icons.arrow_drop_down,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+          ),
+          style: theme.textTheme.bodyLarge,
+          onTap: () => _selectDateTime(context),
+          controller: TextEditingController(
+            text: DateFormat('MMMM d, yyyy, h:mm a').format(_selectedDateTime),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildLocationSection(ThemeData theme) {
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.shadow.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Location',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onSurface,
           ),
-        ],
-        border: Border.all(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
-          width: 1,
         ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+        const SizedBox(height: 12),
+
+        // Location Display/Picker
+        GestureDetector(
+          onTap: () => _openMapPicker(context),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
+                width: 1,
+              ),
+            ),
+            child: Row(
               children: [
-                Icon(
-                  Icons.location_on,
-                  color: theme.colorScheme.primary,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Location',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
+                Expanded(
+                  child: Text(
+                    _selectedLocation != null
+                        ? 'Lat: ${_selectedLocation!.latitude.toStringAsFixed(6)}, Lng: ${_selectedLocation!.longitude.toStringAsFixed(6)}'
+                        : 'Fetching location...',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
+                ),
+                Icon(
+                  Icons.edit_location_alt,
+                  color: theme.colorScheme.primary,
+                  size: 20,
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+          ),
+        ),
+        const SizedBox(height: 12),
 
-            // Location Display/Picker
-            GestureDetector(
-              onTap: () => _openMapPicker(context),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.12),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    // Icon(
-                    //   Icons.my_location,
-                    //   color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                    //   size: 20,
-                    // ),
-                    // const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _selectedLocation != null
-                            ? 'Lat: ${_selectedLocation!.latitude.toStringAsFixed(6)}, Lng: ${_selectedLocation!.longitude.toStringAsFixed(6)}'
-                            : 'Fetching location...',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurface,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Icon(
-                      Icons.edit_location_alt,
-                      color: theme.colorScheme.primary,
-                      size: 20,
-                    ),
-                  ],
-                ),
-              ),
+        // Location Offset Status
+        Row(
+          children: [
+            Icon(
+              (_userSettings?.locationOffset ?? false)
+                  ? Icons.shuffle
+                  : Icons.gps_fixed,
+              size: 16,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
             ),
-            const SizedBox(height: 12),
-
-            // Location Offset Status
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color:
-                    (_userSettings?.locationOffset ?? false)
-                        ? theme.colorScheme.primary.withValues(alpha: 0.1)
-                        : theme.colorScheme.onSurface.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color:
-                      (_userSettings?.locationOffset ?? false)
-                          ? theme.colorScheme.primary.withValues(alpha: 0.3)
-                          : theme.colorScheme.onSurface.withValues(alpha: 0.12),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    (_userSettings?.locationOffset ?? false)
-                        ? Icons.shuffle
-                        : Icons.gps_fixed,
-                    size: 16,
-                    color:
-                        (_userSettings?.locationOffset ?? false)
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurface.withValues(
-                              alpha: 0.6,
-                            ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    (_userSettings?.locationOffset ?? false)
-                        ? 'Location offset: ON'
-                        : 'Location offset: OFF',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color:
-                          (_userSettings?.locationOffset ?? false)
-                              ? theme.colorScheme.primary
-                              : theme.colorScheme.onSurface.withValues(
-                                alpha: 0.7,
-                              ),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+            const SizedBox(width: 8),
+            Text(
+              (_userSettings?.locationOffset ?? false)
+                  ? 'Location offset: ON'
+                  : 'Location offset: OFF',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
           ],
         ),
-      ),
+      ],
     );
   }
 

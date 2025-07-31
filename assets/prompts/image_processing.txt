@@ -1,7 +1,7 @@
 Image Analysis for Species Identification — SightTrack Assistant
 
 Your task:
-- Carefully observe the image attached and identify 5 or more distinct, significant characteristics present in the image.
+- Carefully observe the image attached and identify 10 or more distinct, significant characteristics present in the image. These features should help someone identify the exact species of the organism
 - Output each feature on its own line — no bullets, no numbering, no formatting.
 - No extra commentary or explanation. Just the raw features, line by line.
 

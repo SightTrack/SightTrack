@@ -151,81 +151,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               )
               : SafeArea(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 24,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            // Profile Picture & Edit
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.grey[800]!,
-                                        Colors.grey[700]!,
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.25,
-                                        ),
-                                        blurRadius: 16,
-                                        offset: const Offset(0, 8),
-                                      ),
-                                    ],
-                                  ),
-                                  child:
-                                      _profilePictureFuture != null
-                                          ? FutureBuilder<String?>(
-                                            future: _profilePictureFuture,
-                                            builder: (context, snapshot) {
-                                              if (snapshot.connectionState ==
-                                                  ConnectionState.waiting) {
-                                                return const SizedBox(
-                                                  height: 120,
-                                                  width: 120,
-                                                  child: Center(
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                          strokeWidth: 3,
-                                                        ),
-                                                  ),
-                                                );
-                                              } else if (snapshot.hasError ||
-                                                  !snapshot.hasData) {
-                                                return const CircleAvatar(
-                                                  radius: 60,
-                                                  backgroundColor: Colors.grey,
-                                                  child: Icon(
-                                                    Icons.person,
-                                                    size: 48,
-                                                    color: Colors.white,
-                                                  ),
-                                                );
-                                              } else {
-                                                return CircleAvatar(
-                                                  radius: 60,
-                                                  backgroundImage: NetworkImage(
-                                                    snapshot.data!,
-                                                  ),
-                                                );
-                                              }
-                                            },
-                                          )
-                                          : const CircleAvatar(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 24,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Profile Picture & Edit
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [Colors.grey[800]!, Colors.grey[700]!],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.25),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child:
+                                _profilePictureFuture != null
+                                    ? FutureBuilder<String?>(
+                                      future: _profilePictureFuture,
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return const SizedBox(
+                                            height: 120,
+                                            width: 120,
+                                            child: Center(
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 3,
+                                              ),
+                                            ),
+                                          );
+                                        } else if (snapshot.hasError ||
+                                            !snapshot.hasData) {
+                                          return const CircleAvatar(
                                             radius: 60,
                                             backgroundColor: Colors.grey,
                                             child: Icon(
@@ -233,140 +205,120 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               size: 48,
                                               color: Colors.white,
                                             ),
-                                          ),
-                                ),
-                                Positioned(
-                                  bottom: 0,
-                                  right: 8,
-                                  child: Material(
-                                    color: Colors.transparent,
-                                    child: InkWell(
-                                      borderRadius: BorderRadius.circular(20),
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder:
-                                                (context) =>
-                                                    ChangeProfilePictureScreen(
-                                                      user: _user!,
-                                                    ),
-                                          ),
-                                        );
+                                          );
+                                        } else {
+                                          return CircleAvatar(
+                                            radius: 60,
+                                            backgroundImage: NetworkImage(
+                                              snapshot.data!,
+                                            ),
+                                          );
+                                        }
                                       },
-                                      child: Container(
-                                        padding: const EdgeInsets.all(6),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.9,
-                                          ),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(
-                                          Icons.edit,
-                                          size: 20,
-                                          color: Colors.black87,
-                                        ),
+                                    )
+                                    : const CircleAvatar(
+                                      radius: 60,
+                                      backgroundColor: Colors.grey,
+                                      child: Icon(
+                                        Icons.person,
+                                        size: 48,
+                                        color: Colors.white,
                                       ),
                                     ),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 8,
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(20),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) =>
+                                              ChangeProfilePictureScreen(
+                                                user: _user!,
+                                              ),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.9),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.edit,
+                                    size: 20,
+                                    color: Colors.black87,
                                   ),
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 18),
-                            // Username & Display Name
-                            Text(
-                              _user!.display_username,
-                              style: Theme.of(context).textTheme.titleLarge,
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              _cognitoUsername ?? '',
-                              style: const TextStyle(
-                                fontSize: 15,
-                                color: Colors.grey,
-                                fontWeight: FontWeight.w400,
                               ),
                             ),
-                            const SizedBox(height: 18),
-                            // Badges & Stats
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  FutureBuilder<bool>(
-                                    future: Util.isAdmin(),
-                                    builder: (context, snapshot) {
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        return const SizedBox(
-                                          height: 24,
-                                          width: 24,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                  Colors.white,
-                                                ),
-                                          ),
-                                        );
-                                      }
-                                      if (snapshot.hasData &&
-                                          snapshot.data == true) {
-                                        return Padding(
-                                          padding: const EdgeInsets.only(
-                                            right: 8,
-                                          ),
-                                          child: GestureDetector(
-                                            onTap: _showAdminPanelDialog,
-                                            child: Chip(
-                                              label: Row(
-                                                children: const [
-                                                  Icon(
-                                                    Icons.verified_user,
-                                                    color: Colors.orange,
-                                                    size: 18,
-                                                  ),
-                                                  SizedBox(width: 4),
-                                                  Text(
-                                                    'Admin User',
-                                                    style: TextStyle(
-                                                      color: Colors.orange,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                      return const SizedBox.shrink();
-                                    },
-                                  ),
-                                  if (_isAreaCaptureActive)
-                                    Padding(
-                                      padding: const EdgeInsets.only(right: 8),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      // Username & Display Name
+                      Text(
+                        _user!.display_username,
+                        style: Theme.of(context).textTheme.titleLarge,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _cognitoUsername ?? '',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      // Badges & Stats
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            FutureBuilder<bool>(
+                              future: Util.isAdmin(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  );
+                                }
+                                if (snapshot.hasData && snapshot.data == true) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: GestureDetector(
+                                      onTap: _showAdminPanelDialog,
                                       child: Chip(
                                         label: Row(
                                           children: const [
                                             Icon(
-                                              Icons.location_on,
-                                              color: Colors.green,
+                                              Icons.verified_user,
+                                              color: Colors.orange,
                                               size: 18,
                                             ),
                                             SizedBox(width: 4),
                                             Text(
-                                              'Area Capture Active',
+                                              'Admin User',
                                               style: TextStyle(
-                                                color: Colors.green,
+                                                color: Colors.orange,
                                                 fontWeight: FontWeight.w600,
                                               ),
                                             ),
@@ -379,157 +331,155 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         ),
                                       ),
                                     ),
-                                  FutureBuilder<int>(
-                                    future: getTotalSightingNumber(),
-                                    builder: (context, snapshot) {
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        return const SizedBox(
-                                          height: 24,
-                                          width: 24,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                  Colors.white,
-                                                ),
-                                          ),
-                                        );
-                                      }
-                                      if (snapshot.hasData) {
-                                        return Chip(
-                                          label: Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.visibility,
-                                                size: 18,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                'Sightings: ${snapshot.data}',
-                                                style:
-                                                    Theme.of(
-                                                      context,
-                                                    ).textTheme.bodyMedium,
-                                              ),
-                                            ],
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                      return const SizedBox.shrink();
-                                    },
-                                  ),
-                                ],
-                              ),
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              },
                             ),
-                            const SizedBox(height: 18),
-                            // Info Rows
-                            Card(
-                              // color: Colors.grey[850],
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                            if (_isAreaCaptureActive)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: Chip(
+                                  label: Row(
+                                    children: const [
+                                      Icon(
+                                        Icons.location_on,
+                                        color: Colors.green,
+                                        size: 18,
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'Area Capture Active',
+                                        style: TextStyle(
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
                               ),
-                              child: Column(
-                                children: [
-                                  ListTile(
-                                    leading: const Icon(Icons.email, size: 22),
-                                    title: Text(
-                                      _user!.email,
-                                      style:
-                                          Theme.of(
-                                            context,
-                                          ).textTheme.bodyMedium,
+                            FutureBuilder<int>(
+                              future: getTotalSightingNumber(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
                                     ),
-                                  ),
-                                  const Divider(height: 1, color: Colors.grey),
-                                  ListTile(
-                                    leading: const Icon(
-                                      Icons.pin_drop,
-                                      size: 22,
+                                  );
+                                }
+                                if (snapshot.hasData) {
+                                  return Chip(
+                                    label: Row(
+                                      children: [
+                                        const Icon(Icons.visibility, size: 18),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'Sightings: ${snapshot.data}',
+                                          style:
+                                              Theme.of(
+                                                context,
+                                              ).textTheme.bodyMedium,
+                                        ),
+                                      ],
                                     ),
-                                    title: Text(
-                                      _user!.country!.isNotEmpty
-                                          ? _user!.country!
-                                          : 'Location not set',
-                                      style:
-                                          Theme.of(
-                                            context,
-                                          ).textTheme.bodyMedium,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
-                                  ),
-                                  const Divider(height: 1, color: Colors.grey),
-                                  ListTile(
-                                    leading: Icon(Icons.location_on, size: 22),
-                                    title: AutoSizeText(
-                                      _user!.bio!.isNotEmpty
-                                          ? _user!.bio!
-                                          : 'Bio not set',
-                                      style:
-                                          Theme.of(
-                                            context,
-                                          ).textTheme.bodyMedium,
-                                      minFontSize: 6,
-                                      maxFontSize: 16,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  const Divider(height: 1, color: Colors.grey),
-                                  ListTile(
-                                    leading: const Icon(
-                                      Icons.camera_alt,
-                                      size: 22,
-                                    ),
-                                    trailing: const Icon(
-                                      Icons.arrow_forward,
-                                      size: 22,
-                                    ),
-                                    title: Text(
-                                      'Your Sightings',
-                                      style:
-                                          Theme.of(
-                                            context,
-                                          ).textTheme.bodyMedium,
-                                    ),
-                                    onTap: _onYourSightingsTap,
-                                  ),
-                                  const Divider(height: 1, color: Colors.grey),
-                                  ListTile(
-                                    leading: const Icon(
-                                      Icons.volunteer_activism,
-                                      size: 22,
-                                    ),
-                                    trailing: const Icon(
-                                      Icons.arrow_forward,
-                                      size: 22,
-                                    ),
-                                    title: Text(
-                                      'Volunteer Hours',
-                                      style:
-                                          Theme.of(
-                                            context,
-                                          ).textTheme.bodyMedium,
-                                    ),
-                                    onTap: _onVolunteerHoursTap,
-                                  ),
-                                ],
-                              ),
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              },
                             ),
-                            const SizedBox(height: 24),
                           ],
                         ),
                       ),
-                    ),
-                    // Logout Button at Bottom
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                      child: SizedBox(
+                      const SizedBox(height: 18),
+                      // Info Rows
+                      Card(
+                        // color: Colors.grey[850],
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.email, size: 22),
+                              title: Text(
+                                _user!.email,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ),
+                            const Divider(height: 1, color: Colors.grey),
+                            ListTile(
+                              leading: const Icon(Icons.pin_drop, size: 22),
+                              title: Text(
+                                _user!.country!.isNotEmpty
+                                    ? _user!.country!
+                                    : 'Location not set',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ),
+                            const Divider(height: 1, color: Colors.grey),
+                            ListTile(
+                              leading: Icon(Icons.location_on, size: 22),
+                              title: AutoSizeText(
+                                _user!.bio!.isNotEmpty
+                                    ? _user!.bio!
+                                    : 'Bio not set',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                                minFontSize: 6,
+                                maxFontSize: 16,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const Divider(height: 1, color: Colors.grey),
+                            ListTile(
+                              leading: const Icon(Icons.camera_alt, size: 22),
+                              trailing: const Icon(
+                                Icons.arrow_forward,
+                                size: 22,
+                              ),
+                              title: Text(
+                                'Your Sightings',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              onTap: _onYourSightingsTap,
+                            ),
+                            const Divider(height: 1, color: Colors.grey),
+                            ListTile(
+                              leading: const Icon(
+                                Icons.volunteer_activism,
+                                size: 22,
+                              ),
+                              trailing: const Icon(
+                                Icons.arrow_forward,
+                                size: 22,
+                              ),
+                              title: Text(
+                                'Volunteer Hours',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              onTap: _onVolunteerHoursTap,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      // Logout Button (now part of scrollable content)
+                      SizedBox(
                         width: double.infinity,
                         child: DarkButton(
                           text: 'Logout',
@@ -586,8 +536,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           },
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
     );

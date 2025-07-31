@@ -186,7 +186,7 @@ class _AllSightingsScreenState extends State<AllSightingsScreen> {
                                         CrossAxisAlignment.center,
                                     children: [
                                       Expanded(
-                                        flex: 2,
+                                        flex: 3,
                                         child: Text(
                                           sighting.species,
                                           style:
@@ -197,7 +197,7 @@ class _AllSightingsScreenState extends State<AllSightingsScreen> {
                                         ),
                                       ),
                                       Expanded(
-                                        flex: 3,
+                                        flex: 2,
                                         child: Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
