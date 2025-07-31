@@ -1,4 +1,5 @@
 import 'package:sighttrack/barrel.dart';
+import 'package:core_ui/core_ui.dart';
 
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -347,34 +348,11 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
 
   Widget _buildLoadingImagePreview(ThemeData theme) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 40),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          height: 200,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: theme.colorScheme.primary.withValues(alpha: 0.2),
-              width: 2,
-            ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Image.file(
-            File(widget.imagePath),
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
-                child: Icon(
-                  Icons.image,
-                  size: 60,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
-                ),
-              );
-            },
-          ),
-        ),
+      margin: const EdgeInsets.symmetric(horizontal: 32),
+      child: ExpandableLocalImage(
+        imagePath: widget.imagePath,
+        height: 200,
+        width: double.infinity,
       ),
     );
   }
@@ -390,39 +368,34 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Animated AI brain icon
-          TweenAnimationBuilder<double>(
-            duration: const Duration(seconds: 2),
-            tween: Tween(begin: 0.0, end: 1.0),
-            builder: (context, value, child) {
-              return Transform.rotate(
-                angle: value * 2 * pi,
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [
-                        theme.colorScheme.primary,
-                        theme.colorScheme.secondary,
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                        blurRadius: 20,
-                        spreadRadius: 5,
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.psychology,
-                    color: Colors.white,
-                    size: 40,
-                  ),
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: theme.colorScheme.primary,
+              boxShadow: [
+                BoxShadow(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
                 ),
-              );
-            },
+              ],
+            ),
+            child: TweenAnimationBuilder<double>(
+              duration: const Duration(seconds: 2),
+              tween: Tween(begin: 0.0, end: 1.0),
+              builder: (context, value, child) {
+                return Transform.rotate(
+                  angle: value * 2 * pi,
+                  child: const Icon(
+                    Icons.psychology_outlined,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                );
+              },
+            ),
           ),
 
           const SizedBox(height: 40),
@@ -476,50 +449,14 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
             color: theme.colorScheme.onSurface,
+            letterSpacing: 0.15,
           ),
         ),
-        const SizedBox(height: 12),
-        GestureDetector(
-          onTap: () => _showImageDialog(context),
-          child: Container(
-            height: 200,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
-                width: 1,
-              ),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(7),
-              child: Image.file(
-                File(widget.imagePath),
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: theme.colorScheme.error,
-                          size: 48,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Error loading image',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.error,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
+        const SizedBox(height: 16),
+        ExpandableLocalImage(
+          imagePath: widget.imagePath,
+          height: 200,
+          width: double.infinity,
         ),
       ],
     );
@@ -544,8 +481,30 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
           decoration: InputDecoration(
             labelText: 'Species*',
             prefixIcon: Icon(
-              Icons.pets,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              Icons.pets_outlined,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            border: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: theme.colorScheme.outline.withValues(alpha: 0.3),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: theme.colorScheme.outline.withValues(alpha: 0.3),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: theme.colorScheme.primary,
+                width: 2,
+              ),
+            ),
+            filled: true,
+            fillColor: theme.colorScheme.surface,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 16,
             ),
           ),
           style: theme.textTheme.bodyLarge,
@@ -581,40 +540,41 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
         const SizedBox(height: 16),
 
         // Description Field
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
-              width: 1,
+        TextFormField(
+          controller: _descriptionController,
+          decoration: InputDecoration(
+            labelText: 'Description',
+            hintText:
+                'Describe the behavior, habitat, or any interesting details you observed...',
+            hintStyle: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
-          ),
-          child: TextFormField(
-            controller: _descriptionController,
-            decoration: InputDecoration(
-              labelText: 'Description',
-              hintText:
-                  'Describe the behavior, habitat, or any interesting details you observed...',
-              hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+            border: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: theme.colorScheme.outline.withValues(alpha: 0.3),
               ),
-              // prefixIcon: Padding(
-              //   padding: const EdgeInsets.only(top: 12.0),
-              //   child: Icon(
-              //     Icons.edit_note,
-              //     color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-              //   ),
-              // ),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-              alignLabelWithHint: true,
             ),
-            style: theme.textTheme.bodyLarge?.copyWith(height: 1.4),
-            maxLines: 4,
-            minLines: 3,
-            textInputAction: TextInputAction.done,
-            textCapitalization: TextCapitalization.sentences,
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: theme.colorScheme.outline.withValues(alpha: 0.3),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: theme.colorScheme.primary,
+                width: 2,
+              ),
+            ),
+            filled: true,
+            fillColor: theme.colorScheme.surface,
+            contentPadding: const EdgeInsets.all(16),
+            alignLabelWithHint: true,
           ),
+          style: theme.textTheme.bodyLarge?.copyWith(height: 1.4),
+          maxLines: 4,
+          minLines: 3,
+          textInputAction: TextInputAction.done,
+          textCapitalization: TextCapitalization.sentences,
         ),
         const SizedBox(height: 16),
 
@@ -624,12 +584,34 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
           decoration: InputDecoration(
             labelText: 'Date & Time*',
             prefixIcon: Icon(
-              Icons.schedule,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              Icons.schedule_outlined,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
             suffixIcon: Icon(
-              Icons.arrow_drop_down,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              Icons.keyboard_arrow_down,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            border: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: theme.colorScheme.outline.withValues(alpha: 0.3),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: theme.colorScheme.outline.withValues(alpha: 0.3),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: theme.colorScheme.primary,
+                width: 2,
+              ),
+            ),
+            filled: true,
+            fillColor: theme.colorScheme.surface,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 16,
             ),
           ),
           style: theme.textTheme.bodyLarge,
@@ -661,14 +643,20 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
+                color: theme.colorScheme.outline.withValues(alpha: 0.3),
                 width: 1,
               ),
+              color: theme.colorScheme.surface,
             ),
             child: Row(
               children: [
+                Icon(
+                  Icons.location_on_outlined,
+                  color: theme.colorScheme.onSurfaceVariant,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     _selectedLocation != null
@@ -681,9 +669,9 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
                   ),
                 ),
                 Icon(
-                  Icons.edit_location_alt,
+                  Icons.edit_outlined,
                   color: theme.colorScheme.primary,
-                  size: 20,
+                  size: 18,
                 ),
               ],
             ),
@@ -692,25 +680,30 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
         const SizedBox(height: 12),
 
         // Location Offset Status
-        Row(
-          children: [
-            Icon(
-              (_userSettings?.locationOffset ?? false)
-                  ? Icons.shuffle
-                  : Icons.gps_fixed,
-              size: 16,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              (_userSettings?.locationOffset ?? false)
-                  ? 'Location offset: ON'
-                  : 'Location offset: OFF',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                (_userSettings?.locationOffset ?? false)
+                    ? Icons.shuffle_outlined
+                    : Icons.gps_fixed_outlined,
+                size: 16,
+                color: theme.colorScheme.onSurfaceVariant,
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              Text(
+                (_userSettings?.locationOffset ?? false)
+                    ? 'Location offset: ON'
+                    : 'Location offset: OFF',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -719,7 +712,18 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
   Widget _buildActionButtons() {
     return Row(
       children: [
-        Expanded(
+        Flexible(
+          flex: 1,
+          child: DarkButton(
+            text: 'Cancel',
+            width: double.infinity,
+            height: 56,
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Flexible(
+          flex: 2,
           child: DarkButton(
             text:
                 _isSaving
@@ -732,107 +736,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
             onPressed: _isSaving ? () {} : _saveSighting,
           ),
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: DarkButton(
-            text: 'Cancel',
-            width: double.infinity,
-            height: 56,
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
       ],
-    );
-  }
-
-  void _showImageDialog(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          insetPadding: const EdgeInsets.all(16),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.9,
-              maxHeight: MediaQuery.of(context).size.height * 0.9,
-            ),
-            child: Stack(
-              alignment: Alignment.topRight,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Image.file(
-                      File(widget.imagePath),
-                      fit: BoxFit.contain,
-                      width: double.infinity,
-                      height: double.infinity,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.error_outline,
-                                color: Colors.white,
-                                size: 48,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Error loading image',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                Positioned(
-                  right: 12,
-                  top: 12,
-                  child: GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.black.withValues(alpha: 0.6),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.close,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }

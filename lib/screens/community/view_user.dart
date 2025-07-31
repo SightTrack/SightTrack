@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sighttrack/barrel.dart';
+import 'package:sighttrack/screens/community/user_sightings_gallery.dart';
 
 class UserDetailScreen extends StatefulWidget {
   final User user;
@@ -14,6 +15,31 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   // Add refresh keys to force FutureBuilders to rebuild
   Key _profilePictureKey = UniqueKey();
   Key _sightingsKey = UniqueKey();
+
+  // Lazy loading variables
+  List<Sighting> _allSightings = [];
+  List<Sighting> _displayedSightings = [];
+  bool _isLoadingMore = false;
+  static const int _itemsPerPage = 9; // Show 9 items (3x3 grid) per page
+  int _currentPage = 0;
+
+  // Scroll controller to maintain position
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _gridKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_scrollListener);
+  }
+
+  void _scrollListener() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      // Load more when user is 200 pixels from the bottom
+      _loadMoreSightings();
+    }
+  }
 
   Widget _buildProfilePicture(BuildContext context) {
     final String? picUrl = widget.user.profilePicture;
@@ -155,14 +181,303 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           );
         }
 
-        final sightingsCount = snapshot.data?.length ?? 0;
-        return _buildInfoCard(
-          icon: Icons.visibility,
-          title: 'Sightings',
-          content: '$sightingsCount total',
-          context: context,
+        final sightings = snapshot.data ?? [];
+        final sightingsCount = sightings.length;
+
+        if (sightingsCount == 0) {
+          return _buildInfoCard(
+            icon: Icons.visibility,
+            title: 'Sightings',
+            content: 'No sightings yet',
+            context: context,
+          );
+        }
+
+        // Initialize sightings data on first load
+        if (_allSightings.isEmpty && sightings.isNotEmpty) {
+          _initializeSightings(sightings);
+        }
+
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 4.0),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.visibility, size: 24),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Sightings',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(
+                              color: Colors.grey[400],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '$sightingsCount total',
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildLazySightingsGallery(context),
+              ],
+            ),
+          ),
         );
       },
+    );
+  }
+
+  void _initializeSightings(List<Sighting> sightings) {
+    // Sort sightings by timestamp (most recent first)
+    _allSightings = List<Sighting>.from(sightings);
+    _allSightings.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+    // Initialize first page without setState (since we're in build phase)
+    _currentPage = 0;
+    _displayedSightings.clear();
+    final endIndex =
+        _itemsPerPage > _allSightings.length
+            ? _allSightings.length
+            : _itemsPerPage;
+    _displayedSightings.addAll(_allSightings.sublist(0, endIndex));
+    _currentPage = 1; // Set to 1 since we've loaded the first page
+  }
+
+  void _loadMoreSightings() {
+    if (_isLoadingMore) return;
+
+    final startIndex = _currentPage * _itemsPerPage;
+    final endIndex = startIndex + _itemsPerPage;
+
+    if (startIndex >= _allSightings.length) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    final newItems = _allSightings.sublist(
+      startIndex,
+      endIndex > _allSightings.length ? _allSightings.length : endIndex,
+    );
+
+    setState(() {
+      _displayedSightings.addAll(newItems);
+      _currentPage++;
+      _isLoadingMore = false;
+    });
+  }
+
+  Widget _buildLazySightingsGallery(BuildContext context) {
+    return Column(
+      children: [
+        GridView.builder(
+          key: _gridKey, // Add key to preserve widget state
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            childAspectRatio: 1,
+          ),
+          itemCount: _displayedSightings.length,
+          itemBuilder: (context, index) {
+            final sighting = _displayedSightings[index];
+            return _buildSightingThumbnail(context, sighting);
+          },
+        ),
+        // Loading indicator or "View All" button
+        if (_displayedSightings.length < _allSightings.length) ...[
+          if (_isLoadingMore) ...[
+            const SizedBox(height: 20),
+            const Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Color(0xFF39FF14),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Loading more sightings...',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+              textAlign: TextAlign.center,
+            ),
+          ] else ...[
+            const SizedBox(height: 16),
+            Text(
+              'Scroll down to load more (${_allSightings.length - _displayedSightings.length} remaining)',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ] else if (_allSightings.length > _itemsPerPage) ...[
+          // Show "View All" button when all items are loaded
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: () => _showAllSightings(context, _allSightings),
+            child: Text(
+              'View in Full Gallery',
+              style: TextStyle(
+                color: Theme.of(context).primaryColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildSightingThumbnail(BuildContext context, Sighting sighting) {
+    return GestureDetector(
+      onTap: () => _viewSighting(context, sighting),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: FutureBuilder<String?>(
+                future: Util.fetchFromS3(sighting.photo),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      color: Colors.grey[300],
+                      child: const Center(
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Color(0xFF39FF14),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  if (snapshot.hasData && snapshot.data != null) {
+                    return Image.network(
+                      snapshot.data!,
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: double.infinity,
+                          height: double.infinity,
+                          color: Colors.grey[300],
+                          child: const Icon(
+                            Icons.image_not_supported,
+                            color: Colors.grey,
+                            size: 24,
+                          ),
+                        );
+                      },
+                    );
+                  }
+
+                  return Container(
+                    width: double.infinity,
+                    height: double.infinity,
+                    color: Colors.grey[300],
+                    child: const Icon(
+                      Icons.image,
+                      color: Colors.grey,
+                      size: 24,
+                    ),
+                  );
+                },
+              ),
+            ),
+            // Species label overlay
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.8),
+                      Colors.transparent,
+                    ],
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(8),
+                    bottomRight: Radius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  sighting.species,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _viewSighting(BuildContext context, Sighting sighting) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ViewSightingScreen(sighting: sighting),
+      ),
+    );
+  }
+
+  void _showAllSightings(BuildContext context, List<Sighting> sightings) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => UserSightingsGalleryScreen(
+              user: widget.user,
+              sightings: sightings,
+            ),
+      ),
     );
   }
 
@@ -189,7 +504,18 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     setState(() {
       _profilePictureKey = UniqueKey();
       _sightingsKey = UniqueKey();
+      // Reset lazy loading state
+      _allSightings.clear();
+      _displayedSightings.clear();
+      _currentPage = 0;
+      _isLoadingMore = false;
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -202,6 +528,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
       body: RefreshIndicator(
         onRefresh: _handleRefresh,
         child: SingleChildScrollView(
+          controller: _scrollController,
           physics:
               const AlwaysScrollableScrollPhysics(), // Always allow scrolling for refresh
           child: ConstrainedBox(

@@ -9,9 +9,10 @@ Important rules:
 1. If the image is too unclear or does not contain an identifiable plant or animal, output the word:
 NONE
 (in all caps, alone on one line — nothing else).
-2. Do not provide summaries, guesses, or species names.
+2. Do not provide summaries or guesses.
 3. Do not repeat the prompt or explain your reasoning.
 4. Do not add any punctuation or formatting other than plain lines of text.
+5. If you believe it would help, a feature may be the general animal or plant name. For instance, you can say it looks like a goose.
 
 Examples of valid outputs:
 - Green oval-shaped leaves with serrated edges  
