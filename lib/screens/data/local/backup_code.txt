@@ -227,10 +227,387 @@ Future<String?> _getCurrentCityName() async {
                     center.latitude, // latitude second
                   ),
                 ),
-                zoom: 3.0,
+                zoom: 10.0,
               ),
               styleUri: Util.mapStyle,
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class latitudelongitude {
+  final double latitude;
+  final double longitude;
+
+  const latitudelongitude(this.latitude, this.longitude);
+}
+
+
+------
+
+Future<String?> _getCurrentCityName() async {
+    try {
+      // Check and request location permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        debugPrint('Location permission denied');
+        setState(() {
+          _errorMessage = 'Location permission not granted';
+        });
+        return null;
+      }
+
+      // Get current position
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      // Validate coordinates
+      if (!position.latitude.isFinite ||
+          !position.longitude.isFinite ||
+          position.latitude < -90.0 ||
+          position.latitude > 90.0 ||
+          position.longitude < -180.0 ||
+          position.longitude > 180.0) {
+        debugPrint('Invalid coordinates: ${position.latitude}, ${position.longitude}');
+        setState(() {
+          _errorMessage = 'Invalid location coordinates';
+        });
+        return null;
+      }
+
+      // Store user location for map centering
+      setState(() {
+        _userLocation = latitudelongitude(position.latitude, position.longitude);
+      });
+
+      // Use Mapbox Geocoding API via HTTP with retry logic
+      final accessToken = dotenv.env['MAPBOX_TOKEN']!;
+      if (accessToken == null) {
+        debugPrint('Error: MAPBOX_TOKEN is not defined in .env file');
+        setState(() {
+          _errorMessage = 'Missing Mapbox access token';
+      });
+        return null;
+      } 
+      final url =
+          'https://api.mapbox.com/geocoding/v5/mapbox.places/${position.latitude},${position.longitude}.json?types=locality&limit=1&access_token=$accessToken';
+
+      // Retry up to 3 times for transient network issues
+      for (int attempt = 1; attempt <= 3; attempt++) {
+        try {
+          final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 5));
+          if (response.statusCode == 200) {
+            final data = jsonDecode(response.body);
+            if (data['features'] != null && data['features'].isNotEmpty) {
+              final cityName = data['features'][0]['place_name'] as String?;
+              final cleanedCityName = cityName?.split(',')[0].trim();
+              debugPrint('Detected city: $cleanedCityName');
+              return cleanedCityName;
+            } else {
+              debugPrint('No city found for coordinates: ${position.latitude}, ${position.longitude}');
+            }
+          } else {
+            debugPrint('Geocoding API error (attempt $attempt): ${response.statusCode} - ${response.body}');
+          }
+        } catch (e) {
+          debugPrint('Geocoding request failed (attempt $attempt): $e');
+          if (attempt == 3) {
+            setState(() {
+              _errorMessage = 'Failed to get city name after retries: $e';
+            });
+          }
+          await Future.delayed(const Duration(seconds: 1)); // Wait before retry
+        }
+      }
+    } catch (e) {
+      debugPrint('Error getting city name: $e');
+      setState(() {
+        _errorMessage = 'Error getting city name: $e';
+      });
+    }
+
+    return null;
+  }
+
+--------------------------------------------------------------------
+
+import 'package:sighttrack/barrel.dart';
+import 'package:flutter/material.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+class LocalView extends StatefulWidget {
+  const LocalView({super.key});
+
+  @override
+  State<LocalView> createState() => _LocalViewState();
+}
+
+class _LocalViewState extends State<LocalView> {
+  bool _isLoading = true;
+  List<Sighting> _sightings = [];
+  Map<String, double> _moransIResults = {};
+  DateTime? _startTimeFilter;
+  mapbox.MapboxMap? _mapboxMap;
+  String? _errorMessage;
+  latitudelongitude? _userLocation;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimeFilter = DateTime.now().subtract(const Duration(days: 30));
+    _initializeLocationAndMap();
+  }
+
+  Future<void> _initializeLocationAndMap() async {
+    try {
+      final cityName = await _getCurrentCityName();
+      if (cityName != null) {
+        await _drawCityBoundaryForCity(cityName);
+      } else {
+        // Fallback to San Francisco if city cannot be determined
+        debugPrint('Falling back to default city: San Francisco');
+        await _drawCityBoundaryForCity('SAN FRANCISCO');
+      }
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Error initializing map: $e';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error initializing map: $e')),
+      );
+    }
+  }
+
+  
+Future<void> _drawCityBoundaryForCity(String cityName) async {
+  if (_mapboxMap == null) {
+    setState(() {
+      _errorMessage = 'Map not initialized';
+    });
+    return;
+  }
+
+  try {
+    // Add the vector source for city boundaries (adm2 for city/district level)
+    await _mapboxMap!.style.addSource(
+      mapbox.VectorSource(
+        id: 'boundaries-source',
+        url: 'mapbox://mapbox.boundaries-adm2-v4',
+      ),
+    );
+
+    // Add a line layer to draw the boundaries
+    await _mapboxMap!.style.addLayer(
+      mapbox.LineLayer(
+        id: 'boundaries-layer',
+        sourceId: 'boundaries-source',
+        sourceLayer: 'boundaries_admin_2',
+        lineColor: Colors.red.value, // Bright color for testing visibility
+        lineWidth: 6.0, // Thicker line for testing
+        lineOpacity: 0.9,
+        slot: 'middle', // Ensure layer is visible above base layers, below labels
+      ),
+    );
+
+    // Normalize city name for case-insensitive matching
+    final normalizedCityName = cityName.toUpperCase().trim();
+
+    // Query the source to verify the city name exists in the tileset
+    final features = await _mapboxMap!.querySourceFeatures(
+      'boundaries-source',
+      mapbox.SourceQueryOptions(
+        sourceLayerIds: ['boundaries_admin_2'],
+        filter: jsonEncode([
+          '==',
+          ['downcase', ['get', 'name']],
+          normalizedCityName,
+        ]),
+      ),
+    );
+
+    if (features == null || features.isEmpty) {
+      setState(() {
+        _errorMessage = 'City "$cityName" not found in boundaries data';
+      });
+      // Query all features to log available names and unit_codes
+      final allFeatures = await _mapboxMap!.querySourceFeatures(
+        'boundaries-source',
+        mapbox.SourceQueryOptions(
+          sourceLayerIds: ['boundaries_admin_2'],
+          filter: jsonEncode(['all']), // Match all features
+        ),
+      );
+      setState(() {
+        _errorMessage = 'City "$cityName" not found in boundaries data';
+      });
+      return;
+    }
+
+    // Apply filter to show only the detected city
+    await _mapboxMap!.style.setStyleLayerProperty(
+      'boundaries-layer',
+      'filter',
+      jsonEncode([
+        '==',
+        ['downcase', ['get', 'name']],
+        normalizedCityName,
+      ]),
+    );
+  } catch (e) {
+    setState(() {
+      _errorMessage = 'Error drawing city boundary: $e';
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error drawing city boundary: $e')),
+    );
+  }
+}
+
+
+  Future<String?> _getCurrentCityName() async {
+  try {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      throw Exception('Location permission not granted');
+    }
+
+    final position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    final placemarks =
+        await placemarkFromCoordinates(position.latitude, position.longitude);
+
+    if (placemarks.isNotEmpty) {
+      print(placemarks.first.locality);
+      return placemarks.first.locality; // Returns the city name
+    }
+  } catch (e) {
+    debugPrint('Error getting city name: $e');
+  }
+
+  return null;
+}
+
+  Future<void> _addMarkersToMap() async {
+    if (_mapboxMap == null) return;
+
+    final annotationManager = await _mapboxMap!.annotations.createPointAnnotationManager();
+    await annotationManager.deleteAll();
+
+    for (var sighting in _sightings) {
+      await annotationManager.create(
+        mapbox.PointAnnotationOptions(
+          geometry: mapbox.Point(
+            coordinates: mapbox.Position(sighting.longitude, sighting.latitude),
+          ),
+          textField: sighting.species,
+          textOffset: [0.0, -2.0],
+          textColor: Colors.white.value,
+          iconImage: 'marker',
+          iconSize: 1.0,
+        ),
+      );
+    }
+  }
+
+  latitudelongitude _calculateUserCityCenter() {
+    // Prefer user's actual location if available
+    if (_userLocation != null) {
+      return _userLocation!;
+    }
+
+    // Fallback to sightings-based center
+    final validSightings = _sightings.where((s) {
+      return s.latitude.isFinite &&
+          s.longitude.isFinite &&
+          s.latitude >= -90.0 &&
+          s.latitude <= 90.0 &&
+          s.longitude >= -180.0 &&
+          s.longitude <= 180.0 &&
+          s.city != null &&
+          s.city!.isNotEmpty;
+    }).toList();
+
+    if (validSightings.isNotEmpty) {
+      final citySighting = validSightings.first;
+      return latitudelongitude(citySighting.latitude, citySighting.longitude);
+    }
+    // Default to San Francisco coords if no valid city found
+    return const latitudelongitude(37.7749, -122.4194);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final center = _calculateUserCityCenter();
+
+    return Scaffold(
+      body: SafeArea(
+        child: Stack(
+          children: [
+            mapbox.MapWidget(
+              key: const ValueKey('mapWidget'),
+              onMapCreated: (controller) async {
+                try {
+                  Util.setupMapbox(controller);
+                  _mapboxMap = controller;
+                  await _addMarkersToMap();
+                } catch (e) {
+                  setState(() {
+                    _errorMessage = 'Map error: $e';
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Map error: $e')),
+                  );
+                }
+              },
+              cameraOptions: mapbox.CameraOptions(
+                center: mapbox.Point(
+                  coordinates: mapbox.Position(
+                    center.longitude,
+                    center.latitude,
+                  ),
+                ),
+                zoom: 10.0,
+              ),
+              styleUri: Util.mapStyle,
+            ),
+            if (_isLoading)
+              const Center(child: CircularProgressIndicator()),
+            if (_errorMessage != null && !_isLoading)
+              Positioned(
+                top: 20,
+                left: 20,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  color: Colors.white.withOpacity(0.8),
+                  child: Text(
+                    _errorMessage!,
+                    style: const TextStyle(color: Colors.red, fontSize: 16),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
