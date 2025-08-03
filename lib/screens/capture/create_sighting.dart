@@ -1,10 +1,11 @@
 import 'package:sighttrack/barrel.dart';
+import 'package:core_ui/core_ui.dart';
 
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:sighttrack/screens/capture/change_sighting_location.dart';
-import 'package:sighttrack/services/computer_vision.dart';
+import 'package:sighttrack/services/cv.dart';
 
 class CreateSightingScreen extends StatefulWidget {
   final String imagePath;
@@ -30,8 +31,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
   UserSettings? _userSettings;
   bool _isSaving = false;
   FToast? _toast;
-  bool _isCloudVisionLoading = true;
-  bool _isGrokLoading = false;
+  bool _isIdentifying = true;
 
   @override
   void initState() {
@@ -43,30 +43,16 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
   }
 
   Future<void> _initializerWrapper() async {
-    // List<String>? rekognitionResponse = await Util.doAWSRekognitionCall(
-    //   widget.imagePath,
-    // );
-    String cloudVisionResponse =
-        await ComputerVisionService.googleCloudVisionResponse(
-          imagePath: widget.imagePath,
-        );
+    // Use the new CV service
+    final cvInstance = ComputerVisionInstance();
 
-    setState(() {
-      _isCloudVisionLoading = false;
-      _isGrokLoading = true;
-    });
-
-    String grokResponse = await ComputerVisionService.predictSpeciesWithGrok(
-      visionApiResult: cloudVisionResponse,
+    List<String> species = await cvInstance.startImageIdentification(
+      widget.imagePath,
     );
 
     setState(() {
-      _isGrokLoading = false;
+      _isIdentifying = false;
     });
-
-    List<String> species = ComputerVisionService.parseSpeciesFromLLMResponse(
-      grokResponse,
-    );
 
     // if (rekognitionResponse.isNotEmpty) {
     //   // Filter images that are not animals or plants
@@ -298,14 +284,10 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
       ),
       backgroundColor: theme.colorScheme.surface,
       body:
-          _isCloudVisionLoading || _isGrokLoading
+          _isIdentifying
               ? _buildLoadingUI(theme)
               : GestureDetector(
                 onTap: () => FocusScope.of(context).unfocus(),
@@ -321,19 +303,19 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
                       children: [
                         // Image Section with modern card design
                         _buildImageSection(theme),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 24),
 
                         // Form Fields Section
                         _buildFormSection(theme),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 24),
 
                         // Location Section
                         _buildLocationSection(theme),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 24),
 
                         // Action Buttons
                         _buildActionButtons(),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 24),
                       ],
                     ),
                   ),
@@ -343,19 +325,9 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
   }
 
   Widget _buildLoadingUI(ThemeData theme) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       height: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            theme.colorScheme.primary.withValues(alpha: 0.05),
-            theme.colorScheme.secondary.withValues(alpha: 0.03),
-          ],
-        ),
-      ),
       child: Column(
         children: [
           const SizedBox(height: 60),
@@ -376,214 +348,61 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
 
   Widget _buildLoadingImagePreview(ThemeData theme) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 40),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.primary.withValues(alpha: 0.1),
-            blurRadius: 30,
-            offset: const Offset(0, 15),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          height: 200,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: theme.colorScheme.primary.withValues(alpha: 0.2),
-              width: 2,
-            ),
-          ),
-          child: Image.file(
-            File(widget.imagePath),
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
-                child: Icon(
-                  Icons.image,
-                  size: 60,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
-                ),
-              );
-            },
-          ),
-        ),
+      margin: const EdgeInsets.symmetric(horizontal: 32),
+      child: ExpandableLocalImage(
+        imagePath: widget.imagePath,
+        height: 200,
+        width: double.infinity,
       ),
     );
   }
 
   Widget _buildAnimatedLoadingStates(ThemeData theme) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 600),
-      transitionBuilder: (child, animation) {
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 1),
-            end: Offset.zero,
-          ).animate(
-            CurvedAnimation(parent: animation, curve: Curves.elasticOut),
-          ),
-          child: FadeTransition(opacity: animation, child: child),
-        );
-      },
-      child:
-          _isCloudVisionLoading
-              ? _buildCloudVisionLoadingState(theme)
-              : _buildGrokLoadingState(theme),
-    );
+    return _buildIdentifyingLoadingState(theme);
   }
 
-  Widget _buildCloudVisionLoadingState(ThemeData theme) {
+  Widget _buildIdentifyingLoadingState(ThemeData theme) {
     return Container(
-      key: const ValueKey('cloud_vision'),
+      key: const ValueKey('identifying'),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Animated scanning icon
-          TweenAnimationBuilder<double>(
-            duration: const Duration(seconds: 2),
-            tween: Tween(begin: 0.0, end: 1.0),
-            builder: (context, value, child) {
-              return Transform.rotate(
-                angle: value * 2 * pi,
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [
-                        theme.colorScheme.primary,
-                        theme.colorScheme.secondary,
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                        blurRadius: 20,
-                        spreadRadius: 5,
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.camera_enhance,
-                    color: Colors.white,
-                    size: 40,
-                  ),
+          // Animated AI brain icon
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: theme.colorScheme.primary,
+              boxShadow: [
+                BoxShadow(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
                 ),
-              );
-            },
+              ],
+            ),
+            child: TweenAnimationBuilder<double>(
+              duration: const Duration(seconds: 2),
+              tween: Tween(begin: 0.0, end: 1.0),
+              builder: (context, value, child) {
+                return Transform.rotate(
+                  angle: value * 2 * pi,
+                  child: const Icon(
+                    Icons.psychology_outlined,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                );
+              },
+            ),
           ),
 
           const SizedBox(height: 40),
 
           // Main loading text with typewriter effect
           _buildTypewriterText(
-            'Analyzing image...',
-            theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.onSurface,
-                ) ??
-                const TextStyle(),
-            theme,
-          ),
-
-          const SizedBox(height: 16),
-
-          // Subtitle
-          Text(
-            'Using advanced computer vision',
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGrokLoadingState(ThemeData theme) {
-    return Container(
-      key: const ValueKey('grok'),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Previous state (pushed up)
-          AnimatedOpacity(
-            opacity: 0.4,
-            duration: const Duration(milliseconds: 300),
-            child: Transform.translate(
-              offset: const Offset(0, -20),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.check_circle,
-                    color: theme.colorScheme.primary,
-                    size: 24,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Image analyzed ✓',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 40),
-
-          // Current AI brain animation
-          TweenAnimationBuilder<double>(
-            duration: const Duration(seconds: 1),
-            tween: Tween(begin: 0.8, end: 1.2),
-            builder: (context, value, child) {
-              return Transform.scale(
-                scale: value,
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [
-                        theme.colorScheme.tertiary,
-                        theme.colorScheme.primary,
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: theme.colorScheme.tertiary.withValues(
-                          alpha: 0.4,
-                        ),
-                        blurRadius: 25,
-                        spreadRadius: 8,
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.psychology,
-                    color: Colors.white,
-                    size: 40,
-                  ),
-                ),
-              );
-            },
-          ),
-
-          const SizedBox(height: 40),
-
-          // Main loading text
-          _buildTypewriterText(
-            'Identifying species...',
+            'Identifying Image...',
             theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: theme.colorScheme.onSurface,
@@ -622,360 +441,289 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
   }
 
   Widget _buildImageSection(ThemeData theme) {
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.shadow.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Captured Image',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onSurface,
+            letterSpacing: 0.15,
           ),
-        ],
-        border: Border.all(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
-          width: 1,
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.photo_camera,
-                  color: theme.colorScheme.primary,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Captured Image',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-            child: GestureDetector(
-              onTap: () => _showImageDialog(context),
-              child: Container(
-                height: 220,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
-                    width: 1,
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Image.file(
-                    File(widget.imagePath),
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.error_outline,
-                              color: theme.colorScheme.error,
-                              size: 48,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Error loading image',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.error,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+        const SizedBox(height: 16),
+        ExpandableLocalImage(
+          imagePath: widget.imagePath,
+          height: 200,
+          width: double.infinity,
+        ),
+      ],
     );
   }
 
   Widget _buildFormSection(ThemeData theme) {
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.shadow.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Sighting Details',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onSurface,
           ),
-        ],
-        border: Border.all(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
-          width: 1,
         ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  color: theme.colorScheme.primary,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Sighting Details',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
+        const SizedBox(height: 16),
+
+        // Species Dropdown
+        DropdownButtonFormField<String>(
+          value: _selectedSpecies,
+          decoration: InputDecoration(
+            labelText: 'Species*',
+            prefixIcon: Icon(
+              Icons.pets_outlined,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            border: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: theme.colorScheme.outline.withValues(alpha: 0.3),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: theme.colorScheme.outline.withValues(alpha: 0.3),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: theme.colorScheme.primary,
+                width: 2,
+              ),
+            ),
+            filled: true,
+            fillColor: theme.colorScheme.surface,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 16,
+            ),
+          ),
+          style: theme.textTheme.bodyLarge,
+          dropdownColor: theme.colorScheme.surface,
+          isExpanded: true,
+          items:
+              identifiedSpecies?.map((String species) {
+                return DropdownMenuItem<String>(
+                  value: species,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      species,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Species Dropdown
-            DropdownButtonFormField<String>(
-              value: _selectedSpecies,
-              decoration: InputDecoration(
-                labelText: 'Species*',
-                prefixIcon: Icon(
-                  Icons.pets,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ),
-              style: theme.textTheme.labelSmall,
-              dropdownColor: theme.colorScheme.surface,
-              items:
-                  identifiedSpecies?.map((String species) {
-                    return DropdownMenuItem<String>(
-                      value: species,
-                      child: Text(species),
-                    );
-                  }).toList() ??
-                  [],
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedSpecies = newValue;
-                });
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please select a species';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 20),
-
-            // Description Field
-            TextFormField(
-              controller: _descriptionController,
-              decoration: InputDecoration(
-                labelText: 'Description',
-                hintText: 'Provide details about the sighting...',
-                prefixIcon: Icon(
-                  Icons.notes,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ),
-              style: theme.textTheme.bodyLarge,
-              maxLines: 3,
-              textInputAction: TextInputAction.done,
-            ),
-            const SizedBox(height: 20),
-
-            // Date & Time Field
-            TextFormField(
-              readOnly: true,
-              decoration: InputDecoration(
-                labelText: 'Date & Time*',
-                prefixIcon: Icon(
-                  Icons.schedule,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-                suffixIcon: Icon(
-                  Icons.arrow_drop_down,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-              ),
-              style: theme.textTheme.bodyLarge,
-              onTap: () => _selectDateTime(context),
-              controller: TextEditingController(
-                text: DateFormat(
-                  'MMMM d, yyyy, h:mm a',
-                ).format(_selectedDateTime),
-              ),
-            ),
-          ],
+                );
+              }).toList() ??
+              [],
+          onChanged: (String? newValue) {
+            setState(() {
+              _selectedSpecies = newValue;
+            });
+          },
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please select a species';
+            }
+            return null;
+          },
         ),
-      ),
+        const SizedBox(height: 16),
+
+        // Description Field
+        TextFormField(
+          controller: _descriptionController,
+          decoration: InputDecoration(
+            labelText: 'Description',
+            hintText:
+                'Describe the behavior, habitat, or any interesting details you observed...',
+            hintStyle: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            border: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: theme.colorScheme.outline.withValues(alpha: 0.3),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: theme.colorScheme.outline.withValues(alpha: 0.3),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: theme.colorScheme.primary,
+                width: 2,
+              ),
+            ),
+            filled: true,
+            fillColor: theme.colorScheme.surface,
+            contentPadding: const EdgeInsets.all(16),
+            alignLabelWithHint: true,
+          ),
+          style: theme.textTheme.bodyLarge?.copyWith(height: 1.4),
+          maxLines: 4,
+          minLines: 3,
+          textInputAction: TextInputAction.done,
+          textCapitalization: TextCapitalization.sentences,
+        ),
+        const SizedBox(height: 16),
+
+        // Date & Time Field
+        TextFormField(
+          readOnly: true,
+          decoration: InputDecoration(
+            labelText: 'Date & Time*',
+            prefixIcon: Icon(
+              Icons.schedule_outlined,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            suffixIcon: Icon(
+              Icons.keyboard_arrow_down,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            border: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: theme.colorScheme.outline.withValues(alpha: 0.3),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: theme.colorScheme.outline.withValues(alpha: 0.3),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: theme.colorScheme.primary,
+                width: 2,
+              ),
+            ),
+            filled: true,
+            fillColor: theme.colorScheme.surface,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 16,
+            ),
+          ),
+          style: theme.textTheme.bodyLarge,
+          onTap: () => _selectDateTime(context),
+          controller: TextEditingController(
+            text: DateFormat('MMMM d, yyyy, h:mm a').format(_selectedDateTime),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildLocationSection(ThemeData theme) {
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.shadow.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Location',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onSurface,
           ),
-        ],
-        border: Border.all(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
-          width: 1,
         ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+        const SizedBox(height: 12),
+
+        // Location Display/Picker
+        GestureDetector(
+          onTap: () => _openMapPicker(context),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: theme.colorScheme.outline.withValues(alpha: 0.3),
+                width: 1,
+              ),
+              color: theme.colorScheme.surface,
+            ),
+            child: Row(
               children: [
                 Icon(
-                  Icons.location_on,
-                  color: theme.colorScheme.primary,
-                  size: 24,
+                  Icons.location_on_outlined,
+                  color: theme.colorScheme.onSurfaceVariant,
+                  size: 20,
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  'Location',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
+                Expanded(
+                  child: Text(
+                    _selectedLocation != null
+                        ? 'Lat: ${_selectedLocation!.latitude.toStringAsFixed(6)}, Lng: ${_selectedLocation!.longitude.toStringAsFixed(6)}'
+                        : 'Fetching location...',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
+                ),
+                Icon(
+                  Icons.edit_outlined,
+                  color: theme.colorScheme.primary,
+                  size: 18,
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-
-            // Location Display/Picker
-            GestureDetector(
-              onTap: () => _openMapPicker(context),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.12),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    // Icon(
-                    //   Icons.my_location,
-                    //   color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                    //   size: 20,
-                    // ),
-                    // const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _selectedLocation != null
-                            ? 'Lat: ${_selectedLocation!.latitude.toStringAsFixed(6)}, Lng: ${_selectedLocation!.longitude.toStringAsFixed(6)}'
-                            : 'Fetching location...',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurface,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Icon(
-                      Icons.edit_location_alt,
-                      color: theme.colorScheme.primary,
-                      size: 20,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Location Offset Status
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color:
-                    (_userSettings?.locationOffset ?? false)
-                        ? theme.colorScheme.primary.withValues(alpha: 0.1)
-                        : theme.colorScheme.onSurface.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color:
-                      (_userSettings?.locationOffset ?? false)
-                          ? theme.colorScheme.primary.withValues(alpha: 0.3)
-                          : theme.colorScheme.onSurface.withValues(alpha: 0.12),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    (_userSettings?.locationOffset ?? false)
-                        ? Icons.shuffle
-                        : Icons.gps_fixed,
-                    size: 16,
-                    color:
-                        (_userSettings?.locationOffset ?? false)
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurface.withValues(
-                              alpha: 0.6,
-                            ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    (_userSettings?.locationOffset ?? false)
-                        ? 'Location offset: ON'
-                        : 'Location offset: OFF',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color:
-                          (_userSettings?.locationOffset ?? false)
-                              ? theme.colorScheme.primary
-                              : theme.colorScheme.onSurface.withValues(
-                                alpha: 0.7,
-                              ),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+        const SizedBox(height: 12),
+
+        // Location Offset Status
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                (_userSettings?.locationOffset ?? false)
+                    ? Icons.shuffle_outlined
+                    : Icons.gps_fixed_outlined,
+                size: 16,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                (_userSettings?.locationOffset ?? false)
+                    ? 'Location offset: ON'
+                    : 'Location offset: OFF',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildActionButtons() {
     return Row(
       children: [
-        Expanded(
+        Flexible(
+          flex: 1,
+          child: DarkButton(
+            text: 'Cancel',
+            width: double.infinity,
+            height: 56,
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Flexible(
+          flex: 2,
           child: DarkButton(
             text:
                 _isSaving
@@ -988,107 +736,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
             onPressed: _isSaving ? () {} : _saveSighting,
           ),
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: DarkButton(
-            text: 'Cancel',
-            width: double.infinity,
-            height: 56,
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
       ],
-    );
-  }
-
-  void _showImageDialog(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          insetPadding: const EdgeInsets.all(16),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.9,
-              maxHeight: MediaQuery.of(context).size.height * 0.9,
-            ),
-            child: Stack(
-              alignment: Alignment.topRight,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Image.file(
-                      File(widget.imagePath),
-                      fit: BoxFit.contain,
-                      width: double.infinity,
-                      height: double.infinity,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.error_outline,
-                                color: Colors.white,
-                                size: 48,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Error loading image',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                Positioned(
-                  right: 12,
-                  top: 12,
-                  child: GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.black.withValues(alpha: 0.6),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.close,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }

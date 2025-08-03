@@ -1,4 +1,5 @@
 import 'package:sighttrack/barrel.dart';
+import 'package:core_ui/core_ui.dart';
 
 import 'package:flutter/material.dart';
 
@@ -140,104 +141,12 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
                 _buildSection('Description', widget.sighting.description!),
 
               if (widget.sighting.user != null)
-                _buildSection('User', widget.sighting.user!.display_username),
+                _buildClickableUserSection(widget.sighting.user!),
 
-              FutureBuilder<String>(
-                future: _photoUrlFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Container(
-                      width: double.infinity,
-                      height: 250,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      child: const Center(
-                        child: Icon(Icons.image, size: 80, color: Colors.grey),
-                      ),
-                    );
-                  } else if (snapshot.hasError || snapshot.data == null) {
-                    return Container(
-                      width: double.infinity,
-                      height: 250,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      child: const Center(
-                        child: Icon(Icons.image, size: 80, color: Colors.grey),
-                      ),
-                    );
-                  } else {
-                    return GestureDetector(
-                      onTap: () {
-                        showDialog<void>(
-                          context: context,
-                          barrierDismissible: true,
-                          builder: (BuildContext context) {
-                            return Dialog(
-                              backgroundColor: Colors.transparent,
-                              elevation: 0,
-                              insetPadding: const EdgeInsets.all(16),
-                              child: ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  maxWidth:
-                                      MediaQuery.of(context).size.width * 0.9,
-                                  maxHeight:
-                                      MediaQuery.of(context).size.height * 0.9,
-                                ),
-                                child: Stack(
-                                  alignment: Alignment.topRight,
-                                  children: [
-                                    Image.network(
-                                      snapshot.data!,
-                                      fit: BoxFit.contain,
-                                      width: double.infinity,
-                                      height: double.infinity,
-                                    ),
-                                    Positioned(
-                                      right: 8,
-                                      top: 8,
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: Container(
-                                          padding: const EdgeInsets.all(4),
-                                          decoration: const BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: Colors.black54,
-                                          ),
-                                          child: const Icon(
-                                            Icons.close,
-                                            color: Colors.white,
-                                            size: 24,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        height: 250,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12.0),
-                          image: DecorationImage(
-                            image: NetworkImage(snapshot.data!),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-                },
+              ExpandableNetworkImage(
+                imageUrlFuture: _photoUrlFuture,
+                width: double.infinity,
+                height: 250,
               ),
 
               const SizedBox(height: 20),
@@ -260,6 +169,10 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
                     _isLocationExpanded = expanded;
                   });
                 },
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: EdgeInsets.zero,
+                shape: const Border(),
+                collapsedShape: const Border(),
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -270,9 +183,13 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
                           children: [
                             Icon(Icons.info, size: 16),
                             const SizedBox(width: 15),
-                            Text(
-                              'Location may have been offset due to user\'s \nprivacy settings',
-                              style: Theme.of(context).textTheme.labelMedium,
+                            Expanded(
+                              child: AutoSizeText(
+                                'Location may have been offset due to user\'s privacy settings',
+                                style: Theme.of(context).textTheme.labelMedium,
+                                maxLines: 5,
+                                wrapWords: true,
+                              ),
                             ),
                           ],
                         ),
@@ -303,6 +220,10 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
                     _isTechnicalExpanded = expanded;
                   });
                 },
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: EdgeInsets.zero,
+                shape: const Border(),
+                collapsedShape: const Border(),
                 children: [
                   Align(
                     // Wrap the Column in an Align widget
@@ -347,6 +268,33 @@ class _ViewSightingScreenState extends State<ViewSightingScreen> {
         Text(title, style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 6),
         Text(content, style: Theme.of(context).textTheme.bodyLarge),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget _buildClickableUserSection(User user) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('User', style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 6),
+        GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => UserDetailScreen(user: user),
+              ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            child: Text(
+              user.display_username,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ),
+        ),
         const SizedBox(height: 20),
       ],
     );
