@@ -170,4 +170,61 @@ class ComputerVisionInstance {
       return [];
     }
   }
+
+  Future<String> startManualAutocorrection(String input) async {
+    try {
+      final requestBody = {
+        'messages': [
+          {
+            'role': 'system',
+            'content':
+                'You are SightTrack\’s Species Autocorrector. Your task is to receive a string related to a species from a user, which may be mispelled or contain errors, and return the corrected version.',
+          },
+          {
+            'role': 'user',
+            'content': [
+              {
+                'type': 'text',
+                'text':
+                    '${await rootBundle.loadString('assets/prompts/manual_species_autocorrection.txt')}\n$input',
+              },
+            ],
+          },
+        ],
+        'model': _provider == 'grok' ? 'grok-4-0709' : 'gpt-4.1-mini',
+        'stream': false,
+        'temperature': 0,
+      };
+
+      // Make the HTTP POST request
+      final response = await http.post(
+        Uri.parse(_apiUrl),
+        headers: {
+          'Authorization': 'Bearer $_apiKey',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        final modelResponse =
+            responseData['choices'][0]['message']['content'] as String;
+
+        Log.i('LLM Response: $modelResponse');
+
+        return modelResponse;
+      } else {
+        Log.e(
+          'Failed to call model API: ${response.statusCode} - ${response.body}',
+        );
+
+        return 'NONE';
+      }
+    } catch (e) {
+      Log.e('Error calling model API: $e');
+
+      return 'NONE';
+    }
+  }
 }

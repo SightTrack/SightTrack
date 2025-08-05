@@ -32,6 +32,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
   bool _isSaving = false;
   FToast? _toast;
   bool _isIdentifying = true;
+  bool _isManualSpeciesCorrected = false;
 
   @override
   void initState() {
@@ -73,6 +74,8 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
     setState(() {
       identifiedSpecies = species;
       _selectedSpecies = species[0];
+      _isManualSpeciesCorrected =
+          false; // Reset flag when AI species are loaded
     });
     // }
 
@@ -261,6 +264,176 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
     } else {
       Log.w('No new location returned from picker');
     }
+  }
+
+  Future<String?> _showCustomSpeciesDialog(BuildContext context) async {
+    final textController = TextEditingController();
+    final theme = Theme.of(context);
+
+    return showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            bool isProcessing = false;
+
+            Future<void> processSpecies() async {
+              final inputSpecies = textController.text.trim();
+              if (inputSpecies.isEmpty) return;
+
+              setState(() {
+                isProcessing = true;
+              });
+
+              try {
+                // Use CV service to autocorrect the manual input
+                final cvInstance = ComputerVisionInstance();
+                final correctedSpecies = await cvInstance
+                    .startManualAutocorrection(inputSpecies);
+
+                if (correctedSpecies != 'NONE' && correctedSpecies.isNotEmpty) {
+                  Navigator.of(context).pop(correctedSpecies);
+                } else {
+                  // If autocorrection fails, use the original input
+                  Navigator.of(context).pop(inputSpecies);
+                }
+              } catch (e) {
+                Log.e('Error during species autocorrection: $e');
+                // If error occurs, use the original input
+                Navigator.of(context).pop(inputSpecies);
+              }
+            }
+
+            return AlertDialog(
+              title: Text(
+                'Enter Species Name',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Type the species name (AI will help correct any errors):',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: textController,
+                    autofocus: true,
+                    enabled: !isProcessing,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: InputDecoration(
+                      hintText: 'e.g., Red-tailed Hawk',
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: theme.colorScheme.outline.withValues(
+                            alpha: 0.3,
+                          ),
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: theme.colorScheme.outline.withValues(
+                            alpha: 0.3,
+                          ),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: theme.colorScheme.primary,
+                          width: 2,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 16,
+                      ),
+                    ),
+                    onSubmitted: (value) {
+                      if (value.trim().isNotEmpty && !isProcessing) {
+                        processSpecies();
+                      }
+                    },
+                  ),
+                  if (isProcessing) ...[
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'AI is correcting species name...',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed:
+                      isProcessing ? null : () => Navigator.of(context).pop(),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color:
+                          isProcessing
+                              ? theme.colorScheme.onSurfaceVariant.withValues(
+                                alpha: 0.5,
+                              )
+                              : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed:
+                      isProcessing
+                          ? null
+                          : () {
+                            final species = textController.text.trim();
+                            if (species.isNotEmpty) {
+                              processSpecies();
+                            }
+                          },
+                  child:
+                      isProcessing
+                          ? SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: theme.colorScheme.primary,
+                            ),
+                          )
+                          : Text(
+                            'Add',
+                            style: TextStyle(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -475,9 +648,15 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
         ),
         const SizedBox(height: 16),
 
-        // Species Dropdown
+        // Species Dropdown with custom option
         DropdownButtonFormField<String>(
-          value: _selectedSpecies,
+          key: ValueKey(
+            _selectedSpecies,
+          ), // Force rebuild when selected species changes
+          value:
+              (identifiedSpecies?.contains(_selectedSpecies) ?? false)
+                  ? _selectedSpecies
+                  : null,
           decoration: InputDecoration(
             labelText: 'Species*',
             prefixIcon: Icon(
@@ -510,32 +689,122 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
           style: theme.textTheme.bodyLarge,
           dropdownColor: theme.colorScheme.surface,
           isExpanded: true,
-          items:
-              identifiedSpecies?.map((String species) {
-                return DropdownMenuItem<String>(
-                  value: species,
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: Text(
-                      species,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
+          hint:
+              _selectedSpecies != null &&
+                      !(identifiedSpecies?.contains(_selectedSpecies) ?? false)
+                  ? Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _selectedSpecies!,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  )
+                  : null,
+          items: [
+            // AI identified species
+            ...(identifiedSpecies?.map((String species) {
+                  return DropdownMenuItem<String>(
+                    value: species,
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: Text(
+                        species,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                  );
+                }).toList() ??
+                []),
+            // Custom option
+            DropdownMenuItem<String>(
+              value: 'custom',
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.edit_outlined,
+                    size: 16,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Enter custom species...',
+                    style: TextStyle(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                );
-              }).toList() ??
-              [],
-          onChanged: (String? newValue) {
-            setState(() {
-              _selectedSpecies = newValue;
-            });
+                ],
+              ),
+            ),
+          ],
+          onChanged: (String? newValue) async {
+            if (newValue == 'custom') {
+              final customSpecies = await _showCustomSpeciesDialog(context);
+              if (customSpecies != null && customSpecies.isNotEmpty) {
+                setState(() {
+                  _selectedSpecies = customSpecies;
+                  _isManualSpeciesCorrected = true;
+                });
+              } else {
+                // If user cancels or enters empty string, revert to current selection
+                setState(() {
+                  // Force a rebuild to reset the dropdown state
+                });
+              }
+            } else {
+              setState(() {
+                _selectedSpecies = newValue;
+                _isManualSpeciesCorrected = false;
+              });
+            }
           },
           validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please select a species';
+            if (_selectedSpecies == null || _selectedSpecies!.isEmpty) {
+              return 'Please select or enter a species';
             }
             return null;
           },
+        ),
+
+        // Show custom species indicator
+        if (_selectedSpecies != null &&
+            !(identifiedSpecies?.contains(_selectedSpecies) ?? false))
+          Padding(
+            padding: const EdgeInsets.only(top: 8, left: 12),
+            child: Row(
+              children: [
+                Icon(
+                  _isManualSpeciesCorrected
+                      ? Icons.auto_fix_high_outlined
+                      : Icons.edit_outlined,
+                  size: 14,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  _isManualSpeciesCorrected
+                      ? 'Auto-corrected species name'
+                      : 'Custom species entered',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        Padding(
+          padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+          child: Text(_selectedSpecies!),
         ),
         const SizedBox(height: 16),
 

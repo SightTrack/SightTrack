@@ -2,7 +2,7 @@ name: sighttrack
 description: "An environment and biodiversity monitoring app"
 publish_to: "none"
 
-version: 3.0.6+1
+version: 3.0.6+2
 
 environment:
   sdk: ^3.7.0
@@ -60,3 +60,4 @@ flutter:
     - assets/city_border.geojson
     - assets/prompts/image_processing.txt
     - assets/prompts/image_identifier.txt
+    - assets/prompts/manual_species_autocorrection.txt
