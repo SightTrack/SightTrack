@@ -621,3 +621,286 @@ class latitudelongitude {
 
   const latitudelongitude(this.latitude, this.longitude);
 }
+
+------------------------------------------------------
+
+import 'package:sighttrack/barrel.dart';
+import 'package:flutter/material.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+
+class LocalView extends StatefulWidget {
+  const LocalView({super.key});
+
+  @override
+  State<LocalView> createState() => _LocalViewState();
+}
+
+class _LocalViewState extends State<LocalView> {
+  bool _isLoading = true;
+  List<Sighting> _sightings = [];
+  Map<String, double> _moransIResults = {};
+  DateTime? _startTimeFilter;
+  mapbox.MapboxMap? _mapboxMap;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimeFilter = DateTime.now().subtract(const Duration(days: 30));
+  }
+
+  Future<void> _drawCityBoundaryForCity(String cityName) async {
+    if (_mapboxMap == null) {
+      debugPrint('MapboxMap is not initialized.');
+      return;
+    }
+
+    try {
+      final geoJsonStr = await rootBundle.loadString('assets/city_border.geojson');
+      final geo = json.decode(geoJsonStr);
+
+      final features = geo['features'] as List;
+
+      // Normalize and trim the input city name for robust case-insensitive comparison
+      final lowerCaseCityName = cityName.toLowerCase().trim();
+      debugPrint('Searching for city (normalized input from placemarks): "$lowerCaseCityName"');
+
+      // Find the city feature by name, specifically checking 'properties.name'
+      final cityFeature = features.firstWhere(
+        (f) {
+          final props = f['properties'] ?? {};
+          final namePropertyRaw = (props['NAME'] ?? '');
+          final namePropertyNormalized = namePropertyRaw.toString().toLowerCase().trim();
+          return namePropertyNormalized == lowerCaseCityName;
+        },
+        orElse: () => null,
+      );
+
+      if (cityFeature == null) {
+        debugPrint('City "$cityName" (normalized to "$lowerCaseCityName") not found in GeoJSON using "properties.name".');
+        return;
+      }
+
+      // Ensure the geometry and coordinates exist and are in the expected format
+      if (cityFeature['geometry'] == null ||
+          cityFeature['geometry']['coordinates'] == null ||
+          !(cityFeature['geometry']['coordinates'] is List) ||
+          (cityFeature['geometry']['coordinates'] as List).isEmpty) {
+        debugPrint('Invalid geometry or coordinates for city "$cityName".');
+        return;
+      }
+
+      final coordinates = cityFeature['geometry']['coordinates'][0] as List;
+
+      final positions = coordinates.map<mapbox.Position>((point) {
+        final lon = point[0] as double;
+        final lat = point[1] as double;
+        return mapbox.Position(lon, lat);
+      }).toList();
+
+      final polygonManager = await _mapboxMap!.annotations.createPolygonAnnotationManager();
+
+      await polygonManager.create(
+        mapbox.PolygonAnnotationOptions(
+          geometry: mapbox.Polygon(coordinates: [positions]),
+          fillColor: const Color(0x000000FF).value,
+          fillOutlineColor: const Color(0xff08948c).value,
+        ),
+      );
+      
+      debugPrint('City boundary for "$cityName" drawn successfully.');
+    } catch (e) {
+      debugPrint('Error drawing city boundary: $e');
+    }
+  }
+
+  Future<String?> _getCurrentCityName() async {
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        throw Exception('Location permission not granted');
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      final placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+
+      if (placemarks.isNotEmpty) {
+        print(placemarks.first.locality);
+        return placemarks.first.locality;
+      }
+    } catch (e) {
+      debugPrint('Error getting city name: $e');
+    }
+
+    return null;
+  }
+
+  Future<void> _addMarkersToMap() async {
+    if (_mapboxMap == null) return;
+
+    final annotationManager =
+        await _mapboxMap!.annotations.createPointAnnotationManager();
+
+    await annotationManager.deleteAll();
+
+    for (var sighting in _sightings) {
+      await annotationManager.create(
+        mapbox.PointAnnotationOptions(
+          geometry: mapbox.Point(
+            coordinates: mapbox.Position(sighting.longitude, sighting.latitude),
+          ),
+          textField: sighting.species,
+          textOffset: [0, -2],
+          textColor: Colors.white.toARGB32(),
+          iconImage: 'marker',
+          iconSize: 1.0,
+        ),
+      );
+    }
+  }
+
+  latitudelongitude _calculateUserCityCenter() {
+    final validSightings = _sightings.where((s) {
+      return s.latitude.isFinite &&
+          s.longitude.isFinite &&
+          s.latitude >= -90.0 &&
+          s.latitude <= 90.0 &&
+          s.longitude >= -180.0 &&
+          s.longitude <= 180.0 &&
+          s.city != null &&
+          s.city!.isNotEmpty;
+    }).toList();
+
+    if (validSightings.isNotEmpty) {
+      final citySighting = validSightings.first;
+      return latitudelongitude(citySighting.latitude, citySighting.longitude);
+    }
+
+    return const latitudelongitude(37.7749, -122.4194);
+  }
+
+  Future<void> _resetCameraToUserLocation() async {
+    try {
+      final pos = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      if (_mapboxMap != null) {
+        await _mapboxMap!.flyTo(
+          mapbox.CameraOptions(
+            center: mapbox.Point(
+              coordinates: mapbox.Position(pos.longitude, pos.latitude),
+            ),
+            zoom: 10.0,
+            bearing: pos.heading,
+          ),
+          mapbox.MapAnimationOptions(duration: 500),
+        );
+        debugPrint('Camera reset to user location: (${pos.latitude}, ${pos.longitude})');
+      } else {
+        debugPrint('MapboxMap is not initialized.');
+      }
+    } catch (e) {
+      debugPrint('Error resetting camera: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error resetting camera: $e')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final center = _calculateUserCityCenter();
+
+    return Scaffold(
+      body: SafeArea(
+        child: Stack(
+          children: [
+            mapbox.MapWidget(
+              key: const ValueKey('mapWidget'),
+              onMapCreated: (controller) async {
+                try {
+                  Util.setupMapbox(controller);
+                  _mapboxMap = controller;
+
+                  await _addMarkersToMap();
+
+                  final cityName = await _getCurrentCityName();
+                  if (cityName != null) {
+                    await _drawCityBoundaryForCity(cityName);
+                  } else {
+                    debugPrint('Could not determine user city.');
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Map error: $e')),
+                  );
+                }
+              },
+              cameraOptions: mapbox.CameraOptions(
+                center: mapbox.Point(
+                  coordinates: mapbox.Position(
+                    center.longitude,
+                    center.latitude,
+                  ),
+                ),
+                zoom: 10.0,
+              ),
+              styleUri: Util.mapStyle,
+            ),
+            Positioned(
+              bottom: 16,
+              right: 16,
+              child: FloatingActionButton(
+                onPressed: _resetCameraToUserLocation,
+                backgroundColor: Colors.grey[850]!.withValues(alpha: 0.9),
+                foregroundColor: Colors.white,
+                elevation: 6,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15), // Square-ish button
+                  side: BorderSide(
+                    color: Colors.grey[700]!.withValues(alpha: 0.5),
+                    width: 1.5,
+                  ),
+                ),
+                splashColor: Colors.blueAccent.withValues(alpha: 0.2),
+                tooltip: 'Reset to Current Location',
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.my_location, size: 24, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class latitudelongitude {
+  final double latitude;
+  final double longitude;
+
+  const latitudelongitude(this.latitude, this.longitude);
+}
