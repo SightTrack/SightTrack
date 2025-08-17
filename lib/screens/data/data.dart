@@ -67,7 +67,7 @@ class DataScreenState extends State<DataScreen> {
                     child: GestureDetector(
                       onTap: () {
                         setState(() {
-                          _viewMode = 'Local';
+                          _viewMode = 'Patterns';
                         });
                       },
                       child: AnimatedContainer(
@@ -75,17 +75,17 @@ class DataScreenState extends State<DataScreen> {
                         margin: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
                           color:
-                              _viewMode == 'Local'
+                              _viewMode == 'Patterns'
                                   ? Colors.teal.shade500
                                   : Colors.teal.shade500.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Center(
                           child: Text(
-                            'Local',
+                            'Patterns',
                             style: TextStyle(
                               color:
-                                  _viewMode == 'Local'
+                                  _viewMode == 'Patterns'
                                       ? Colors.white
                                       : Colors.grey[400],
                               fontWeight: FontWeight.w500,

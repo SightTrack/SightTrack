@@ -46,7 +46,7 @@ export 'package:sighttrack/screens/profile/settings.dart';
 export 'package:sighttrack/screens/profile/profile_picture.dart';
 export 'package:sighttrack/screens/data/data.dart';
 export 'package:sighttrack/screens/data/global/global_page.dart';
-export 'package:sighttrack/screens/data/local/local_page.dart';
+export 'package:sighttrack/screens/data/local/patterns_page.dart';
 export 'package:sighttrack/screens/community/community.dart';
 export 'package:sighttrack/screens/data/global/view_statistics.dart';
 export 'package:sighttrack/screens/profile/volunteer_hours.dart';
