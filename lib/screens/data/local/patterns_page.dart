@@ -30,25 +30,32 @@ class _LocalViewState extends State<LocalView> {
     setState(() => _isLoading = true);
     try {
       final sightings = await Amplify.DataStore.query(Sighting.classType);
-      _sightings =
-          sightings
-              .map(
-                (s) => Sighting(
-                  id: s.id,
-                  species: s.species,
-                  photo: s.photo,
-                  latitude: s.latitude,
-                  longitude: s.longitude,
-                  city: s.city,
-                  displayLatitude: s.displayLatitude,
-                  displayLongitude: s.displayLongitude,
-                  timestamp: s.timestamp,
-                  description: s.description,
-                  user: s.user,
-                  isTimeClaimed: s.isTimeClaimed,
-                ),
-              )
-              .toList();
+      _sightings = [];
+
+      for (var s in sightings) {
+      if (s.species != null &&
+          (s.species.toLowerCase().contains('canada') ||
+           s.species.toLowerCase().contains('goose') || 
+           s.species.toLowerCase().contains('branta') ||
+           s.species.toLowerCase().contains('canadensis'))) {
+        _sightings.add(
+          Sighting(
+            id: s.id,
+            species: s.species,
+            photo: s.photo,
+            latitude: s.latitude,
+            longitude: s.longitude,
+            city: s.city,
+            displayLatitude: s.displayLatitude,
+            displayLongitude: s.displayLongitude,
+            timestamp: s.timestamp,
+            description: s.description,
+            user: s.user,
+            isTimeClaimed: s.isTimeClaimed,
+          ),
+        );
+      }
+    }
 
       // Convert _startTimeFilter (DateTime) to TemporalDateTime
       final startTimeTemporal =
@@ -74,26 +81,30 @@ class _LocalViewState extends State<LocalView> {
     if (_mapboxMap == null) return;
 
     final annotationManager =
-        await _mapboxMap?.annotations.createPointAnnotationManager();
+        await _mapboxMap?.annotations.createCircleAnnotationManager();
 
     await annotationManager?.deleteAll();
 
     // Create point annotations for each sighting
     for (var sighting in _sightings) {
       await annotationManager?.create(
-        mapbox.PointAnnotationOptions(
+        mapbox.CircleAnnotationOptions(
           geometry: mapbox.Point(
-            coordinates: mapbox.Position(sighting.longitude, sighting.latitude),
+            coordinates: mapbox.Position(
+              sighting.displayLongitude ?? sighting.longitude,
+              sighting.displayLatitude ?? sighting.latitude,
+            ),
           ),
-          textField: sighting.species,
-          textOffset: [0, -2],
-          textColor: Colors.white.toARGB32(),
-          iconImage: 'marker',
-          iconSize: 1.0,
+          circleRadius: 10,
+          circleColor: Color.fromARGB(255, 255, 234, 0).toARGB32(),
+          circleBlur: 1,
         ),
       );
     }
   }
+
+  
+
 
   latitudelongitude _calculateUserCityCenter() {
     final validSightings = _sightings.where((s) {
