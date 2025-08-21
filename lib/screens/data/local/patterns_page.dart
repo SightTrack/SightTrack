@@ -34,10 +34,8 @@ class _LocalViewState extends State<LocalView> {
 
       for (var s in sightings) {
       if (s.species != null &&
-          (s.species.toLowerCase().contains('canada') ||
-           s.species.toLowerCase().contains('goose') || 
-           s.species.toLowerCase().contains('branta') ||
-           s.species.toLowerCase().contains('canadensis'))) {
+          (s.species.toLowerCase().contains('rose') ||
+           s.species.toLowerCase().contains('rosa'))) {
         _sightings.add(
           Sighting(
             id: s.id,
@@ -95,9 +93,9 @@ class _LocalViewState extends State<LocalView> {
               sighting.displayLatitude ?? sighting.latitude,
             ),
           ),
-          circleRadius: 10,
+          circleRadius: 8,
           circleColor: Color.fromARGB(255, 255, 234, 0).toARGB32(),
-          circleBlur: 1,
+          circleBlur: 0.5,
         ),
       );
     }
@@ -247,7 +245,7 @@ class _LocalViewState extends State<LocalView> {
                     : _moransIResults.isEmpty
                         ? const Center(
                             child: Text(
-                              '',
+                              'Biodiversity Scores',
                             ),
                           )
                         : CustomScrollView(
@@ -290,13 +288,25 @@ class _LocalViewState extends State<LocalView> {
                                             MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
-                                            '',
+                                            'Biodiversity Scores',
                                             style: TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                          
+                                          IconButton(
+                                            icon: Icon(Icons.help),
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder:
+                                                      (context) =>
+                                                          AboutBiodiversityScreen(),
+                                                ),
+                                              );
+                                            },
+                                          ),
                                         ],
                                       ),
                                     ),
