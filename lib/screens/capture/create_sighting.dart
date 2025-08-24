@@ -1,5 +1,4 @@
 import 'package:sighttrack/barrel.dart';
-import 'package:core_ui/core_ui.dart';
 
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -55,29 +54,12 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
       _isIdentifying = false;
     });
 
-    // if (rekognitionResponse.isNotEmpty) {
-    //   // Filter images that are not animals or plants
-    //   if (!rekognitionResponse.contains('animal') &&
-    //       !rekognitionResponse.contains('plant')) {
-    //     _toast!.showToast(
-    //       child: Util.redToast(
-    //         'Please make sure the image is\n of an animal or plant',
-    //       ),
-    //       gravity: ToastGravity.CENTER,
-    //       toastDuration: const Duration(seconds: 3),
-    //     );
-    //     if (mounted) {
-    //       Navigator.pop(context);
-    //     }
-    //     return;
-    //   }
     setState(() {
       identifiedSpecies = species;
       _selectedSpecies = species[0];
       _isManualSpeciesCorrected =
           false; // Reset flag when AI species are loaded
     });
-    // }
 
     final fetchSettings = await Util.getUserSettings();
     setState(() {
