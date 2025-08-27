@@ -13,9 +13,13 @@ class LocalView extends StatefulWidget {
 class _LocalViewState extends State<LocalView> {
   bool _isLoading = true;
   List<Sighting> _sightings = [];
-  Map<String, double> _moransIResults = {};
+  List<Sighting> individualsightings = [];
+  List<Sighting> filteredSightings = [];
   DateTime? _startTimeFilter;
   mapbox.MapboxMap? _mapboxMap;
+  String? _selectedSpecies; // Track selected species
+  List<String> _uniqueSpecies = []; // Store unique species
+  mapbox.CircleAnnotationManager? _annotationManager; // Store annotation manager
 
   @override
   void initState() {
@@ -24,68 +28,78 @@ class _LocalViewState extends State<LocalView> {
     _fetchSightings();
   }
 
-
-
   Future<void> _fetchSightings() async {
     setState(() => _isLoading = true);
     try {
       final sightings = await Amplify.DataStore.query(Sighting.classType);
-      _sightings = [];
+      _sightings =
+          sightings
+              .map(
+                (s) => Sighting(
+                  id: s.id,
+                  species: s.species,
+                  photo: s.photo,
+                  latitude: s.latitude,
+                  longitude: s.longitude,
+                  city: s.city,
+                  displayLatitude: s.displayLatitude,
+                  displayLongitude: s.displayLongitude,
+                  timestamp: s.timestamp,
+                  description: s.description,
+                  user: s.user,
+                  isTimeClaimed: s.isTimeClaimed,
+                ),
+              )
+              .toList();
 
-      for (var s in sightings) {
-      if (s.species != null &&
-          (s.species.toLowerCase().contains('rose') ||
-           s.species.toLowerCase().contains('rosa'))) {
-        _sightings.add(
-          Sighting(
-            id: s.id,
-            species: s.species,
-            photo: s.photo,
-            latitude: s.latitude,
-            longitude: s.longitude,
-            city: s.city,
-            displayLatitude: s.displayLatitude,
-            displayLongitude: s.displayLongitude,
-            timestamp: s.timestamp,
-            description: s.description,
-            user: s.user,
-            isTimeClaimed: s.isTimeClaimed,
-          ),
-        );
+      // Collect unique species from _sightings
+      _uniqueSpecies = _sightings
+          .map((s) => s.species)
+          .where((species) => species != null)
+          .toSet()
+          .cast<String>()
+          .toList();
+
+      // Set default selected species if available
+      if (_uniqueSpecies.isNotEmpty) {
+        _selectedSpecies = _uniqueSpecies.first;
+        _updateFilteredSightings();
       }
-    }
-
-      // Convert _startTimeFilter (DateTime) to TemporalDateTime
-      final startTimeTemporal =
-          _startTimeFilter != null ? TemporalDateTime(_startTimeFilter!) : null;
-
-      // Calculate Moran's I for each species
-      _moransIResults = SpatialAutocorrelation.analyzeBiodiversityHotspots(
-        sightings: _sightings,
-        maxDistanceKm: 10.0, // Consider sightings within 10 km
-        startTime: startTimeTemporal,
-      );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error fetching sightings: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error fetching sightings: $e')),
+        );
       }
     }
     setState(() => _isLoading = false);
   }
 
+  void _updateFilteredSightings() {
+    if (_selectedSpecies != null) {
+      filteredSightings = _sightings
+          .where((sighting) => sighting.species == _selectedSpecies)
+          .toList();
+    } else {
+      filteredSightings = _sightings;
+    }
+    _addMarkersToMap();
+  }
+
   void _addMarkersToMap() async {
     if (_mapboxMap == null) return;
 
-    final annotationManager =
-        await _mapboxMap?.annotations.createCircleAnnotationManager();
+    // Create or reuse annotation manager
+    if (_annotationManager == null) {
+      _annotationManager = await _mapboxMap?.annotations.createCircleAnnotationManager();
+    }
 
-    await annotationManager?.deleteAll();
+    // Clear all existing annotations
+    await _annotationManager?.deleteAll();
 
-    // Create point annotations for each sighting
-    for (var sighting in _sightings) {
-      await annotationManager?.create(
+    // Create point annotations for filtered sightings only
+    for (var sighting in filteredSightings) {
+      await _annotationManager?.create(
         mapbox.CircleAnnotationOptions(
           geometry: mapbox.Point(
             coordinates: mapbox.Position(
@@ -95,14 +109,11 @@ class _LocalViewState extends State<LocalView> {
           ),
           circleRadius: 8,
           circleColor: Color.fromARGB(255, 255, 234, 0).toARGB32(),
-          circleBlur: 0.5,
+          circleBlur: 0.6,
         ),
       );
     }
   }
-
-  
-
 
   latitudelongitude _calculateUserCityCenter() {
     final validSightings = _sightings.where((s) {
@@ -166,7 +177,8 @@ class _LocalViewState extends State<LocalView> {
                 try {
                   Util.setupMapbox(controller);
                   _mapboxMap = controller;
-
+                  // Initialize annotation manager when map is created
+                  _annotationManager = await _mapboxMap?.annotations.createCircleAnnotationManager();
                   _addMarkersToMap();
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -232,21 +244,12 @@ class _LocalViewState extends State<LocalView> {
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
                   ),
-                  // boxShadow: [
-                  //   BoxShadow(
-                  //     color: Colors.black.withValues(alpha: 50),
-                  //     blurRadius: 10,
-                  //     offset: const Offset(0, -2),
-                  //   ),
-                  // ],
                 ),
                 child: _isLoading
-                    ? Container() // Replaced CircularProgressIndicator with empty Container
-                    : _moransIResults.isEmpty
+                    ? Container()
+                    : _uniqueSpecies.isEmpty
                         ? const Center(
-                            child: Text(
-                              'Biodiversity Scores',
-                            ),
+                            child: Text('Species Filter'),
                           )
                         : CustomScrollView(
                             controller: scrollController,
@@ -266,9 +269,7 @@ class _LocalViewState extends State<LocalView> {
                                           color: Colors.grey[600]!.withValues(
                                             alpha: 0.2,
                                           ),
-                                          borderRadius: BorderRadius.circular(
-                                            2,
-                                          ),
+                                          borderRadius: BorderRadius.circular(2),
                                         ),
                                       ),
                                       const SizedBox.shrink(),
@@ -288,24 +289,11 @@ class _LocalViewState extends State<LocalView> {
                                             MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
-                                            'Biodiversity Scores',
+                                            'Species Filter',
                                             style: TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
                                             ),
-                                          ),
-                                          IconButton(
-                                            icon: Icon(Icons.help),
-                                            onPressed: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder:
-                                                      (context) =>
-                                                          AboutBiodiversityScreen(),
-                                                ),
-                                              );
-                                            },
                                           ),
                                         ],
                                       ),
@@ -313,34 +301,22 @@ class _LocalViewState extends State<LocalView> {
                                   ],
                                 ),
                               ),
-                              SliverList(
-                                delegate: SliverChildBuilderDelegate((
-                                  context,
-                                  index,
-                                ) {
-                                  final species =
-                                      _moransIResults.keys.elementAt(index);
-                                  final moransI =
-                                      _moransIResults[species] ?? 0.0;
-                                  String distribution;
-                                  if (moransI > 0.3) {
-                                    distribution = 'Clustered';
-                                  } else if (moransI < -0.3) {
-                                    distribution = 'Dispersed';
-                                  } else {
-                                    distribution = 'Random';
-                                  }
-                                  return ListTile(
-                                    title: Text(
-                                      species,
-                                      style: const TextStyle(),
-                                    ),
-                                    subtitle: Text(
-                                      'Score: ${moransI.toStringAsFixed(2)} ($distribution)',
-                                      style: const TextStyle(),
-                                    ),
-                                  );
-                                }, childCount: _moransIResults.length),
+                              SliverToBoxAdapter(
+                                child: Column(
+                                  children: _uniqueSpecies.map((species) {
+                                    return RadioListTile<String>(
+                                      title: Text(species),
+                                      value: species,
+                                      groupValue: _selectedSpecies,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _selectedSpecies = value;
+                                          _updateFilteredSightings();
+                                        });
+                                      },
+                                    );
+                                  }).toList(),
+                                ),
                               ),
                             ],
                           ),
