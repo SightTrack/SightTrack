@@ -114,19 +114,14 @@ class _LocalViewState extends State<LocalView> {
       // Determine color based on age
       Color markerColor;
       if (sightingDateTime.isBefore(oneYearAgo)) {
-        // Darker yellow for > 1 year
         markerColor = const Color.fromARGB(255, 69, 52, 1); // Dark yellow
       } else if (sightingDateTime.isBefore(nineMonthsAgo)) {
-        // Medium yellow for 6 months to 1 year
         markerColor = const Color.fromARGB(255, 117, 93, 1); // Medium yellow
       } else if (sightingDateTime.isBefore(sixMonthsAgo)) {
-        // Medium yellow for 6 months to 1 year
         markerColor = const Color.fromARGB(255, 221, 177, 2); // Medium yellow
       } else if (sightingDateTime.isBefore(threeMonthsAgo)) {
-        // Medium yellow for 6 months to 1 year
         markerColor = const Color.fromARGB(255, 251, 222, 104); // Medium yellow
       } else {
-        // Bright yellow for < 6 months
         markerColor = const Color.fromARGB(255, 246, 240, 178); // Bright yellow
       }
 
