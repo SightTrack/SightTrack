@@ -50,11 +50,23 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
       widget.imagePath,
     );
 
-    setState(() {
-      _isIdentifying = false;
-    });
+    // Check if no species were identified (empty list)
+    if (species.isEmpty) {
+      // Navigate back immediately and show alert
+      if (mounted) {
+        Navigator.of(context).pop(); // Go back to capture page first
+        // Show alert after a brief delay to ensure navigation completes
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted) {
+            _showNoSpeciesDetectedAlert();
+          }
+        });
+      }
+      return;
+    }
 
     setState(() {
+      _isIdentifying = false;
       identifiedSpecies = species;
       _selectedSpecies = species[0];
       _isManualSpeciesCorrected =
@@ -65,6 +77,40 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
     setState(() {
       _userSettings = fetchSettings;
     });
+  }
+
+  void _showNoSpeciesDetectedAlert() {
+    if (_toast != null) {
+      Widget toast = Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25.0),
+          color: Colors.redAccent,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 12.0),
+            Flexible(
+              child: Text(
+                'No animals or plants detected. Please try again.',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      _toast!.showToast(
+        child: toast,
+        gravity: ToastGravity.TOP,
+        toastDuration: const Duration(seconds: 3),
+      );
+    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -181,7 +227,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
 
         final sighting = Sighting(
           id: sightingId,
-          species: _selectedSpecies!,
+          species: _selectedSpecies ?? '',
           photo: s3Key,
           latitude: _selectedLocation!.latitude,
           longitude: _selectedLocation!.longitude,
@@ -442,7 +488,9 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
       ),
       backgroundColor: theme.colorScheme.surface,
       body:
-          _isIdentifying
+          _isIdentifying ||
+                  identifiedSpecies == null ||
+                  identifiedSpecies!.isEmpty
               ? _buildLoadingUI(theme)
               : GestureDetector(
                 onTap: () => FocusScope.of(context).unfocus(),
@@ -678,7 +726,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          _selectedSpecies!,
+                          _selectedSpecies ?? '',
                           style: theme.textTheme.bodyLarge?.copyWith(
                             color: theme.colorScheme.onSurface,
                             fontWeight: FontWeight.w500,
@@ -786,7 +834,7 @@ class _CreateSightingScreenState extends State<CreateSightingScreen> {
 
         Padding(
           padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-          child: Text(_selectedSpecies!),
+          child: Text(_selectedSpecies ?? ''),
         ),
         const SizedBox(height: 16),
 

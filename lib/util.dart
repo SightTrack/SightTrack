@@ -84,6 +84,30 @@ class Util {
     return currentCognitoUser.username;
   }
 
+  static Future<bool> isAmbassador() async {
+    try {
+      final session = await Amplify.Auth.fetchAuthSession();
+      if (session is CognitoAuthSession) {
+        final idToken = session.userPoolTokensResult.value.idToken.raw;
+        final tokenParts = idToken.toString().split('.');
+        if (tokenParts.length != 3) {
+          Log.e('isAdmin(): Invalid JWT format');
+          return false;
+        }
+        final payload = base64Url.decode(base64Url.normalize(tokenParts[1]));
+        final claims = jsonDecode(utf8.decode(payload)) as Map<String, dynamic>;
+        final groups = claims['cognito:groups'] as List<dynamic>?;
+        return groups?.contains('Ambassador') ?? false;
+      } else {
+        Log.e('Session is not a CognitoAuthSession');
+      }
+      return false;
+    } catch (e) {
+      Log.e('Error checking ambassador status: $e');
+      return false;
+    }
+  }
+
   static Future<bool> isAdmin() async {
     try {
       final session = await Amplify.Auth.fetchAuthSession();

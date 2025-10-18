@@ -17,6 +17,14 @@
           ],
           "category": "function",
           "resourceName": "sendVolunteerHoursRequest"
+        },
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "fetchSightingsApi"
         }
       ],
       "providerPlugin": "awscloudformation",
@@ -37,6 +45,14 @@
           "additionalAuthenticationProviders": [
             {
               "authenticationType": "AWS_IAM"
+            },
+            {
+              "apiKeyConfig": {
+                "apiKeyExpirationDate": "2026-09-14T22:13:10.858Z",
+                "apiKeyExpirationDays": 365,
+                "description": "Public read-only access for sightings"
+              },
+              "authenticationType": "API_KEY"
             }
           ],
           "defaultAuthentication": {
@@ -94,6 +110,11 @@
     }
   },
   "function": {
+    "fetchSightingsApi": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
     "sendVolunteerHoursRequest": {
       "build": true,
       "providerPlugin": "awscloudformation",
@@ -106,6 +127,22 @@
     }
   },
   "parameters": {
+    "AMPLIFY_function_fetchSightingsApi_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "fetchSightingsApi"
+        }
+      ]
+    },
+    "AMPLIFY_function_fetchSightingsApi_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "fetchSightingsApi"
+        }
+      ]
+    },
     "AMPLIFY_function_sendVolunteerHoursRequest_deploymentBucketName": {
       "usedBy": [
         {

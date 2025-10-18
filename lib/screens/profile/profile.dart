@@ -336,6 +336,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 return const SizedBox.shrink();
                               },
                             ),
+                            FutureBuilder<bool>(
+                              future: Util.isAmbassador(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  );
+                                }
+                                if (snapshot.hasData && snapshot.data == true) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: Chip(
+                                      label: Row(
+                                        children: const [
+                                          Icon(
+                                            Icons.stars,
+                                            color: Colors.blue,
+                                            size: 18,
+                                          ),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            'Ambassador',
+                                            style: TextStyle(
+                                              color: Colors.blue,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              },
+                            ),
                             if (_isAreaCaptureActive)
                               Padding(
                                 padding: const EdgeInsets.only(right: 8),
@@ -362,45 +408,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                                 ),
                               ),
-                            FutureBuilder<int>(
-                              future: getTotalSightingNumber(),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return const SizedBox(
-                                    height: 24,
-                                    width: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                    ),
-                                  );
-                                }
-                                if (snapshot.hasData) {
-                                  return Chip(
-                                    label: Row(
-                                      children: [
-                                        const Icon(Icons.visibility, size: 18),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          'Sightings: ${snapshot.data}',
-                                          style:
-                                              Theme.of(
-                                                context,
-                                              ).textTheme.bodyMedium,
-                                        ),
-                                      ],
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  );
-                                }
-                                return const SizedBox.shrink();
-                              },
-                            ),
                           ],
                         ),
                       ),

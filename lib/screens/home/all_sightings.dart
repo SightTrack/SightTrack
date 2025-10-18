@@ -15,6 +15,7 @@ class _AllSightingsScreenState extends State<AllSightingsScreen> {
   bool isLoading = true;
   late StreamSubscription _subscription;
   String _searchQuery = '';
+  final Map<String, String> _imageUrlCache = {}; // Cache for S3 URLs
 
   @override
   void initState() {
@@ -107,6 +108,23 @@ class _AllSightingsScreenState extends State<AllSightingsScreen> {
     await _fetchAllSightings();
   }
 
+  Future<String> _getImageUrl(String photoKey) async {
+    // Check if URL is already in cache
+    if (_imageUrlCache.containsKey(photoKey)) {
+      return _imageUrlCache[photoKey]!;
+    }
+
+    // If not in cache, fetch from S3 and cache it
+    try {
+      final url = await Util.fetchFromS3(photoKey);
+      _imageUrlCache[photoKey] = url;
+      return url;
+    } catch (e) {
+      Log.e('Error fetching image URL: $e');
+      rethrow;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -135,99 +153,123 @@ class _AllSightingsScreenState extends State<AllSightingsScreen> {
                       )
                       : RefreshIndicator(
                         onRefresh: _refreshSightings,
-                        child: ListView.builder(
-                          padding: EdgeInsets.zero,
+                        child: GridView.builder(
+                          padding: const EdgeInsets.all(1),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                childAspectRatio: 1.0,
+                                crossAxisSpacing: 1,
+                                mainAxisSpacing: 1,
+                              ),
                           itemCount: filteredSightings.length,
                           itemBuilder: (context, index) {
                             final sighting = filteredSightings[index];
-                            return Material(
-                              // color: Colors.white,
-                              child: InkWell(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (context) => ViewSightingScreen(
-                                            sighting: sighting,
-                                          ),
-                                    ),
-                                  );
-                                },
-                                splashColor: Colors.blueGrey.withValues(
-                                  alpha: 0.1,
-                                ),
-                                highlightColor: Colors.grey.withValues(
-                                  alpha: 0.05,
-                                ),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0,
-                                    vertical: 12.0,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: Colors.grey.shade200,
-                                        width: 0.1,
-                                      ),
-                                    ),
-                                    boxShadow: [
-                                      // if (index == 0)
-                                      //   BoxShadow(
-                                      //     color: Colors.grey.withValues(alpha: 0.05),
-                                      //     offset: const Offset(0, 1),
-                                      //     blurRadius: 2.0,
-                                      //   ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Expanded(
-                                        flex: 3,
-                                        child: Text(
-                                          sighting.species,
-                                          style:
-                                              Theme.of(
-                                                context,
-                                              ).textTheme.titleMedium,
-                                          overflow: TextOverflow.ellipsis,
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => ViewSightingScreen(
+                                          sighting: sighting,
                                         ),
+                                  ),
+                                );
+                              },
+                              child: Hero(
+                                tag: 'sighting-${sighting.id}',
+                                child: Container(
+                                  color: Colors.grey[200],
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      FutureBuilder<String>(
+                                        future: _getImageUrl(sighting.photo),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            return const Center(
+                                              child:
+                                                  CircularProgressIndicator(),
+                                            );
+                                          }
+                                          if (snapshot.hasError ||
+                                              !snapshot.hasData) {
+                                            return const Center(
+                                              child: Icon(Icons.error),
+                                            );
+                                          }
+                                          return Image.network(
+                                            snapshot.data!,
+                                            fit: BoxFit.cover,
+                                            cacheWidth:
+                                                300, // Optimize memory usage for grid
+                                            frameBuilder: (
+                                              context,
+                                              child,
+                                              frame,
+                                              wasSynchronouslyLoaded,
+                                            ) {
+                                              if (wasSynchronouslyLoaded) {
+                                                return child;
+                                              }
+                                              return AnimatedOpacity(
+                                                opacity: frame == null ? 0 : 1,
+                                                duration: const Duration(
+                                                  milliseconds: 200,
+                                                ),
+                                                curve: Curves.easeOut,
+                                                child:
+                                                    frame == null
+                                                        ? Container(
+                                                          color:
+                                                              Colors.grey[300],
+                                                        )
+                                                        : child,
+                                              );
+                                            },
+                                            errorBuilder: (
+                                              context,
+                                              error,
+                                              stackTrace,
+                                            ) {
+                                              return const Center(
+                                                child: Icon(Icons.error),
+                                              );
+                                            },
+                                          );
+                                        },
                                       ),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              sighting.user?.display_username ??
-                                                  'Unknown',
-                                              style:
-                                                  Theme.of(
-                                                    context,
-                                                  ).textTheme.bodyMedium,
-                                              overflow: TextOverflow.ellipsis,
+                                      Positioned(
+                                        bottom: 0,
+                                        left: 0,
+                                        right: 0,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8.0,
+                                            vertical: 4.0,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              begin: Alignment.bottomCenter,
+                                              end: Alignment.topCenter,
+                                              colors: [
+                                                Colors.black.withOpacity(0.7),
+                                                Colors.transparent,
+                                              ],
                                             ),
-                                            const SizedBox(height: 2.0),
-                                            Text(
-                                              DateFormat(
-                                                'MMM dd, HH:mm',
-                                              ).format(
-                                                sighting.timestamp
-                                                    .getDateTimeInUtc()
-                                                    .toLocal(),
-                                              ),
-                                              style:
-                                                  Theme.of(
-                                                    context,
-                                                  ).textTheme.bodySmall,
-                                              overflow: TextOverflow.ellipsis,
+                                          ),
+                                          child: Text(
+                                            sighting.species,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
                                             ),
-                                          ],
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         ),
                                       ),
                                     ],

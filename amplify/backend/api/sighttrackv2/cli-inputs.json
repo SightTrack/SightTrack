@@ -15,6 +15,12 @@
     "additionalAuthTypes": [
       {
         "mode": "AWS_IAM"
+      },
+      {
+        "mode": "API_KEY",
+        "expirationTime": 365,
+        "apiKeyExpirationDate": "2026-09-14T22:13:10.858Z",
+        "keyDescription": "Public read-only access for sightings"
       }
     ]
   }

@@ -4,17 +4,18 @@ const amplifyconfig = '''{
     "api": {
         "plugins": {
             "awsAPIPlugin": {
-                "sighttrackv2": {
-                    "endpointType": "GraphQL",
-                    "endpoint": "https://jyj3ab4yofffrkajoxshiqgtcq.appsync-api.us-east-1.amazonaws.com/graphql",
-                    "region": "us-east-1",
-                    "authorizationType": "AMAZON_COGNITO_USER_POOLS"
-                },
                 "restApiResource": {
                     "endpointType": "REST",
                     "endpoint": "https://j9zxawncta.execute-api.us-east-1.amazonaws.com/dev",
                     "region": "us-east-1",
                     "authorizationType": "AWS_IAM"
+                },
+                "sighttrackv2": {
+                    "endpointType": "GraphQL",
+                    "endpoint": "https://jyj3ab4yofffrkajoxshiqgtcq.appsync-api.us-east-1.amazonaws.com/graphql",
+                    "region": "us-east-1",
+                    "authorizationType": "AMAZON_COGNITO_USER_POOLS",
+                    "apiKey": "da2-tehmqlr4ujeidbsgbjlbv6o5oe"
                 }
             }
         }
@@ -39,6 +40,13 @@ const amplifyconfig = '''{
                         "Region": "us-east-1",
                         "AuthMode": "AWS_IAM",
                         "ClientDatabasePrefix": "sighttrackv2_AWS_IAM"
+                    },
+                    "sighttrackv2_API_KEY": {
+                        "ApiUrl": "https://jyj3ab4yofffrkajoxshiqgtcq.appsync-api.us-east-1.amazonaws.com/graphql",
+                        "Region": "us-east-1",
+                        "AuthMode": "API_KEY",
+                        "ApiKey": "da2-tehmqlr4ujeidbsgbjlbv6o5oe",
+                        "ClientDatabasePrefix": "sighttrackv2_API_KEY"
                     }
                 },
                 "CredentialsProvider": {

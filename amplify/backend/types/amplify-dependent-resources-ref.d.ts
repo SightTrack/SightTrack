@@ -7,7 +7,8 @@ export type AmplifyDependentResourcesAttributes = {
     },
     "sighttrackv2": {
       "GraphQLAPIEndpointOutput": "string",
-      "GraphQLAPIIdOutput": "string"
+      "GraphQLAPIIdOutput": "string",
+      "GraphQLAPIKeyOutput": "string"
     }
   },
   "auth": {
@@ -25,6 +26,13 @@ export type AmplifyDependentResourcesAttributes = {
     }
   },
   "function": {
+    "fetchSightingsApi": {
+      "Arn": "string",
+      "LambdaExecutionRole": "string",
+      "LambdaExecutionRoleArn": "string",
+      "Name": "string",
+      "Region": "string"
+    },
     "sendVolunteerHoursRequest": {
       "Arn": "string",
       "LambdaExecutionRole": "string",

@@ -23,7 +23,12 @@ type UserSettings @model @auth(rules: [{ allow: private }]) {
   schoolSupervisor: [String]
 }
 
-type Sighting @model @auth(rules: [{allow: private}]) {
+type Sighting
+  @model
+  @auth(rules: [
+    { allow: public, operations: [read] },  # public can READ
+    { allow: private, operations: [create, update, delete, read] } # signed-in users can write
+  ]) {
   id: ID!
   species: String!
   photo: String!
