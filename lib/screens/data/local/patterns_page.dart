@@ -1,7 +1,6 @@
 import 'package:sighttrack/barrel.dart';
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
-import 'package:amplify_flutter/amplify_flutter.dart';
 
 class LocalView extends StatefulWidget {
   const LocalView({super.key});
@@ -17,6 +16,7 @@ class _LocalViewState extends State<LocalView> {
   List<Sighting> filteredSightings = [];
   DateTime? _startTimeFilter;
   mapbox.MapboxMap? _mapboxMap;
+  String _searchQuery = '';
   String? _selectedSpecies; // Track selected species
   List<String> _uniqueSpecies = []; // Store unique species
   mapbox.CircleAnnotationManager? _annotationManager; // Store annotation manager
@@ -97,8 +97,34 @@ class _LocalViewState extends State<LocalView> {
     // Clear all existing annotations
     await _annotationManager?.deleteAll();
 
-    // Create point annotations for filtered sightings only
+    // Define color shades based on sighting age
+    final now = DateTime.now();
+    final oneYearAgo = now.subtract(const Duration(days: 365));
+    final sixMonthsAgo = now.subtract(const Duration(days: 180));
+    final nineMonthsAgo = now.subtract(const Duration(days: 270));
+    final threeMonthsAgo = now.subtract(const Duration(days: 90));
+
+    // Create point annotations for filtered sightings with dynamic colors
     for (var sighting in filteredSightings) {
+      if (sighting.timestamp == null) continue; // Skip if timestamp is null
+
+      // Convert TemporalDateTime to DateTime for comparison
+      DateTime sightingDateTime = DateTime.parse(sighting.timestamp.toString());
+
+      // Determine color based on age
+      Color markerColor;
+      if (sightingDateTime.isBefore(oneYearAgo)) {
+        markerColor = const Color.fromARGB(255, 69, 52, 1); // Dark yellow
+      } else if (sightingDateTime.isBefore(nineMonthsAgo)) {
+        markerColor = const Color.fromARGB(255, 117, 93, 1); // Medium yellow
+      } else if (sightingDateTime.isBefore(sixMonthsAgo)) {
+        markerColor = const Color.fromARGB(255, 221, 177, 2); // Medium yellow
+      } else if (sightingDateTime.isBefore(threeMonthsAgo)) {
+        markerColor = const Color.fromARGB(255, 251, 222, 104); // Medium yellow
+      } else {
+        markerColor = const Color.fromARGB(255, 246, 240, 178); // Bright yellow
+      }
+
       await _annotationManager?.create(
         mapbox.CircleAnnotationOptions(
           geometry: mapbox.Point(
@@ -108,7 +134,7 @@ class _LocalViewState extends State<LocalView> {
             ),
           ),
           circleRadius: 8,
-          circleColor: Color.fromARGB(255, 255, 234, 0).toARGB32(),
+          circleColor: markerColor.toARGB32(),
           circleBlur: 0.6,
         ),
       );
@@ -146,7 +172,7 @@ class _LocalViewState extends State<LocalView> {
             center: mapbox.Point(
               coordinates: mapbox.Position(pos.longitude, pos.latitude),
             ),
-            zoom: 1.0,
+            zoom: 3.0,
             bearing: pos.heading,
           ),
           mapbox.MapAnimationOptions(duration: 500),
@@ -166,6 +192,14 @@ class _LocalViewState extends State<LocalView> {
   @override
   Widget build(BuildContext context) {
     final center = _calculateUserCityCenter();
+
+    // Filter species based on search query
+    final filteredSpecies = _searchQuery.isEmpty
+        ? _uniqueSpecies
+        : _uniqueSpecies
+            .where((species) =>
+                species.toLowerCase().contains(_searchQuery.toLowerCase()))
+            .toList();
 
     return Scaffold(
       body: Stack(
@@ -247,6 +281,15 @@ class _LocalViewState extends State<LocalView> {
                 ),
                 child: _isLoading
                     ? Container()
+                    : filteredSightings.isEmpty
+                      ? Center(
+                        child: Text(
+                          _searchQuery.isEmpty
+                              ? 'No sightings found'
+                              : 'No sightings match your search',
+                          style: TextStyle(fontSize: 16.0, color: Colors.grey),
+                        ),
+                      )
                     : _uniqueSpecies.isEmpty
                         ? const Center(
                             child: Text('Species Filter'),
@@ -278,32 +321,48 @@ class _LocalViewState extends State<LocalView> {
                                 ),
                               ),
                               SliverToBoxAdapter(
-                                child: Column(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 15.0,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 15.0,
+                                    vertical: 8.0,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Species Filter',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            'Species Filter',
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
+                                      const SizedBox(height: 8),
+                                      TextField(
+                                        decoration: InputDecoration(
+                                          hintText: 'Search species...',
+                                          prefixIcon: Icon(Icons.search),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                            borderSide: BorderSide(
+                                              color: Colors.black,
                                             ),
                                           ),
-                                        ],
+                                          filled: true,
+                                          fillColor: const Color.fromARGB(255, 32, 28, 28),
+                                        ),
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _searchQuery = value;
+                                          });
+                                        },
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
                               SliverToBoxAdapter(
                                 child: Column(
-                                  children: _uniqueSpecies.map((species) {
+                                  children: filteredSpecies.map((species) {
                                     return RadioListTile<String>(
                                       title: Text(species),
                                       value: species,
@@ -334,4 +393,11 @@ class latitudelongitude {
   final double longitude;
 
   const latitudelongitude(this.latitude, this.longitude);
+}
+
+// Extension to convert Color to ARGB32 format for Mapbox
+extension ColorExtension on Color {
+  int toARGB32() {
+    return (alpha << 24) | (red << 16) | (green << 8) | blue;
+  }
 }
