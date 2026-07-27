@@ -1,76 +1,143 @@
-# [SightTrack V2](https://www.sighttrack.org/)
-<img src="https://github.com/user-attachments/assets/8c7d9af7-62c7-4637-8011-655792b00b1c" alt="drawing" width="150"/>
+# SightTrack
 
-SightTrack is a mobile application that helps users identify and track wildlife through photo recognition technology. Built with Flutter and powered by AWS services, it provides an easy way to document and share wildlife sightings with location data.
+<p align="center">
+  <a href="https://www.sighttrack.org/">
+    <img src="https://github.com/user-attachments/assets/8c7d9af7-62c7-4637-8011-655792b00b1c" alt="SightTrack Logo" width="150"/>
+  </a>
+</p>
 
-## Features
+<p align="center">
+  <strong>Transforming everyday wildlife encounters into structured biodiversity data.</strong>
+</p>
 
-- **Photo Recognition**: Identify wildlife species using AWS Rekognition
-- **Location Tracking**: GPS-based location logging with offset privacy protection  
-- **User Profiles**: Customizable profiles with pictures, bio, and location
-- **Group Management**: User and admin role management
-- **Interactive Maps**: Mapbox integration for viewing sightings
-- **Data Management**: Cloud-based storage and synchronization via AWS Amplify
+---
 
-## Tech Stack
+## Overview
 
-- **Frontend**: Flutter
-- **Backend**: AWS Amplify
-- **Maps**: Mapbox Flutter
-- **AI/ML**: Google Cloud Vision, LLM
-- **Database**: AWS DynamoDB (via Amplify)
-- **Authentication**: AWS Cognito (via Amplify)
-- **Storage**: AWS S3 (via Amplify)
+Biodiversity data is often limited at local scales. Researchers and communities attempting to assess species diversity within a specific park, municipality, or habitat frequently encounter sparse, inconsistent, or outdated records.
 
-## Installation
+As a result, conservation decisions and land management strategies may rely on incomplete or low-resolution datasets.
 
-1. Clone the repository
-2. Install Flutter dependencies:
-   ```
-   flutter pub get
-   ```
-3. Configure AWS Amplify:
-   ```
-   amplify configure
-   amplify pull
-   ```
-4. Add your Mapbox access token to the app configuration
-5. Run the app:
-   ```
-   flutter run
-   ```
+Effective ecological monitoring requires not only large datasets, but also **systematically collected, high-quality observations** that capture spatial and temporal variation (Pocock et al., 2017).
 
-## Usage
+---
 
-1. Create an account or sign in
-2. Take a photo of wildlife you want to identify
-3. The app will process the image and suggest species identification
-4. Add location data and notes to your sighting
-5. View your sightings and those shared by the community on the map
+# Our Approach
 
-### Changes from V1
-- Use Amplify SDK for backend (so no need for making custom APIS)
-- Redesign UI
-- Minimal features
-- Location offset
-- Better user management
-- Group management (User, Admin) - With admin panel 
-- Google maps -> Mapbox Flutter
-- Better data management via Amplify Studio
-- Easier data analysis
-- Profile picture, country, bio, email, username (display_username)
-- Photo recognition uses two layers: Google Cloud Vision API and an LLM (Grok, ChatGPT)
+SightTrack transforms everyday wildlife encounters into structured biodiversity data.
 
-### Unchanged
-- AWS services
+The platform enables users to:
 
-### Planned Updates
-- More privacy controls
-- Add other users 
-- School-wide events (broadcasted)
-- Community ambassadors
-- Email receiving with custom @sighttrack.org domain
+- Capture images of organisms and receive AI-assisted species identification
+- Record observations with geospatial metadata
+- Maintain a personal archive of biodiversity sightings
+- Explore observations through interactive mapping tools
+- Participate in collaborative, community-driven monitoring efforts
 
-## License
+By reducing technical and logistical barriers, SightTrack expands participation in biodiversity science while improving the consistency and usability of collected observations.
 
-This project is licensed under the MIT License.
+---
+
+# Improving Biodiversity Data Quality
+
+A central objective of SightTrack is to support the transition from opportunistic observations toward more systematic citizen science methodologies.
+
+Unstructured observations are valuable but often lack consistency. Structured survey protocols, such as repeated sampling within defined areas or along fixed routes, produce higher-quality datasets better suited for ecological analysis (Dickinson et al., 2012).
+
+SightTrack aims to incorporate guided survey mechanisms, including:
+
+- Sampling within predefined spatial boundaries (e.g., quadrats)
+- Observations along designated transects or routes
+- Repeated surveys at consistent locations over time
+- Temporal comparisons to assess seasonal and long-term ecological change
+
+These approaches generate higher-resolution datasets that enable more accurate assessments of:
+
+- Species distributions
+- Population abundance
+- Environmental change
+- Ecosystem health
+
+Rather than simply increasing data volume, SightTrack focuses on improving **data structure, reliability, and scientific value**.
+
+---
+
+# Features
+
+## Wildlife Identification
+
+Computer vision and machine learning models assist users in identifying photographed organisms, reducing dependence on prior taxonomic expertise.
+
+---
+
+## Location-Based Observations
+
+Observations are geotagged while incorporating privacy-preserving mechanisms to protect sensitive user and species location data.
+
+---
+
+## Interactive Biodiversity Maps
+
+Users can visualize biodiversity patterns and explore observations across different geographic scales.
+
+---
+
+## User Profiles & Community Engagement
+
+Social features encourage collaboration, knowledge sharing, and sustained participation in biodiversity monitoring.
+
+---
+
+## Data Management Infrastructure
+
+Cloud-based systems provide scalable storage, synchronization, and retrieval of biodiversity observations.
+
+---
+
+# Technology Stack
+
+SightTrack is built using a modern, scalable technology stack:
+
+| Component | Technology |
+|-----------|------------|
+| Mobile Application | Flutter |
+| Cloud Infrastructure | AWS Amplify |
+| Database | AWS DynamoDB |
+| Authentication | AWS Cognito |
+| Storage | AWS S3 |
+| Mapping | Mapbox Flutter SDK |
+| Artificial Intelligence | Google Cloud Vision + Large Language Models |
+
+---
+
+# Vision
+
+SightTrack extends beyond species identification to become infrastructure for participatory ecological monitoring.
+
+By enabling individuals to contribute structured biodiversity observations, the platform supports the creation of more complete and locally relevant datasets.
+
+These datasets can help inform:
+
+- Scientific research
+- Conservation planning
+- Environmental policy
+- Public engagement with the natural world
+
+---
+
+# Future Goals
+
+Planned developments include:
+
+- Enhanced privacy controls for sensitive observations
+- Expanded user participation and community growth
+- Integration with educational programs and school initiatives
+- Community ambassador networks
+- Advanced tools for structured biodiversity surveys
+- Interoperability with global biodiversity data platforms
+
+---
+
+# License
+
+This project is licensed under the **MIT License**.
