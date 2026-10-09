@@ -4,18 +4,12 @@ const amplifyconfig = '''{
     "api": {
         "plugins": {
             "awsAPIPlugin": {
-                "restApiResource": {
-                    "endpointType": "REST",
-                    "endpoint": "https://j9zxawncta.execute-api.us-east-1.amazonaws.com/dev",
-                    "region": "us-east-1",
-                    "authorizationType": "AWS_IAM"
-                },
                 "sighttrackv2": {
                     "endpointType": "GraphQL",
-                    "endpoint": "https://jyj3ab4yofffrkajoxshiqgtcq.appsync-api.us-east-1.amazonaws.com/graphql",
+                    "endpoint": "https://4pq6ga7lcjgzrl2cohx2cjapm4.appsync-api.us-east-1.amazonaws.com/graphql",
                     "region": "us-east-1",
                     "authorizationType": "AMAZON_COGNITO_USER_POOLS",
-                    "apiKey": "da2-tehmqlr4ujeidbsgbjlbv6o5oe"
+                    "apiKey": "da2-sefnh5kbe5aovoh7tdclnhg7qu"
                 }
             }
         }
@@ -30,37 +24,37 @@ const amplifyconfig = '''{
                 },
                 "AppSync": {
                     "Default": {
-                        "ApiUrl": "https://jyj3ab4yofffrkajoxshiqgtcq.appsync-api.us-east-1.amazonaws.com/graphql",
+                        "ApiUrl": "https://4pq6ga7lcjgzrl2cohx2cjapm4.appsync-api.us-east-1.amazonaws.com/graphql",
                         "Region": "us-east-1",
                         "AuthMode": "AMAZON_COGNITO_USER_POOLS",
                         "ClientDatabasePrefix": "sighttrackv2_AMAZON_COGNITO_USER_POOLS"
                     },
                     "sighttrackv2_AWS_IAM": {
-                        "ApiUrl": "https://jyj3ab4yofffrkajoxshiqgtcq.appsync-api.us-east-1.amazonaws.com/graphql",
+                        "ApiUrl": "https://4pq6ga7lcjgzrl2cohx2cjapm4.appsync-api.us-east-1.amazonaws.com/graphql",
                         "Region": "us-east-1",
                         "AuthMode": "AWS_IAM",
                         "ClientDatabasePrefix": "sighttrackv2_AWS_IAM"
                     },
                     "sighttrackv2_API_KEY": {
-                        "ApiUrl": "https://jyj3ab4yofffrkajoxshiqgtcq.appsync-api.us-east-1.amazonaws.com/graphql",
+                        "ApiUrl": "https://4pq6ga7lcjgzrl2cohx2cjapm4.appsync-api.us-east-1.amazonaws.com/graphql",
                         "Region": "us-east-1",
                         "AuthMode": "API_KEY",
-                        "ApiKey": "da2-tehmqlr4ujeidbsgbjlbv6o5oe",
+                        "ApiKey": "da2-sefnh5kbe5aovoh7tdclnhg7qu",
                         "ClientDatabasePrefix": "sighttrackv2_API_KEY"
                     }
                 },
                 "CredentialsProvider": {
                     "CognitoIdentity": {
                         "Default": {
-                            "PoolId": "us-east-1:a35f7d2d-35a4-494d-92cd-2d3e3a46e2cb",
+                            "PoolId": "us-east-1:60cf09b7-7fca-4eb5-8cab-a4ffc1f197f3",
                             "Region": "us-east-1"
                         }
                     }
                 },
                 "CognitoUserPool": {
                     "Default": {
-                        "PoolId": "us-east-1_kLzJTEF3R",
-                        "AppClientId": "57chh09j5v93337ltue7me785i",
+                        "PoolId": "us-east-1_Amw5XtLhb",
+                        "AppClientId": "6k0l449s016fnsq9g4u39v7k5g",
                         "Region": "us-east-1"
                     }
                 },
@@ -87,7 +81,7 @@ const amplifyconfig = '''{
                 },
                 "S3TransferUtility": {
                     "Default": {
-                        "Bucket": "storage-resource220519-dev",
+                        "Bucket": "v2storage36ec6-dev",
                         "Region": "us-east-1"
                     }
                 }
@@ -97,7 +91,7 @@ const amplifyconfig = '''{
     "storage": {
         "plugins": {
             "awsS3StoragePlugin": {
-                "bucket": "storage-resource220519-dev",
+                "bucket": "v2storage36ec6-dev",
                 "region": "us-east-1",
                 "defaultAccessLevel": "guest"
             }
